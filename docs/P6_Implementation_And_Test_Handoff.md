@@ -1,0 +1,267 @@
+# P6 Implementation And Test Handoff
+
+Date: 2026-09-16
+Source baseline: Project Enigma Phase 5 closeout, commit `91c1f2fdfaae7b48aa1e193adfb910956b1d6574`
+
+## Purpose
+
+This is the engineering handoff for the Phase 6 Rogue skill-tree redesign. It lists the likely files, validation commands, regression surfaces, migration risks, and closeout expectations for the next phase.
+
+Use this as the practical companion to:
+
+- `P6_Skill_Tree_Redesign_Brief.md`
+- `P6_Current_Player_Build_System_Map.md`
+- `P6_Skill_Tree_Content_Audit.md`
+
+## Baseline To Preserve
+
+Start from the closed Phase 5 baseline. Do not reopen Phase 5 unless a Phase 6 task explicitly requires it.
+
+Preserve:
+
+- Generated-contract Adventure loop.
+- Five-slot gear model and item presentation.
+- Deterministic reward and shop generation.
+- Practice Room as the build sandbox.
+- Balance Lab as deterministic build validation.
+- Save/load compatibility and materialized build state.
+- Itch.io-ready export path and P5M12 closeout scripts.
+
+Accepted Phase 5 warnings remain non-blockers unless Phase 6 directly touches them:
+
+- Godot headless ObjectDB/RID/resource cleanup warnings at process exit.
+- Intentional corrupt-save parse output in `save_load_test.gd`.
+- One Balance Lab watch item for `bladedancer_contract_watchmen`.
+
+## Likely Implementation Files
+
+Core build data:
+
+- `project/data/subclass_trees/assassin.tres`
+- `project/data/subclass_trees/bladedancer.tres`
+- `project/data/subclass_trees/shadow.tres`
+- `project/data/subclass_trees/thief.tres`
+- `project/data/talents/assassin/*.tres`
+- `project/data/talents/bladedancer/*.tres`
+- `project/data/talents/shadow/*.tres`
+- `project/data/talents/thief/*.tres`
+- `project/data/skills/*.tres`
+
+Core resource scripts:
+
+- `project/scripts/resources/subclass_tree.gd`
+- `project/scripts/resources/talent.gd`
+- `project/scripts/resources/skill.gd`
+- `project/scripts/resources/skill_effect.gd`
+- `project/scripts/resources/skill_augment.gd`
+- `project/scripts/resources/triggered_skill_effect.gd`
+- `project/scripts/resources/player_stats.gd`
+- `project/scripts/resources/stat_modifier.gd`
+
+Core systems:
+
+- `project/scripts/systems/build_resolver.gd`
+- `project/scripts/systems/combat_resolver.gd`
+- `project/scripts/systems/damage_calculator.gd`
+- `project/scripts/systems/combat_timing.gd`
+- `project/scripts/systems/combat_recap.gd`
+- `project/scripts/systems/combat_result_formatter.gd`
+- `project/scripts/systems/stat_catalog.gd`
+- `project/scripts/systems/save_system.gd`
+- `project/scripts/systems/training_room_state.gd`
+
+UI and player-facing explanation:
+
+- `project/scenes/subclass_select/subclass_select.gd`
+- `project/scenes/combat/talent_panel.gd`
+- `project/scenes/combat/talent_overlay.gd`
+- `project/scenes/combat/active_talents_panel.gd`
+- `project/scenes/combat/available_skills_panel.gd`
+- `project/scenes/combat/skill_build_panel.gd`
+- `project/scripts/ui/skill_tooltip_formatter.gd`
+- `project/scenes/training_room/training_room.gd`
+- `project/scenes/training_room/training_room_combat_view.gd`
+
+Tools and reports:
+
+- `project/scripts/tools/balance_lab.gd`
+- `project/scripts/tools/run_balance_suite.gd`
+- `project/reports/balance/latest/`
+- `tools/p5m12/run_regression.ps1`
+
+## Recommended Work Order
+
+1. Design first.
+
+Create the Phase 6 talent/tree design table before editing resources. Include tree identity, talent list, costs, prerequisites, active skills, intended gear synergies, expected weaknesses, and required tests.
+
+2. Decide migration strategy.
+
+Before renaming or deleting IDs, decide how old save/load data should behave. Prefer preserving stable IDs when the concept remains recognizable.
+
+3. Update data resources.
+
+Change `.tres` resources in small groups. Keep each tree independently testable.
+
+4. Update resolver hooks.
+
+Only add new resolver fields or combat hooks when existing `StatModifier`, `SkillAugment`, and `TriggeredSkillEffect` shapes are insufficient.
+
+5. Update tooltips and UI.
+
+Make sure talent summaries, active talent cards, skill tooltips, and Practice Room panels explain what the player can actually observe.
+
+6. Add tests with each mechanic.
+
+Do not wait for the full redesign to write tests. Each new tree mechanic should get a focused test when it lands.
+
+7. Run Balance Lab after the mechanics are stable.
+
+Balance Lab should compare whole builds and representative enemies after implementation correctness is covered.
+
+## Test Surfaces To Preserve Or Extend
+
+Existing tests likely to matter:
+
+- `project/tests/thief_subclass_test.gd`
+- `project/tests/build_panels_test.gd`
+- `project/tests/training_room_build_test.gd`
+- `project/tests/training_room_fight_test.gd`
+- `project/tests/training_room_fight_setup_test.gd`
+- `project/tests/training_room_combat_view_test.gd`
+- `project/tests/skill_tooltip_formatter_test.gd`
+- `project/tests/skill_build_geometry_test.gd`
+- `project/tests/hold_skill_test.gd`
+- `project/tests/opportunity_strikes_test.gd`
+- `project/tests/engine_mechanics_test.gd`
+- `project/tests/legendary_mechanics_test.gd`
+- `project/tests/p5m4_weapon_scaling_percentages_test.gd`
+- `project/tests/p5m7_gold_gain_economy_test.gd`
+- `project/tests/p5m11_economy_stats_test.gd`
+- `project/tests/p5m11_overkill_gold_test.gd`
+- `project/tests/save_load_test.gd`
+- `project/tests/combat_hud_test.gd`
+- `project/tests/combat_screen_test.gd`
+
+New Phase 6 tests should cover:
+
+- Each tree resource loads and exposes the expected talent IDs.
+- Talent prerequisites and costs produce the intended progression.
+- Tree intrinsics resolve into stats, skills, augments, or triggers correctly.
+- Active skill unlocks appear in Adventure and Practice Room.
+- Rotation filtering still removes unavailable skills and keeps the 10-slot cap.
+- Skill tooltip text matches resolved mechanics after tree changes.
+- Save/load handles existing and redesigned talent selections safely.
+- Practice Room can select every tree and run representative builds.
+- Balance Lab includes one baseline and one pushed build per tree.
+- Mixed-tree builds do not accidentally bypass intended gates.
+
+## Regression Commands
+
+Use the existing P5M12 script as the broad closeout smoke while Phase 6 is still in progress:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File tools\p5m12\run_regression.ps1
+```
+
+For Balance Lab:
+
+```powershell
+F:\Applications\Godot\Godot_v4.7-stable_win64_console.exe --headless --path project -s res://scripts/tools/run_balance_suite.gd
+```
+
+For Shop Lab, only needed if Phase 6 touches gear reward/shop economy or Thief economy behavior broadly:
+
+```powershell
+node tools\shop-lab\run_checks.js
+```
+
+For itch/web closeout if Phase 6 produces a new hosted build:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File tools\p5m12\export_itchio.ps1
+```
+
+## Suggested P6 Test Bundle
+
+Create a Phase 6 script once enough tests exist, likely `tools/p6/run_skill_tree_regression.ps1`, with this shape:
+
+1. Focused tree resource and BuildResolver tests.
+2. Focused combat mechanic tests for new tree effects.
+3. Skill tooltip formatter checks.
+4. Talent panel and Practice Room build checks.
+5. Save/load compatibility checks.
+6. Balance Lab scenario run.
+7. Optional broad P5M12 regression at closeout.
+
+## Migration Rules
+
+Default safe rules:
+
+- Keep resource IDs stable if the player-facing concept survives.
+- Add aliases or explicit save migration before deleting an old ID.
+- Treat file names as less important than `id` fields.
+- Keep old tests until equivalent Phase 6 coverage exists.
+- Record intentional behavior changes in the Phase 6 tracker rather than silently updating assertions.
+
+High-risk changes:
+
+- Renaming `skill.killers_mark` or `skill.toxic_flurry` without migration.
+- Removing Thief or Steal paths without updating `thief_subclass_test.gd` and save/load assumptions.
+- Moving poison/shred/decay behavior without updating tooltip and combat recap text.
+- Changing gold scaling without checking reward gold, stolen gold, current gold, Overkill Gold, and Increased Gold together.
+- Adding retrigger or triggered-skill interactions without proving chain caps and source filters still work.
+
+## Balance Lab Handoff
+
+Current Balance Lab closeout ended with 69 pass, 1 accepted warning, and 0 fail. The accepted warning is the Bladedancer Cloaked Watchmen matchup.
+
+Phase 6 should add scenarios that answer:
+
+- Can Assassin beat long fights through poison without erasing all resistance pressure?
+- Can Bladedancer answer armor without becoming the best generic damage tree?
+- Can Shadow exploit resistance and debuff setup without duplicating Assassin and Bladedancer too much?
+- Can Thief convert gold into combat without making shopping feel wrong?
+- Do mixed-tree builds have clear opportunity cost?
+
+Do not tune from a single scenario. Use representative normal, captain, elite, boss, armor-heavy, resistance-heavy, cleanse/suppress, dodge/block, and crit-negation enemies.
+
+## Documentation To Update During Phase 6
+
+Create or update:
+
+- `docs/P6_Skill_Tree_Redesign_Overview.md`
+- `docs/P6M1_..._Tracker.md` through closeout trackers as milestones are defined.
+- `docs/Project_Onboarding_Context.md`
+- `docs/Project_Overview.md`
+- `docs/New_Gear_Overview.md` only where Phase 6 changes current Rogue talent baseline or gear synergy notes.
+- `docs/P6_Phase_6_Closeout_Handoff.md` at phase close.
+
+Keep Phase 6 docs separate from Phase 5 closeout docs. Reference Phase 5 as baseline evidence; do not rewrite Phase 5 history unless correcting an error.
+
+## Closeout Expectations
+
+Phase 6 closeout should include:
+
+- Updated Rogue tree resources.
+- Updated active skill and tooltip behavior.
+- Practice Room support for redesigned builds.
+- Balance Lab scenarios and current results.
+- Focused tests for every new tree mechanic.
+- Save/load compatibility notes.
+- Known tuning caveats and accepted warnings.
+- Updated onboarding and project overview docs.
+- A clean Git commit and push.
+- Optional itch.io-ready export if the phase produces a new external playtest build.
+
+## Stop Conditions
+
+Pause and re-scope before continuing if:
+
+- The redesign requires new classes.
+- The redesign requires a gear-system rewrite.
+- The redesign requires replacing the combat resolver wholesale.
+- The UI needs a full layout paradigm change beyond making talent trees readable.
+- Balance changes become broad economy or generated-route redesign work.
+
+Those may be good ideas later, but they are not automatically Phase 6.
