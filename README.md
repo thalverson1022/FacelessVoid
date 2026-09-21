@@ -24,7 +24,8 @@ cards, Practice Room validation, and Balance Lab coverage.
 
 ## Repository Setup
 
-- Active branch: `phase-5-gear-redesign`
+- Primary branch: `main`
+- Phase 5 closeout branch: `phase-5-gear-redesign`
 - Godot project: `project/project.godot`
 - Godot version: `4.7`
 - Standalone remote: `https://github.com/thalverson1022/Enigma.git`

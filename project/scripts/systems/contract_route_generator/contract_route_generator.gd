@@ -9,6 +9,11 @@ const MODIFIER_MODEL_VERSION := "p4m8.modifiers.v1"
 const ELITE_VARIANT_MODEL_VERSION := "p4m8.elite_variants.v1"
 const BOSS_VARIANT_MODEL_VERSION := "p4m8.boss_variants.v1"
 const MAX_MONSTER_DIFFICULTY_ID := 5
+## Bound on how many times _generate_with_pressure_retry() re-seeds a draft
+## whose own pressure model flagged "over_band" (required DPS well outside
+## the intended difficulty window). Attempt 0 always uses the original,
+## unsuffixed seed, so an already-in-tolerance encounter is unaffected.
+const MAX_PRESSURE_RETRY_ATTEMPTS := 5
 const PRESSURE_AXIS_PHYSICAL := "physical_mitigation"
 const PRESSURE_AXIS_MAGICAL_POISON := "magical_poison_mitigation"
 const PRESSURE_AXIS_DEBUFF_POISON := "debuff_poison_disruption"
@@ -895,25 +900,15 @@ static func _assign_generated_encounter(seed: int, contract: ContractDef, node: 
 	_assign_elite_variant(node, elite_variant)
 	_assign_boss_variant(node, boss_variant)
 	var archetypes := _encounter_archetype_ids(seed, node, content_difficulty_id, monster_kind, library, elite_variant, boss_variant)
-	var input := RuntimeGenerationInput.from_dictionary({
-		"seed": _encounter_seed(seed, node.generated_node_id),
-		"archetypeA": archetypes[0],
-		"archetypeB": archetypes[1],
-		"difficulty": stat_difficulty_id,
-		"kind": monster_kind,
-		"tempoProfile": _encounter_tempo_profile(seed, node, monster_kind),
-		"overrides": {
-			"contract_hp_scaling": _contract_hp_scaling_for_encounter(contract, node),
-			"contract_dps_scaling": _contract_dps_scaling_for_encounter(contract, node),
-			"contract_armor_scaling": _contract_armor_scaling_for_encounter(contract, node),
-			"contract_block_scaling": _contract_block_scaling_for_encounter(contract, node),
-			"contract_absorb_scaling": _contract_absorb_scaling_for_encounter(contract, node),
-			"mechanic_guardrails": _mechanic_guardrails_for_encounter(contract, node, pressure_scale),
-		},
-		"generatorVersion": RuntimeMonsterGenerator.GENERATOR_VERSION,
-		"librarySchema": RuntimeArchetypeLibraryLoader.EXPECTED_SCHEMA,
-	})
-	var draft := RuntimeMonsterGenerator.generate(input, library)
+	var input_overrides := {
+		"contract_hp_scaling": _contract_hp_scaling_for_encounter(contract, node),
+		"contract_dps_scaling": _contract_dps_scaling_for_encounter(contract, node),
+		"contract_armor_scaling": _contract_armor_scaling_for_encounter(contract, node),
+		"contract_block_scaling": _contract_block_scaling_for_encounter(contract, node),
+		"contract_absorb_scaling": _contract_absorb_scaling_for_encounter(contract, node),
+		"mechanic_guardrails": _mechanic_guardrails_for_encounter(contract, node, pressure_scale),
+	}
+	var draft := _generate_with_pressure_retry(seed, node, archetypes, stat_difficulty_id, monster_kind, input_overrides, library)
 	var preview: Dictionary = EncounterPreviewFormatterScript.format_generated(draft, {
 		"biome": node.biome,
 		"monster_name": node.monster_presentation_type,
@@ -1075,18 +1070,61 @@ static func _modifier_applies_to_node(modifier: Dictionary, node: ContractRouteN
 	return false
 
 
-static func _encounter_seed(seed: int, node_id: String) -> int:
-	return RunRng.seed_for_context(
-		seed,
-		RNG_CONTEXT,
-		[
-			GENERATOR_VERSION,
-			"node_encounter",
-			RuntimeMonsterGenerator.GENERATOR_VERSION,
-			RuntimeArchetypeLibraryLoader.EXPECTED_SCHEMA,
-			node_id,
-		]
-	)
+## RuntimeMonsterGenerator's own pressure model can label a draft "over_band"
+## (required DPS well outside the difficulty band's intended window) but
+## nothing previously acted on that -- the draft still shipped as a real
+## fight. Re-rolls with a deterministically-varied seed per attempt (attempt
+## 0 always reuses the original, unsuffixed seed, so an already-in-tolerance
+## encounter -- the common case -- generates byte-for-byte identically to
+## before this retry loop existed) up to MAX_PRESSURE_RETRY_ATTEMPTS, keeping
+## whichever attempt landed closest to its target_dps if none land in
+## tolerance. A draft that fails validation for reasons other than pressure
+## (missing library, bad archetype ids, ...) isn't retried -- those inputs
+## don't vary with the seed, so a retry would just reproduce the same error.
+static func _generate_with_pressure_retry(
+	seed: int,
+	node: ContractRouteNode,
+	archetypes: Array,
+	stat_difficulty_id: int,
+	monster_kind: String,
+	overrides: Dictionary,
+	library: RuntimeArchetypeLibrary
+) -> GeneratedMonsterDraft:
+	var best_draft: GeneratedMonsterDraft = null
+	var best_ratio_distance := INF
+	for attempt in range(MAX_PRESSURE_RETRY_ATTEMPTS):
+		var input := RuntimeGenerationInput.from_dictionary({
+			"seed": _encounter_seed(seed, node.generated_node_id, attempt),
+			"archetypeA": archetypes[0],
+			"archetypeB": archetypes[1],
+			"difficulty": stat_difficulty_id,
+			"kind": monster_kind,
+			"tempoProfile": _encounter_tempo_profile(seed, node, monster_kind),
+			"overrides": overrides,
+			"generatorVersion": RuntimeMonsterGenerator.GENERATOR_VERSION,
+			"librarySchema": RuntimeArchetypeLibraryLoader.EXPECTED_SCHEMA,
+		})
+		var draft := RuntimeMonsterGenerator.generate(input, library)
+		if String(draft.pressure_metadata.get("status", "")) != "over_band":
+			return draft
+		var ratio_distance := absf(float(draft.pressure_metadata.get("ratio", 1.0)) - 1.0)
+		if best_draft == null or ratio_distance < best_ratio_distance:
+			best_draft = draft
+			best_ratio_distance = ratio_distance
+	return best_draft
+
+
+static func _encounter_seed(seed: int, node_id: String, attempt: int = 0) -> int:
+	var parts := [
+		GENERATOR_VERSION,
+		"node_encounter",
+		RuntimeMonsterGenerator.GENERATOR_VERSION,
+		RuntimeArchetypeLibraryLoader.EXPECTED_SCHEMA,
+		node_id,
+	]
+	if attempt > 0:
+		parts.append("pressure_retry_%d" % attempt)
+	return RunRng.seed_for_context(seed, RNG_CONTEXT, parts)
 
 
 static func _encounter_difficulty_id(contract: ContractDef, node: ContractRouteNode) -> int:

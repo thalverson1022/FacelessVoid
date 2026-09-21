@@ -299,6 +299,7 @@ var _map_manual_open: bool = false
 var _pending_contract_route_node: ContractRouteNode = null
 var _gear_drop_icon_cache: Dictionary = {}
 var _biome_frame_texture_cache: Dictionary = {}
+var _map_actor_texture_cache: Dictionary = {}
 ## Which Tavern node the player has clicked to preview but not yet committed
 ## via Proceed; -1 when nothing is previewed.
 var _tavern_preview_index: int = -1
@@ -2136,19 +2137,30 @@ func _add_map_actor_marker(button: Button, monster: Monster, enabled: bool, visu
 	button.add_child(actor)
 
 
+## Every marker for a given visual_key resolves to the same path/region, so
+## the constructed texture is cached instead of reloading + re-wrapping a new
+## AtlasTexture per marker on every map refresh (mirrors _gear_drop_icon_cache
+## above).
 func _map_actor_texture(monster: Monster, visual_name: String = "") -> Texture2D:
 	var visual_key := _map_actor_visual_key(monster, visual_name)
 	if visual_key == "":
 		return null
+	if _map_actor_texture_cache.has(visual_key):
+		return _map_actor_texture_cache[visual_key]
 	var animation_paths: Dictionary = CombatStage.ENEMY_ANIMATION_PATHS.get(visual_key, {})
 	var path: String = animation_paths.get("idle", "")
 	if path == "":
 		return null
+	var texture: Texture2D
 	if CombatStage.STATIC_ENEMY_VISUAL_KEYS.has(visual_key):
-		return _texture_from_path(path)
-	var animation_regions: Dictionary = CombatStage.ENEMY_ANIMATION_REGIONS.get(visual_key, {})
-	var region: Rect2 = animation_regions.get("idle", Rect2(Vector2.ZERO, Vector2(CombatStage.PEASANT_FRAME_SIZE)))
-	return _atlas_texture_from_path(path, region)
+		texture = _texture_from_path(path)
+	else:
+		var animation_regions: Dictionary = CombatStage.ENEMY_ANIMATION_REGIONS.get(visual_key, {})
+		var region: Rect2 = animation_regions.get("idle", Rect2(Vector2.ZERO, Vector2(CombatStage.PEASANT_FRAME_SIZE)))
+		texture = _atlas_texture_from_path(path, region)
+	if texture != null:
+		_map_actor_texture_cache[visual_key] = texture
+	return texture
 
 
 func _map_actor_visual_key(monster: Monster, visual_name: String = "") -> String:

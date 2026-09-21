@@ -1669,9 +1669,23 @@ func equip(gear: GearItem) -> void:
 			equipped_trinket = gear
 		GearItem.SlotType.CHARM:
 			equipped_charm = gear
+	# A full inventory must not silently grow past INVENTORY_CAPACITY when a
+	# swap displaces the previously-equipped item -- every other way to
+	# acquire gear (buy/reward/claim) is gated on inventory space, so this
+	# would otherwise be the one path that isn't. Selling the displaced item
+	# for gold mirrors sell_equipped_item()'s existing resolution for "this
+	# gear is going away" and keeps equip() always succeeding, which
+	# choose_pending_reward_gear() relies on for auto-equipped Legendaries.
+	var sold_displaced_for_gold := false
 	if replaced != null and replaced != gear and not inventory.has(replaced):
-		inventory.append(replaced)
+		if can_add_inventory_item():
+			inventory.append(replaced)
+		else:
+			gold += sell_value_for(replaced)
+			sold_displaced_for_gold = true
 	build_changed.emit()
+	if sold_displaced_for_gold:
+		run_state_changed.emit()
 
 
 func unequip(slot: GearItem.SlotType) -> void:

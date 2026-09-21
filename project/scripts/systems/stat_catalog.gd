@@ -567,7 +567,19 @@ static func value_range_for_slot_category(slot: GearItem.SlotType, category: Str
 	return value_range_for_slot(slot, canonical_id)
 
 
+static var _pool_for_slot_cache: Dictionary = {}
+
+
+## SLOT_CATEGORY_POOLS/DEFINITIONS are fixed constants, so the derived pool
+## for a given (slot, category) is always the same -- cached instead of
+## re-canonicalizing every entry on every call, since gear generation and
+## weight_for_slot()/is_stat_valid_for_slot() (which each call this just to
+## scan for one entry) can hit this dozens of times per item rolled.
 static func pool_for_slot(slot: GearItem.SlotType, category: String) -> Array[Dictionary]:
+	var cache_key := "%d:%s" % [slot, category]
+	if _pool_for_slot_cache.has(cache_key):
+		var cached: Array[Dictionary] = _pool_for_slot_cache[cache_key]
+		return cached.duplicate()
 	var slot_pools: Dictionary = SLOT_CATEGORY_POOLS.get(slot, {})
 	var raw_pool: Array = slot_pools.get(category, [])
 	var pool: Array[Dictionary] = []
@@ -581,7 +593,8 @@ static func pool_for_slot(slot: GearItem.SlotType, category: String) -> Array[Di
 			"stat_id": stat_id,
 			"weight": max(0, int(entry.get("weight", 0))),
 		})
-	return pool
+	_pool_for_slot_cache[cache_key] = pool
+	return pool.duplicate()
 
 
 static func stat_ids_for_slot(slot: GearItem.SlotType, category: String) -> Array[String]:

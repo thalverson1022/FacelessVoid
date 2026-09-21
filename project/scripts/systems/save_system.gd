@@ -46,13 +46,24 @@ static func delete_save() -> void:
 			DirAccess.remove_absolute(ProjectSettings.globalize_path(save_path))
 
 
+## Writes to a temp file first and swaps it into place afterward, so a
+## crash/power-loss mid-write leaves the previous good save intact instead of
+## truncating it in place (a direct WRITE-mode open truncates immediately).
 static func save_run(state) -> bool:
-	var file := FileAccess.open(save_path, FileAccess.WRITE)
+	var tmp_path := save_path + ".tmp"
+	var file := FileAccess.open(tmp_path, FileAccess.WRITE)
 	if file == null:
 		return false
 	file.store_string(JSON.stringify(_serialize(state), "\t"))
 	file.close()
-	return true
+	var dir := DirAccess.open(tmp_path.get_base_dir())
+	if dir == null:
+		return false
+	var tmp_name := tmp_path.get_file()
+	var target_name := save_path.get_file()
+	if dir.file_exists(target_name):
+		dir.remove(target_name)
+	return dir.rename(tmp_name, target_name) == OK
 
 
 ## Returns true on a successful load, having written every field to `state`.
