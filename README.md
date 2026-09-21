@@ -1,4 +1,4 @@
-# Project Enigma
+# Project FacelessVoid
 
 ## Design labs
 
@@ -10,8 +10,8 @@
 - [Balance Lab](tools/balance-lab/README.md)
 - [Sprite Lab](tools/sprite-lab/README.md)
 
-Project Enigma is the Phase 5 continuation of the generated-contract Rogue
-adventure loop that began in earlier project branches. The current baseline is a
+Project FacelessVoid is the Phase 6 Rogue skill-tree redesign, built on Enigma's
+audited Phase 5 generated-contract Rogue adventure loop. The current baseline is a
 playable fantasy roguelite deck-and-build RPG prototype focused on readable
 buildcraft, generated contracts, deterministic rewards, and gear-driven matchup
 decisions.
@@ -25,13 +25,15 @@ cards, Practice Room validation, and Balance Lab coverage.
 ## Repository Setup
 
 - Primary branch: `main`
-- Phase 5 closeout branch: `phase-5-gear-redesign`
+- Development branch: `phase-6-skill-tree-redesign`
 - Godot project: `project/project.godot`
 - Godot version: `4.7`
-- Standalone remote: `https://github.com/thalverson1022/Enigma.git`
-- Current closeout milestone: P5M12 Phase 5 Regression, Smoke, And Closeout
+- Standalone remote: `https://github.com/thalverson1022/FacelessVoid.git`
+- Audited source baseline: Enigma `d0e025ae9ff6b86aa389582443be6382547cb4cc`
+- Start here: [Phase 6 onboarding](docs/P6_Project_Onboarding_Context.md)
+- Integration and validation: [audited baseline](docs/P6_Audited_Baseline_Integration.md)
 
-## P5M12 Closeout
+## Inherited validation and export tools
 
 Run the final regression and itch.io export package scripts from the repository
 root:
@@ -47,5 +49,6 @@ The itch.io-ready web package is written to:
 release/itchio/project-enigma-phase5-itch.zip
 ```
 
-Use `docs/Itch_IO_Release_Checklist.md` when uploading the web package to
-itch.io.
+This package is the historical Phase 5 export, not a newly validated Phase 6
+release. Historical Phase 5 documents remain in Enigma and Git history; this
+repository's docs folder contains Phase 6 context only.

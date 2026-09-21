@@ -1,7 +1,7 @@
 # P6 Skill Tree Redesign Brief
 
 Date: 2026-09-16
-Source baseline: Project Enigma Phase 5 closeout, commit `91c1f2fdfaae7b48aa1e193adfb910956b1d6574` on `phase-5-gear-redesign`
+Source baseline: Project Enigma audited Phase 5, commit `d0e025ae9ff6b86aa389582443be6382547cb4cc` on `main` (integrated 2026-09-21; original closeout `91c1f2fdfaae7b48aa1e193adfb910956b1d6574`). See `docs/P6_Audited_Baseline_Integration.md`.
 
 ## Purpose
 
@@ -121,8 +121,8 @@ Start by reading:
 2. `docs/P6_Current_Player_Build_System_Map.md`
 3. `docs/P6_Skill_Tree_Content_Audit.md`
 4. `docs/P6_Implementation_And_Test_Handoff.md`
-5. `docs/Project_Overview.md`
-6. `docs/P5_Phase_5_Closeout_Handoff.md`
-7. `docs/New_Gear_Overview.md`
+5. `../Project-Enigma/docs/Project_Overview.md` (optional historical context)
+6. `../Project-Enigma/docs/P5_Phase_5_Closeout_Handoff.md` (optional historical context)
+7. `../Project-Enigma/docs/New_Gear_Overview.md` (optional historical context)
 
 Then work from the closed Phase 5 baseline and keep Phase 6 scoped to Rogue skill-tree redesign unless a new task explicitly expands the phase.

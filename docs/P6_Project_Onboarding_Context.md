@@ -1,7 +1,7 @@
 # P6 Project Onboarding Context
 
 Date: 2026-09-16
-Source baseline: Project Enigma Phase 5 closeout, commit `91c1f2fdfaae7b48aa1e193adfb910956b1d6574` on `phase-5-gear-redesign`
+Source baseline: Project Enigma audited Phase 5, commit `d0e025ae9ff6b86aa389582443be6382547cb4cc` on `main` (integrated 2026-09-21; original closeout `91c1f2fdfaae7b48aa1e193adfb910956b1d6574`). See `docs/P6_Audited_Baseline_Integration.md`.
 
 ## Purpose
 
@@ -18,14 +18,14 @@ Read these Phase 6 handoff documents in order:
 3. `docs/P6_Skill_Tree_Content_Audit.md`
 4. `docs/P6_Implementation_And_Test_Handoff.md`
 
-Then read these Phase 5/current-baseline documents as supporting context:
+Read `docs/P6_Audited_Baseline_Integration.md` for the current baseline and validation. The following Phase 5 documents are optional historical context in the sibling `Project-Enigma` repository; they are intentionally absent from FacelessVoid:
 
-5. `docs/Project_Overview.md`
-6. `docs/Project_Onboarding_Context.md`
-7. `docs/P5_Phase_5_Closeout_Handoff.md`
-8. `docs/P5M12_Phase_5_Regression_Smoke_And_Closeout_Tracker.md`
-9. `docs/New_Gear_Overview.md`
-10. `docs/P5_Gear_Redesign_Overview.md`
+5. `../Project-Enigma/docs/Project_Overview.md`
+6. `../Project-Enigma/docs/Project_Onboarding_Context.md`
+7. `../Project-Enigma/docs/P5_Phase_5_Closeout_Handoff.md`
+8. `../Project-Enigma/docs/P5M12_Phase_5_Regression_Smoke_And_Closeout_Tracker.md`
+9. `../Project-Enigma/docs/New_Gear_Overview.md`
+10. `../Project-Enigma/docs/P5_Gear_Redesign_Overview.md`
 
 Use the Phase 6 docs as the current scope boundary. Use the Phase 5 docs as baseline evidence for what already exists.
 

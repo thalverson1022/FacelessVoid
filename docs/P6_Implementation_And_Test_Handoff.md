@@ -1,7 +1,7 @@
 # P6 Implementation And Test Handoff
 
 Date: 2026-09-16
-Source baseline: Project Enigma Phase 5 closeout, commit `91c1f2fdfaae7b48aa1e193adfb910956b1d6574`
+Source baseline: Project Enigma audited Phase 5, commit `d0e025ae9ff6b86aa389582443be6382547cb4cc` on `main` (integrated 2026-09-21; original closeout `91c1f2fdfaae7b48aa1e193adfb910956b1d6574`). See `docs/P6_Audited_Baseline_Integration.md`.
 
 ## Purpose
 
@@ -232,9 +232,9 @@ Create or update:
 
 - `docs/P6_Skill_Tree_Redesign_Overview.md`
 - `docs/P6M1_..._Tracker.md` through closeout trackers as milestones are defined.
-- `docs/Project_Onboarding_Context.md`
-- `docs/Project_Overview.md`
-- `docs/New_Gear_Overview.md` only where Phase 6 changes current Rogue talent baseline or gear synergy notes.
+- `docs/P6_Project_Onboarding_Context.md`
+- `README.md`
+- Record current Rogue talent and gear synergy changes in Phase 6 docs; keep historical Enigma documents outside this docs folder.
 - `docs/P6_Phase_6_Closeout_Handoff.md` at phase close.
 
 Keep Phase 6 docs separate from Phase 5 closeout docs. Reference Phase 5 as baseline evidence; do not rewrite Phase 5 history unless correcting an error.

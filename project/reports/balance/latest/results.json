@@ -1,5 +1,5 @@
 {
-	"generated_at": "2026-09-09T21:15:40",
+	"generated_at": "2026-09-21T15:48:54",
 	"mechanics": [
 		{
 			"id": "bandit_physical_multiplier",
@@ -4688,7 +4688,7 @@
 	],
 	"mechanics_count": 53,
 	"metadata": {
-		"generated_at": "2026-09-09T21:15:40",
+		"generated_at": "2026-09-21T15:48:54",
 		"mechanics_count": 53,
 		"project": "Project Enigma",
 		"scenario_count": 17,
