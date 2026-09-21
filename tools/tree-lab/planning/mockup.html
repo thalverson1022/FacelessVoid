@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tree Lab — planning mockup</title>
+  <link rel="stylesheet" href="mockup.css">
+</head>
+<body>
+<main>
+  <header>
+    <div><p class="eyebrow">PROJECT FACELESS VOID / DESIGN LABS</p><h1>Tree Lab <span>Planning mockup</span></h1></div>
+    <div class="actions"><button id="sample">Assassin sketch</button><button id="empty">Empty template</button><button disabled>Import JSON</button><button disabled>Export JSON</button></div>
+  </header>
+  <p class="notice">Explore the layout and point progression. Example numbers are provisional. Editing, dragging, file actions and autosave are not implemented in this mockup.</p>
+  <nav aria-label="Tree slots"><strong id="tree-name">Assassin</strong><button disabled>+ Second tree · later</button></nav>
+  <div class="workspace">
+    <section class="canvas-panel" aria-label="Talent canvas">
+      <div class="toolbar">
+        <div class="actions"><button id="edit" aria-pressed="true">Edit</button><button id="allocate" aria-pressed="false">Allocate</button><button id="add" disabled>+ Add talent</button></div>
+        <div class="actions"><label>Budget <input id="budget" type="number" min="0" max="100" value="15"></label><button id="reset">Reset points</button></div>
+      </div>
+      <div class="summary"><strong id="points">0 / 15 points</strong><span id="mode-help">Select a talent to inspect its fields.</span></div>
+      <div class="canvas-scroll"><div id="canvas"><svg id="connections" aria-label="Talent prerequisite connections"></svg><div id="levels"></div></div></div>
+      <button id="intrinsic" class="intrinsic"></button>
+      <div class="track-heading"><h2>Automatic skill unlocks</h2><span>Free rewards from tree investment</span></div>
+      <div id="unlocks"></div>
+    </section>
+    <aside aria-label="Selected node inspector">
+      <p class="eyebrow">NODE INSPECTOR</p><h2 id="selected-name">Select a talent</h2>
+      <p id="selected-description"></p>
+      <div id="rank-controls" class="actions"><button id="minus" aria-label="Refund one rank">−</button><strong id="rank"></strong><button id="plus" aria-label="Allocate one rank">+</button></div>
+      <p id="eligibility" role="status"></p>
+      <div id="fields"></div>
+      <h3>Placeholder icon bank</h3><div id="icons" aria-label="Placeholder icons"></div>
+      <p class="small">Choose an icon to preview it on this node. Changes here are temporary.</p>
+      <div class="inspector-note">Connections require one point in each source talent. The destination level must also be unlocked.</div>
+    </aside>
+  </div>
+  <footer><span id="status" role="status">Assassin concept loaded. No changes are saved.</span><button id="undo" disabled>Undo point change</button></footer>
+</main>
+<script src="preview-data.js"></script><script src="mockup.js"></script>
+</body></html>

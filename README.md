@@ -1,5 +1,15 @@
 # Project Enigma
 
+## Design labs
+
+- [Tree Lab](tools/tree-lab/README.md): visual talent-tree editor, JSON import/export,
+  browser draft recovery, and point-allocation preview. Open
+  `tools/tree-lab/index.html` directly in a browser; no server or install is needed.
+- [Shop Lab](tools/shop-lab/README.md)
+- [Monster Lab](tools/monster-lab/README.md)
+- [Balance Lab](tools/balance-lab/README.md)
+- [Sprite Lab](tools/sprite-lab/README.md)
+
 Project Enigma is the Phase 5 continuation of the generated-contract Rogue
 adventure loop that began in earlier project branches. The current baseline is a
 playable fantasy roguelite deck-and-build RPG prototype focused on readable
