@@ -53,8 +53,8 @@ func _initialize() -> void:
 	assert(active_talents_panel.state != build_state)
 	assert(not active_talents_panel.enable_open_button_attention)
 	assert(active_talents_panel._button_blink_tween == null)
-	assert(training_room._state.earned_talent_points == 10)
-	assert(active_talents_panel._points_label.text == ": 0/10")
+	assert(training_room._state.earned_talent_points == BuildProgression.POINT_CAP)
+	assert(active_talents_panel._points_label.text == ": 0/45")
 	assert(skill_build_panel._slot_count_label.text == "Slots: 0/10")
 	assert(skill_build_panel._lock_button.disabled)
 	assert(skill_build_panel._lock_button.tooltip_text.contains("Slot at least one skill"))
@@ -70,8 +70,7 @@ func _initialize() -> void:
 	assert(talent_scroll != null)
 	assert(talent_scroll.horizontal_scroll_mode == ScrollContainer.SCROLL_MODE_DISABLED)
 	assert(training_room._talent_overlay.find_child("TreeDropdowns", true, false) == null)
-	assert(talent_panel.find_child("PrimaryTalentColumn", true, false) != null)
-	assert(talent_panel.find_child("SecondaryTalentColumn", true, false) != null)
+	assert(talent_panel._ranked_view != null)
 	assert(talent_panel.find_child("PrimaryTreeOption", true, false) is OptionButton)
 	assert(talent_panel.find_child("SecondaryTreeOption", true, false) is OptionButton)
 	assert(not _talent_panel_text(talent_panel).contains("No subclass selected."))
@@ -82,23 +81,15 @@ func _initialize() -> void:
 	assert(training_room._state.equipped_charm == null)
 	assert(training_room._state.equipped_gear().is_empty())
 
-	# -- Freeform tree dropdowns: pick 2 of the 3 real trees --
-	assert(rogue.trees.size() == 4)
-	training_room._on_primary_tree_selected(rogue.trees[1])
-	training_room._on_secondary_tree_selected(rogue.trees[2])
+	# -- The shipped Practice UI uses the scoped ranked core, not legacy trees. --
+	var core_tree: SubclassTree = training_room._state.selected_class.trees[0]
+	assert(core_tree.id == "tree.bladedancer")
+	assert(training_room._state.selected_class.trees.size() == 4)
+	assert(not training_room._state.set_secondary_tree(core_tree))
+	talent_panel._ranked_view.transact("buy", "talent.bladedancer.wet_stone", "buy:talent.bladedancer.wet_stone")
 	await process_frame
-	print("practice trees selected=%d (expect 2)" % training_room._state.selected_trees.size())
-	assert(training_room._state.selected_trees.size() == 2)
-	assert(training_room._state.selected_trees.has(rogue.trees[1]))
-	assert(training_room._state.selected_trees.has(rogue.trees[2]))
-
-	# -- Talent selection through the real talent_panel handler --
-	var bladedancer_talent: Talent = _find_talent(rogue.trees[1], "talent.piercing_blades")
-	assert(bladedancer_talent != null)
-	talent_panel._on_node_pressed(bladedancer_talent)
 	await process_frame
-	print("practice talents selected (expect Piercing Blades): %s" % [training_room._state.selected_talents])
-	assert(training_room._state.selected_talents.has(bladedancer_talent))
+	assert(training_room._state.ranked_build.rank_of("talent.bladedancer.wet_stone") == 1)
 
 	# -- Rotation: add a skill via available_skills_panel, confirm
 	# skill_build_panel (a different panel instance) sees the same state --

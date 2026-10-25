@@ -1,4 +1,5 @@
 extends SceneTree
+## M6: Exercise enabled Adventure with the current ranked registry and isolated save.
 ## Headless check for P2:R6:T4's save/load UI hooks. Drives the real
 ## title/game_root scene tree the same way real clicks would:
 ##   - No save: Resume is visible but disabled (grayed out, not hidden --
@@ -80,8 +81,6 @@ func _initialize() -> void:
 	assert(continue_button.get_index() < practice_button.get_index())
 	adventure_button.pressed.emit()
 	await process_frame
-	# No save existed, so pressing New Adventure should proceed straight to
-	# class select rather than popping a confirmation dialog.
 	assert(game_root._current_screen != title)
 	assert(build_state.adventure_seed == 314159)
 
@@ -92,7 +91,7 @@ func _initialize() -> void:
 	var class_lightning_overlay := class_select.find_child("ClassSelectLightningFlashOverlay", true, false) as Control
 	assert(class_lightning_overlay != null)
 	assert(class_lightning_overlay.mouse_filter == Control.MOUSE_FILTER_IGNORE)
-	var rogue: ClassDef = load("res://data/classes/rogue.tres")
+	var rogue: ClassDef = BuildContentRegistry.adventure().classes["class.rogue"]
 	class_select._on_class_selected(rogue)
 	class_select.advanced.emit()
 	await process_frame
@@ -104,7 +103,7 @@ func _initialize() -> void:
 	var subclass_lightning_overlay := subclass_select.find_child("SubclassSelectLightningFlashOverlay", true, false) as Control
 	assert(subclass_lightning_overlay != null)
 	assert(subclass_lightning_overlay.mouse_filter == Control.MOUSE_FILTER_IGNORE)
-	var bladedancer: SubclassTree = rogue.trees[1]
+	var bladedancer: SubclassTree = rogue.trees.filter(func(t): return t.id == "tree.bladedancer")[0]
 	subclass_select._on_tree_selected(bladedancer)
 	subclass_select.advanced.emit()
 	await process_frame
@@ -136,7 +135,7 @@ func _initialize() -> void:
 	var title_after_save = game_root._current_screen
 	var continue_button_2 := _find_button(title_after_save, "Resume Adventure")
 	assert(continue_button_2 != null)
-	print("continue button enabled after save (expect true): %s" % (not continue_button_2.disabled))
+	print("M6 Resume enabled for a current Adventure save")
 	assert(continue_button_2.visible)
 	assert(not continue_button_2.disabled)
 
@@ -162,7 +161,8 @@ func _initialize() -> void:
 	print("restored gold/seed (expect 35 / 314159): %d / %d" % [build_state.gold, build_state.adventure_seed])
 	assert(build_state.gold == 35)
 	assert(build_state.adventure_seed == 314159)
-	assert(build_state.selected_class == rogue)
+	assert(build_state.selected_class.id == rogue.id)
+	assert(build_state.ranked_build.primary_tree().id == "tree.bladedancer")
 	assert(build_state.selected_trees.size() == 1)
 	assert(build_state.selected_trees[0].display_name == "Bladedancer")
 
@@ -199,13 +199,13 @@ func _initialize() -> void:
 	assert(game_root._current_screen != final_title)
 
 	var class_select_2 = game_root._current_screen
-	var rogue_2: ClassDef = load("res://data/classes/rogue.tres")
+	var rogue_2: ClassDef = BuildContentRegistry.adventure().classes["class.rogue"]
 	class_select_2._on_class_selected(rogue_2)
 	class_select_2.advanced.emit()
 	await process_frame
 
 	var subclass_select_2 = game_root._current_screen
-	var bladedancer_2: SubclassTree = rogue_2.trees[1]
+	var bladedancer_2: SubclassTree = rogue_2.trees.filter(func(t): return t.id == "tree.bladedancer")[0]
 	subclass_select_2._on_tree_selected(bladedancer_2)
 	subclass_select_2.advanced.emit()
 	await process_frame

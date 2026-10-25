@@ -17,8 +17,8 @@ func _initialize() -> void:
 func _check_documented_weights() -> void:
 	_require_weight(GearItem.SlotType.WEAPON, StatCatalog.CATEGORY_BASIC, StatCatalog.BASE_DAMAGE, 20)
 	_require_weight(GearItem.SlotType.WEAPON, StatCatalog.CATEGORY_BASIC, StatCatalog.INCREASED_GOLD, 5)
-	_require_weight(GearItem.SlotType.WEAPON, StatCatalog.CATEGORY_BASIC, StatCatalog.SHOP_DISCOUNT, 5)
-	_require_weight(GearItem.SlotType.WEAPON, StatCatalog.CATEGORY_BASIC, StatCatalog.INCREASED_MAGIC_FIND, 5)
+	_require_weight(GearItem.SlotType.WEAPON, StatCatalog.CATEGORY_BASIC, StatCatalog.SHOP_DISCOUNT, 0)
+	_require_weight(GearItem.SlotType.WEAPON, StatCatalog.CATEGORY_BASIC, StatCatalog.INCREASED_MAGIC_FIND, 0)
 	_require_weight(GearItem.SlotType.WEAPON, StatCatalog.CATEGORY_RARE, StatCatalog.CHANCE_TO_SHRED, 15)
 	_require_weight(GearItem.SlotType.WEAPON, StatCatalog.CATEGORY_RARE, StatCatalog.INCREASED_GOLD, 5)
 	_require_weight(GearItem.SlotType.WEAPON, StatCatalog.CATEGORY_RARE, StatCatalog.SHOP_DISCOUNT, 5)

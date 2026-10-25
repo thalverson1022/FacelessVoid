@@ -1,0 +1,58 @@
+[gd_resource type="Resource" script_class="Talent" format=3]
+[ext_resource type="Script" path="res://scripts/resources/talent.gd" id="talent"]
+[ext_resource type="Script" path="res://scripts/resources/talent_rank.gd" id="rank"]
+[ext_resource type="Script" path="res://scripts/resources/stat_derivation_rule.gd" id="rule"]
+
+[sub_resource type="Resource" id="rule1"]
+script = ExtResource("rule")
+kind = "sharpened_edge"
+fraction = 0.20000000
+
+[sub_resource type="Resource" id="rank1"]
+script = ExtResource("rank")
+stat_derivations = Array[Resource]([SubResource("rule1")])
+
+[sub_resource type="Resource" id="rule2"]
+script = ExtResource("rule")
+kind = "sharpened_edge"
+fraction = 0.40000000
+
+[sub_resource type="Resource" id="rank2"]
+script = ExtResource("rank")
+stat_derivations = Array[Resource]([SubResource("rule2")])
+
+[sub_resource type="Resource" id="rule3"]
+script = ExtResource("rule")
+kind = "sharpened_edge"
+fraction = 0.60000000
+
+[sub_resource type="Resource" id="rank3"]
+script = ExtResource("rank")
+stat_derivations = Array[Resource]([SubResource("rule3")])
+
+[sub_resource type="Resource" id="rule4"]
+script = ExtResource("rule")
+kind = "sharpened_edge"
+fraction = 0.80000000
+
+[sub_resource type="Resource" id="rank4"]
+script = ExtResource("rank")
+stat_derivations = Array[Resource]([SubResource("rule4")])
+
+[sub_resource type="Resource" id="rule5"]
+script = ExtResource("rule")
+kind = "sharpened_edge"
+fraction = 1.00000000
+
+[sub_resource type="Resource" id="rank5"]
+script = ExtResource("rank")
+stat_derivations = Array[Resource]([SubResource("rule5")])
+
+[resource]
+script = ExtResource("talent")
+id = "talent.bladedancer.sharpened_edge"
+display_name = "Sharpened Edge"
+max_ranks = 5
+required_tree_points = 10
+prerequisite_ids = Array[String](["talent.bladedancer.precision_attacks"])
+ranks = Array[ExtResource("rank")]([SubResource("rank1"), SubResource("rank2"), SubResource("rank3"), SubResource("rank4"), SubResource("rank5")])

@@ -1,27 +1,28 @@
-[gd_resource type="Resource" script_class="Talent" load_steps=8 format=3]
+[gd_resource type="Resource" script_class="Talent" format=3 uid="uid://bfgpbywqabwwy"]
 
-[ext_resource type="Script" path="res://scripts/resources/talent.gd" id="1_talent"]
-[ext_resource type="Script" path="res://scripts/resources/stat_modifier.gd" id="2_modifier"]
-[ext_resource type="Script" path="res://scripts/resources/prerequisite_group.gd" id="3_group"]
-[ext_resource type="Resource" path="res://data/talents/shadow/lingering_venom.tres" id="4_lingering"]
-[ext_resource type="Resource" path="res://data/talents/shadow/exposed_weakness.tres" id="5_exposed"]
-[ext_resource type="Resource" path="res://data/skills/death_strike.tres" id="6_skill"]
+[ext_resource type="Script" uid="uid://bq2fx6c5wnwsg" path="res://scripts/resources/talent.gd" id="1_talent"]
+[ext_resource type="Script" uid="uid://m13uapmegxo2" path="res://scripts/resources/stat_modifier.gd" id="2_modifier"]
+[ext_resource type="Script" uid="uid://bpusgj7hvipbl" path="res://scripts/resources/prerequisite_group.gd" id="3_group"]
+[ext_resource type="Resource" uid="uid://bfs21r2plgupt" path="res://data/talents/shadow/lingering_venom.tres" id="4_lingering"]
+[ext_resource type="Script" uid="uid://evdact12hmik" path="res://scripts/resources/talent_rank.gd" id="5_crtko"]
+[ext_resource type="Resource" uid="uid://bhcdhubvkcd02" path="res://data/talents/shadow/exposed_weakness.tres" id="5_exposed"]
+[ext_resource type="Resource" uid="uid://bxki58ckraajv" path="res://data/skills/death_strike.tres" id="6_skill"]
+[ext_resource type="Script" uid="uid://c7fj7apjjsn5" path="res://scripts/resources/triggered_skill_effect.gd" id="7_ghet3"]
+[ext_resource type="Script" uid="uid://d3apprhhvrqum" path="res://scripts/resources/skill.gd" id="8_0lt2f"]
+
+[sub_resource type="Resource" id="Resource_black_lotus_group"]
+script = ExtResource("3_group")
+options = Array[ExtResource("1_talent")]([ExtResource("4_lingering"), ExtResource("5_exposed")])
 
 [sub_resource type="Resource" id="Resource_black_lotus_crit"]
 script = ExtResource("2_modifier")
 stat = 1
-operation = 0
 value = 0.1
-
-[sub_resource type="Resource" id="Resource_black_lotus_group"]
-script = ExtResource("3_group")
-options = Array[Talent]([ExtResource("4_lingering"), ExtResource("5_exposed")])
 
 [resource]
 script = ExtResource("1_talent")
 id = "talent.black_lotus"
 display_name = "Black Lotus"
-cost = 1
-prerequisites = Array[PrerequisiteGroup]([SubResource("Resource_black_lotus_group")])
-stat_modifiers = Array[StatModifier]([SubResource("Resource_black_lotus_crit")])
-unlocked_skills = Array[Skill]([ExtResource("6_skill")])
+prerequisites = Array[ExtResource("3_group")]([SubResource("Resource_black_lotus_group")])
+stat_modifiers = Array[ExtResource("2_modifier")]([SubResource("Resource_black_lotus_crit")])
+unlocked_skills = Array[ExtResource("8_0lt2f")]([ExtResource("6_skill")])

@@ -8,7 +8,9 @@ func _initialize() -> void:
 	await process_frame
 
 	_require(AudioServer.get_bus_index("Effects") >= 0, "Expected Effects audio bus.")
-	_require(audio_manager._attack_sfx_streams.size() == 6, "Expected six sword attack SFX streams.")
+	_require(audio_manager._attack_sfx_streams.size() == 5, "Expected five sword hit SFX streams.")
+	_require(not audio_manager.ATTACK_SFX_PATHS.has(audio_manager.DODGE_SFX_PATH), "Sword Swing is reserved for dodges.")
+	_require(audio_manager._dodge_sfx_stream != null, "Expected dedicated Sword Swing dodge stream.")
 	_require(audio_manager._attack_sfx_players.size() == audio_manager.ATTACK_SFX_POOL_SIZE, "Expected attack SFX player pool.")
 	for player in audio_manager._attack_sfx_players:
 		_require(player.bus == "Effects", "Expected attack SFX players to route through Effects.")
@@ -128,6 +130,28 @@ func _initialize() -> void:
 	_require(audio_manager.last_attack_sfx_hit_count == 1, "Expected fully blocked physical hit to count as one hit for diagnostics.")
 	_require(audio_manager.attack_sfx_play_count == before_count + 1, "Expected fully blocked physical hit to play attack SFX.")
 
+	var dodged_cast := CombatResolver.CastEvent.new()
+	dodged_cast.was_dodged = true
+	dodged_cast.time_ms = 900
+	before_count = audio_manager.attack_sfx_play_count
+	var before_dodge_count: int = audio_manager.dodge_sfx_play_count
+	_require(audio_manager.play_attack_sfx_for_cast(dodged_cast, 1.0) == 1, "Zero-damage dodge plays one sound.")
+	_require(audio_manager.dodge_sfx_play_count == before_dodge_count + 1, "Dodge counter increments once.")
+	var player_index: int = posmod(audio_manager._attack_sfx_player_index - 1, audio_manager._attack_sfx_players.size())
+	_require(audio_manager._attack_sfx_players[player_index].stream == audio_manager._dodge_sfx_stream, "Dodge selects Sword Swing only.")
+	var dodge_pitch: float = audio_manager.last_attack_sfx_pitch_scale
+	_require(audio_manager.play_dodge_sfx(2.0, 450), "Fast dodge plays.")
+	_require(audio_manager.last_attack_sfx_pitch_scale > dodge_pitch, "Dodge keeps timing/speed pitch processing.")
+	await create_timer(0.2).timeout
+	_require(audio_manager.attack_sfx_play_count == before_count, "Dodge schedules no random hit sounds.")
+	before_dodge_count = audio_manager.dodge_sfx_play_count
+	_require(audio_manager.play_attack_sfx_for_cast(dodged_cast, 1.0, true) == 0, "Skipped dodge is silent.")
+	_require(audio_manager.dodge_sfx_play_count == before_dodge_count, "Suppression does not play dodge.")
+	# Defensive routing: dodge takes priority even with stale hit/proc fields.
+	proc_cast.was_dodged = true
+	_require(audio_manager.play_attack_sfx_for_cast(proc_cast, 1.0) == 1, "Dodge never schedules proc hit sounds.")
+	await create_timer(0.2).timeout
+	_require(audio_manager.attack_sfx_play_count == before_count and audio_manager.dodge_sfx_play_count == before_dodge_count + 1, "Exactly one dodge sound, no delayed hit sounds.")
 	print("Attack SFX audio check: OK")
 	quit()
 

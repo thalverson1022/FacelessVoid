@@ -12,20 +12,20 @@ extends SceneTree
 ## quit().
 
 
-const HUD_ARMOR_ICON := preload("res://assets/combat_ui_icons/enemy_armor.png")
-const HUD_RESISTANCE_ICON := preload("res://assets/combat_ui_icons/resistance.png")
-const HUD_POISON_ICON := preload("res://assets/combat_ui_icons/poison_stack.png")
-const HUD_SHRED_ICON := preload("res://assets/combat_ui_icons/shred.png")
-const HUD_DECAY_ICON := preload("res://assets/combat_ui_icons/decay.png")
-const MECHANIC_DODGE_ICON := preload("res://assets/ui/icons/mechanics/dodge.png")
-const MECHANIC_CRIT_NEGATION_ICON := preload("res://assets/ui/icons/mechanics/crit_negation.png")
-const MECHANIC_BLOCK_ICON := preload("res://assets/ui/icons/mechanics/block.png")
-const MECHANIC_ABSORB_ICON := preload("res://assets/ui/icons/mechanics/absorb.png")
-const MECHANIC_CLEANSE_ICON := preload("res://assets/ui/icons/mechanics/cleanse.png")
-const MECHANIC_SUPPRESS_ICON := preload("res://assets/ui/icons/mechanics/suppress.png")
-const MECHANIC_SLOW_ICON := preload("res://assets/ui/icons/mechanics/slow.png")
-const MECHANIC_STUN_ICON := preload("res://assets/ui/icons/mechanics/stun.png")
-const MECHANIC_INTERRUPT_ICON := preload("res://assets/ui/icons/mechanics/interrupt.png")
+static var HUD_ARMOR_ICON: Texture2D = GameIcons.icon_for("defense.armor")
+static var HUD_RESISTANCE_ICON: Texture2D = GameIcons.icon_for("defense.resistance")
+static var HUD_POISON_ICON: Texture2D = GameIcons.icon_for("status.poison")
+static var HUD_SHRED_ICON: Texture2D = GameIcons.icon_for("status.shred")
+static var HUD_DECAY_ICON: Texture2D = GameIcons.icon_for("status.decay")
+static var MECHANIC_DODGE_ICON: Texture2D = GameIcons.icon_for("defense.dodge")
+static var MECHANIC_CRIT_NEGATION_ICON: Texture2D = GameIcons.icon_for("defense.crit_negation")
+static var MECHANIC_BLOCK_ICON: Texture2D = GameIcons.icon_for("defense.block")
+static var MECHANIC_ABSORB_ICON: Texture2D = GameIcons.icon_for("defense.absorb")
+static var MECHANIC_CLEANSE_ICON: Texture2D = GameIcons.icon_for("defense.cleanse")
+static var MECHANIC_SUPPRESS_ICON: Texture2D = GameIcons.icon_for("defense.suppress")
+static var MECHANIC_SLOW_ICON: Texture2D = GameIcons.icon_for("defense.slow")
+static var MECHANIC_STUN_ICON: Texture2D = GameIcons.icon_for("defense.stun")
+static var MECHANIC_INTERRUPT_ICON: Texture2D = GameIcons.icon_for("defense.interrupt")
 
 var _failed := false
 
@@ -138,7 +138,7 @@ func _check_post_fight_helpers_against_known_fight() -> void:
 	var shred_tooltip := ""
 	var has_decay_icon := false
 	var decay_tooltip := ""
-	for child in combat_screen._hud_status_row.get_children():
+	for child in combat_screen._hud_status_row.find_children("*", "HBoxContainer", true, false):
 		var icon := child.get_node_or_null("Icon") as TextureRect
 		var text := _status_chip_text(child)
 		if icon != null and icon.texture == HUD_POISON_ICON and text == "x%d" % peak_stacks:
@@ -194,7 +194,7 @@ func _check_post_fight_helpers_honor_cleanse() -> void:
 	combat_screen._show_enemy_hud_post_fight(result, monster)
 	_require(combat_screen._hud_info_label.text == "%d" % monster.armor, "Expected post-fight armor readout to return to base after cleanse.")
 	var has_zero_shred_icon := false
-	for child in combat_screen._hud_status_row.get_children():
+	for child in combat_screen._hud_status_row.find_children("*", "HBoxContainer", true, false):
 		var icon := child.get_node_or_null("Icon") as TextureRect
 		if icon != null and icon.texture == HUD_SHRED_ICON and _status_chip_text(child) == "x0":
 			has_zero_shred_icon = true
@@ -1105,7 +1105,7 @@ func _effect_row_text(row: Container) -> String:
 
 
 func _has_status_chip(row: Container, icon_texture: Texture2D, text: String) -> bool:
-	for child in row.get_children():
+	for child in row.find_children("*", "HBoxContainer", true, false):
 		var icon := child.get_node_or_null("Icon") as TextureRect
 		if icon != null and icon.texture == icon_texture and _status_chip_text(child) == text:
 			return true
@@ -1113,7 +1113,7 @@ func _has_status_chip(row: Container, icon_texture: Texture2D, text: String) -> 
 
 
 func _status_chip_tooltip(row: Container, icon_texture: Texture2D, text: String) -> String:
-	for child in row.get_children():
+	for child in row.find_children("*", "HBoxContainer", true, false):
 		var icon := child.get_node_or_null("Icon") as TextureRect
 		if icon != null and icon.texture == icon_texture and _status_chip_text(child) == text:
 			return child.tooltip_text
@@ -1121,7 +1121,7 @@ func _status_chip_tooltip(row: Container, icon_texture: Texture2D, text: String)
 
 
 func _has_status_chip_with_icon(row: Container, icon_texture: Texture2D) -> bool:
-	for child in row.get_children():
+	for child in row.find_children("*", "HBoxContainer", true, false):
 		var icon := child.get_node_or_null("Icon") as TextureRect
 		if icon != null and icon.texture == icon_texture:
 			return true
@@ -1129,7 +1129,7 @@ func _has_status_chip_with_icon(row: Container, icon_texture: Texture2D) -> bool
 
 
 func _status_chip_font_size(row: Container, icon_texture: Texture2D) -> int:
-	for child in row.get_children():
+	for child in row.find_children("*", "HBoxContainer", true, false):
 		var icon := child.get_node_or_null("Icon") as TextureRect
 		var label := child.get_node_or_null("Text") as Label
 		if icon != null and icon.texture == icon_texture and label != null:

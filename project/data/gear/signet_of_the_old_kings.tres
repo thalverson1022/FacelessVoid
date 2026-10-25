@@ -1,0 +1,40 @@
+[gd_resource type="Resource" script_class="GearItem" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/gear_item.gd" id="1_gear"]
+[ext_resource type="Script" path="res://scripts/resources/stat_modifier.gd" id="2_affix"]
+
+[sub_resource type="Resource" id="Resource_affix_0"]
+script = ExtResource("2_affix")
+stat_id = "crit_chance"
+stat = 1
+category = 0
+operation = 0
+value = 0.2
+
+[sub_resource type="Resource" id="Resource_affix_1"]
+script = ExtResource("2_affix")
+stat_id = "crit_damage"
+stat = 2
+category = 0
+operation = 0
+value = 1.0
+
+[sub_resource type="Resource" id="Resource_affix_2"]
+script = ExtResource("2_affix")
+stat_id = "chance_to_shred"
+stat = 0
+category = 1
+operation = 0
+value = 0.2
+
+[resource]
+script = ExtResource("1_gear")
+id = "gear.legendary.signet_of_the_old_kings"
+display_name = "The Signet of the Old Kings"
+legendary_effect_id = "signet"
+slot = 2
+tier = 3
+item_family = "Charm"
+class_family = 1
+source_kind = 3
+affixes = Array[StatModifier]([SubResource("Resource_affix_0"), SubResource("Resource_affix_1"), SubResource("Resource_affix_2")])

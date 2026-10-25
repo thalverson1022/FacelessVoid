@@ -1,0 +1,9 @@
+{
+  "docs/talent_tree_drafts/Shadow.json": {
+    "original": "4475e00e6fa0a544143a956b646d88a8e4582f64fd785e7e04af9bff5fe68171",
+    "successor": "51d463c626cf8e9939cee445799f5136c330e293e1b5d334c3ce058e8f0571a7",
+    "authority": "P6M5-D023",
+    "release": "project/data/p6/shadow_release_manifest.json",
+    "evidence": "project/reports/p6_m5_t9_final/shadow_source_reconciliation.json"
+  }
+}

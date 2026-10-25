@@ -1,0 +1,109 @@
+{
+  "version": 1,
+  "authority": "P6M6-D004",
+  "contract_checkpoints": [
+    1,
+    4,
+    6,
+    8,
+    10,
+    11,
+    15,
+    20
+  ],
+  "trees": [
+    "bladedancer",
+    "thief",
+    "assassin",
+    "shadow"
+  ],
+  "policies": [
+    "weak",
+    "typical",
+    "strong"
+  ],
+  "acquisition_seed": 84001,
+  "search_seeds": [
+    101,
+    102,
+    103,
+    104
+  ],
+  "validation_roots": [
+    92001,
+    92002,
+    92003,
+    92004,
+    92005,
+    92006,
+    92007,
+    92008,
+    92009,
+    92010,
+    92011,
+    92012,
+    92013,
+    92014,
+    92015,
+    92016,
+    92017,
+    92018,
+    92019,
+    92020
+  ],
+  "allocation_families": [
+    [
+      35,
+      10
+    ],
+    [
+      33,
+      12
+    ],
+    [
+      24,
+      21
+    ]
+  ],
+  "notes": [
+    "Gear acquisition uses real reward/shop APIs with conditional synthetic victories, no theft or overkill income. Not full-run survival.",
+    "Weak: first improving loot choice, no shops. Typical: best proxy-scored loot and at most one improving affordable purchase per shop. Strong: best proxy-scored loot and up to six improving affordable purchases. No rerolls.",
+    "Policy labels describe acquisition effort, not guaranteed DPS order; gold-dependent builds may favor conserving gold.",
+    "Gear proxy is resolved weapon plus elemental damage, attack speed and crit, without scoring a validation enemy.",
+    "Representative progression uses cyclic secondary; C10 mixed extension covers all twelve ordered roles and three allocation families.",
+    "Live adopted Tavern1023 schedule: C10 budget33; primary targets35,33,24 yield33/0,33/0,24/9."
+  ],
+  "reasonable_macros": {
+    "bladedancer": [
+      "quick_cut",
+      "stab",
+      "quick_cut",
+      "heavy_slash"
+    ],
+    "thief": [
+      "pick_pocket",
+      "steal",
+      "big_score",
+      "mug"
+    ],
+    "assassin": [
+      "virulent_poison",
+      "venom_jab",
+      "poison_strike",
+      "poison_strike"
+    ],
+    "shadow": [
+      "stab",
+      "heavy_slash",
+      "beguiling_strike",
+      "death_strike"
+    ]
+  },
+  "tavern_points": [
+    1,
+    0,
+    2,
+    3
+  ],
+  "contract_points": 3
+}

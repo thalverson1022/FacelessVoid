@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="GearItem" load_steps=5 format=3]
+[gd_resource type="Resource" script_class="GearItem" load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/resources/gear_item.gd" id="1_gear"]
 [ext_resource type="Script" path="res://scripts/resources/stat_modifier.gd" id="2_affix"]
@@ -33,6 +33,7 @@ display_label = "Crit Chance"
 [resource]
 script = ExtResource("1_gear")
 id = "gear.legendary.bejeweled_push_dagger"
+legendary_effect_id = "bejeweled"
 display_name = "Bejeweled Push Dagger"
 slot = 0
 tier = 3
@@ -40,4 +41,4 @@ item_family = "Dagger"
 class_family = 1
 source_kind = 3
 affixes = Array[StatModifier]([SubResource("Resource_bejeweled_base_damage"), SubResource("Resource_bejeweled_physical"), SubResource("Resource_bejeweled_crit")])
-min_cast_time_proc_chance = 0.2
+min_cast_time_proc_chance = 0.4

@@ -62,8 +62,8 @@ func _initialize() -> void:
 	await process_frame
 	var slot: Button = skill_build_panel._slots_box.get_child(0)
 	_require(
-		slot.tooltip_text.contains("Applies 4 Stacks of Shred"),
-		"Expected macro slot tooltip to reuse the dynamic skill summary."
+		slot._get_tooltip(Vector2.ZERO).contains("On hit: apply 4 Shred stacks."),
+		"Expected macro skill hover to reuse current-build Shred count."
 	)
 
 	print("Skill tooltip formatter check: OK")

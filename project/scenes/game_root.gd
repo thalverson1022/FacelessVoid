@@ -17,6 +17,9 @@ const BANDIT_BLADE_PATH := "res://data/gear/bandit_blade.tres"
 const SCREEN_TRANSITION_DURATION_SEC := 0.16
 
 var _current_screen: Node = null
+var _test_mode_points := BuildProgression.TAVERN_TOTAL
+var _test_mode_main_tree := "tree.bladedancer"
+var _test_mode_secondary_tree := ""
 var _settings_menu_layer: Control = null
 var _screen_transition_generation := 0
 var _transition_input_blocker: Control = null
@@ -54,7 +57,7 @@ func _show_title(animate: bool = true) -> void:
 	screen.adventure_pressed.connect(func(): _on_new_game_pressed(screen.selected_seed()))
 	screen.continue_pressed.connect(_on_continue_pressed)
 	screen.training_room_pressed.connect(_show_training_room)
-	screen.contract_test_pressed.connect(func(): _on_contract_test_pressed(screen.selected_seed()))
+	screen.contract_test_pressed.connect(func(): _on_contract_test_pressed(screen.selected_seed(), screen.selected_test_points(), screen.selected_test_main_tree(), screen.selected_test_secondary_tree()))
 	_present_screen(screen, animate)
 
 
@@ -69,41 +72,72 @@ func _show_training_room() -> void:
 
 
 func _on_new_game_pressed(seed: int = BuildState.DEFAULT_ADVENTURE_SEED) -> void:
-	SaveSystem.delete_save()
+	if not BuildContentRegistry.ADVENTURE_ENABLED: return
 	BuildState.reset()
+	SaveSystem.delete_save()
 	BuildState.set_adventure_seed(seed)
 	_show_class_select()
 
 
 func _on_continue_pressed() -> void:
-	if SaveSystem.load_run(BuildState):
-		_show_combat_screen()
-	else:
-		SaveSystem.delete_save()
-		_show_title()
+	if not BuildContentRegistry.ADVENTURE_ENABLED: return
+	var result := SaveSystem.load_run_result(BuildState)
+	match result.status:
+		"loaded":
+			if BuildState.selected_class == null:
+				_show_class_select()
+			elif BuildState.selected_trees.is_empty():
+				_show_subclass_select()
+			else:
+				_show_combat_screen()
+		"reset-incompatible":
+			_show_class_select()
+		_:
+			_show_title()
+	var message: String = result.message
+	if result.status == "loaded" and (not BuildState.rotation_changes.get("removed", []).is_empty() or not BuildState.rotation_changes.get("overflow", []).is_empty()):
+		message += " Rotation entries removed: %s; beyond ten slots: %s." % [str(BuildState.rotation_changes.get("removed", [])), str(BuildState.rotation_changes.get("overflow", []))]
+	if message != "":
+		var notice := AcceptDialog.new()
+		notice.title = "Adventure save"
+		notice.dialog_text = message
+		add_child(notice)
+		notice.confirmed.connect(notice.queue_free)
+		notice.popup_centered()
 
 
-func _on_contract_test_pressed(seed: int = BuildState.DEFAULT_ADVENTURE_SEED) -> void:
-	SaveSystem.delete_save()
+func _on_contract_test_pressed(seed: int = BuildState.DEFAULT_ADVENTURE_SEED, points: int = BuildProgression.TAVERN_TOTAL, main_tree: String = "tree.bladedancer", secondary_tree: String = "") -> void:
+	if points not in [BuildProgression.TAVERN_TOTAL, 10, 45]:
+		return
+	var registry := BuildContentRegistry.test_mode()
+	if not registry.trees.has(main_tree) or (secondary_tree != "" and (not registry.trees.has(secondary_tree) or secondary_tree == main_tree)):
+		return
+	_test_mode_points = points
+	_test_mode_main_tree = main_tree
+	_test_mode_secondary_tree = secondary_tree
 	BuildState.reset()
+	BuildState.is_test_mode = true
+	SaveSystem.session_only = true
 	BuildState.set_adventure_seed(seed)
-	var rogue: ClassDef = load(ROGUE_CLASS_PATH)
-	var assassin: SubclassTree = load(ASSASSIN_TREE_PATH)
-	var bladedancer: SubclassTree = load(BLADEDANCER_TREE_PATH)
-	var bandit_blade: GearItem = load(BANDIT_BLADE_PATH)
-	if rogue == null or assassin == null or bladedancer == null or bandit_blade == null:
-		push_error("Contract Test requires Rogue, Assassin, Bladedancer, and Bandit Blade data.")
+	if registry.error != "":
+		push_error("Test Mode content: " + registry.error)
+		BuildState.reset()
 		_show_title()
 		return
-	BuildState.set_class(rogue)
-	BuildState.selected_trees = [assassin, bladedancer]
-	BuildState.selected_talents = []
-	BuildState.rotation = []
-	BuildState.earned_talent_points = 7
+	BuildState.set_class(registry.classes["class.rogue"])
+	BuildState.earned_talent_points = points
+	if not BuildState.configure_ranked_build(registry.trees[main_tree], registry.trees.get(secondary_tree)):
+		push_error("Test Mode build: " + BuildState.last_build_error)
+		BuildState.reset()
+		_show_title()
+		return
 	BuildState.gold = 100
-	BuildState.grant_gear(bandit_blade, true)
+	# The test loadout replaces the class starter rather than stashing it.
+	BuildState.equipped_weapon = null
+	BuildState.grant_gear(load(BANDIT_BLADE_PATH).duplicate(true), true)
 	if not BuildState.start_generated_contract_loop_offer({"route_difficulty": "medium"}, 3):
-		push_error("Contract Test could not start the generated contract flow.")
+		push_error("Test Mode could not start the generated contract flow.")
+		BuildState.reset()
 		_show_title()
 		return
 	_show_combat_screen()
@@ -157,6 +191,10 @@ func _present_screen(screen: Control, animate: bool = true) -> void:
 	_screen_transition_generation += 1
 	var generation := _screen_transition_generation
 	var previous_screen := _current_screen as Control
+	if previous_screen != null:
+		# Stop outgoing combat immediately, before the visual crossfade ends.
+		previous_screen.process_mode = Node.PROCESS_MODE_DISABLED
+		AudioManager.cancel_combat_sfx()
 	_current_screen = screen
 	_add_screen_below_chrome(screen)
 	_raise_settings_menu_layer()
@@ -254,10 +292,15 @@ func _on_main_menu_pressed() -> void:
 ## "Resume Adventure" on Title offer to resume the OLD, already-ended run
 ## instead of the new one they just chose to start.
 func _on_adventure_restart_pressed() -> void:
+	if BuildState.is_test_mode:
+		_on_contract_test_pressed(BuildState.adventure_seed, _test_mode_points, _test_mode_main_tree, _test_mode_secondary_tree)
+		return
 	SaveSystem.delete_save()
 	BuildState.reset(true)
 	_show_class_select()
 
 
 func _on_save_and_quit_pressed() -> void:
+	if BuildState.is_test_mode:
+		BuildState.reset()
 	_show_title()

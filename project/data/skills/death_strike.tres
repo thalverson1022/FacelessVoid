@@ -1,9 +1,10 @@
-[gd_resource type="Resource" script_class="Skill" load_steps=6 format=3]
+[gd_resource type="Resource" script_class="Skill" format=3 uid="uid://bxki58ckraajv"]
 
-[ext_resource type="Script" path="res://scripts/resources/skill.gd" id="1_skill"]
-[ext_resource type="Script" path="res://scripts/resources/physical_damage_effect.gd" id="2_physical"]
-[ext_resource type="Script" path="res://scripts/resources/stack_scaling_physical_damage_effect.gd" id="3_stack"]
-[ext_resource type="Texture2D" path="res://assets/skill_icons/rogue/death_strike.png" id="4_icon"]
+[ext_resource type="Script" uid="uid://b3jgtul4lne2k" path="res://scripts/resources/skill_effect.gd" id="1_b8gui"]
+[ext_resource type="Script" uid="uid://d3apprhhvrqum" path="res://scripts/resources/skill.gd" id="1_skill"]
+[ext_resource type="Script" uid="uid://dlekciyngr6xr" path="res://scripts/resources/physical_damage_effect.gd" id="2_physical"]
+[ext_resource type="Script" uid="uid://dh5nn2lm7w0fr" path="res://scripts/resources/stack_scaling_physical_damage_effect.gd" id="3_stack"]
+[ext_resource type="Texture2D" uid="uid://dk1na1klybc66" path="res://assets/skill_icons/rogue/death_strike.png" id="4_icon"]
 
 [sub_resource type="Resource" id="Resource_death_base"]
 script = ExtResource("2_physical")
@@ -21,4 +22,4 @@ icon = ExtResource("4_icon")
 icon_letter = "D"
 base_execution_ms = 1500
 min_execution_ms = 650
-effects = Array[SkillEffect]([SubResource("Resource_death_base"), SubResource("Resource_death_stack")])
+effects = Array[ExtResource("1_b8gui")]([SubResource("Resource_death_base"), SubResource("Resource_death_stack")])

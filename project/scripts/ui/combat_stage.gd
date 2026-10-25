@@ -4,6 +4,37 @@ extends Control
 ## It defines stable actor/effect/status anchors so later sprite animation
 ## work has a physical layer to target without touching combat resolution.
 
+# A single reusable echo owns its real-time animation and fade. It never
+# changes the main actor, nor schedules deferred attacks into another cast.
+class RetriggerGhost:
+	extends TextureRect
+	var textures: Array[Texture2D] = []
+	var elapsed := 0.0
+	var duration := 0.2
+	var start_position := Vector2.ZERO
+	var drift := Vector2.ZERO
+	func _process(delta: float) -> void:
+		if CombatEffectIcons.reduced_motion:
+			stop()
+			return
+		elapsed += delta
+		var progress := clampf(elapsed / duration, 0.0, 1.0)
+		if progress >= 1.0 or textures.is_empty():
+			stop()
+			return
+		texture = textures[mini(int(progress * textures.size()), textures.size() - 1)]
+		position = start_position + drift * sin(progress * PI * 0.5)
+		modulate.a = 0.48 * (1.0 - smoothstep(0.65, 1.0, progress))
+	func stop() -> void:
+		hide()
+		modulate.a = 0.0
+		set_process(false)
+
+var _flurry_contact_centers := {}
+var _retrigger_ghost: RetriggerGhost
+const RETRIGGER_GHOST_MIN_REAL_SEC := 0.125
+const RETRIGGER_GHOST_SEC := 0.16
+
 class DebugGridOverlay:
 	extends Control
 
@@ -1150,6 +1181,7 @@ func _notification(what: int) -> void:
 
 
 func configure(player_name: String, enemy_name: String, enemy_visual_name: String = "", enemy_combat_role: String = ENEMY_COMBAT_ROLE_NORMAL) -> void:
+	_clear_flurry()
 	_kill_actor_tweens()
 	_clear_status_visuals()
 	_player_exited_right = false
@@ -1171,6 +1203,7 @@ func configure(player_name: String, enemy_name: String, enemy_visual_name: Strin
 
 
 func clear_target() -> void:
+	_clear_flurry()
 	_kill_actor_tweens()
 	_clear_status_visuals()
 	_player_exited_right = false
@@ -1190,6 +1223,7 @@ func clear_target() -> void:
 
 
 func reset_state() -> void:
+	_clear_flurry()
 	_kill_actor_tweens()
 	_effect_generation += 1
 	_clear_bandit_coin_particles()
@@ -1358,6 +1392,9 @@ func restore_practice_idle_pose() -> void:
 
 
 func clear_transient_effects() -> void:
+	_clear_flurry()
+	_kill_actor_tweens()
+	_restore_actor_layout()
 	_clear_bandit_coin_particles()
 
 
@@ -1392,6 +1429,7 @@ func play_cast_presentation(cast: CombatResolver.CastEvent, playback_speed: floa
 
 
 func play_cast_windup(cast: CombatResolver.CastEvent, playback_speed: float = 1.0, animate: bool = true) -> float:
+	_clear_flurry()
 	last_cast_animation_kind = animation_kind_for_cast(cast)
 	last_cast_min_cast_proc_was_timing_event = cast != null and cast.min_cast_time_proc_applied
 	last_cast_triggered_followup_count = cast.triggered_skill_names.size() if cast != null else 0
@@ -1438,7 +1476,7 @@ func play_cast_windup(cast: CombatResolver.CastEvent, playback_speed: float = 1.
 	return windup_sec
 
 
-func play_cast_impact(cast: CombatResolver.CastEvent, animate: bool = true) -> float:
+func play_cast_impact(cast: CombatResolver.CastEvent, animate: bool = true, include_followups: bool = true) -> float:
 	cast_impact_count += 1
 	if cast == null:
 		return 0.0
@@ -1456,7 +1494,7 @@ func play_cast_impact(cast: CombatResolver.CastEvent, animate: bool = true) -> f
 		_play_enemy_recoil(0.0, cast.is_crit)
 	if bandit_blade_effect_active and cast.physical_damage > 0.0:
 		_play_bandit_coin_spray(0.0, cast.is_crit)
-	if cast != null and not cast.triggered_skill_names.is_empty():
+	if include_followups and cast != null and not cast.triggered_skill_names.is_empty():
 		_play_triggered_followup(animation_kind_for_cast(cast))
 		return _triggered_followup_contact_delay(cast)
 	return 0.0
@@ -1532,7 +1570,7 @@ func set_poison_stacks(stacks: int, _animate: bool = true) -> void:
 	enemy_actor_anchor.modulate = _enemy_poison_modulate()
 
 
-func play_stun_effect(duration_ms: int, animate: bool = true) -> void:
+func play_stun_effect(duration_ms: int, animate: bool = true, anchored: bool = false) -> void:
 	stun_effect_count += 1
 	last_stun_duration_ms = duration_ms
 	if duration_ms <= 0 or player_status_anchor == null:
@@ -1547,7 +1585,7 @@ func play_stun_effect(duration_ms: int, animate: bool = true) -> void:
 	player_status_anchor.add_child(effect)
 	_freeze_player_idle_for_stun(duration_ms, animate)
 	_spawn_mechanic_text("Stunned", _stun_star_anchor_point() + Vector2(0.0, 20.0), Color(1.0, 0.86, 0.22, 1.0), animate)
-	if animate and player_actor_anchor != null:
+	if animate and not anchored and player_actor_anchor != null:
 		_play_stun_jolt()
 
 
@@ -1567,7 +1605,7 @@ func play_cleanse_effect(animate: bool = true) -> void:
 		_play_cleanse_enemy_flash()
 
 
-func play_interrupt_effect(animate: bool = true) -> void:
+func play_interrupt_effect(animate: bool = true, anchored: bool = false) -> void:
 	interrupt_effect_count += 1
 	var center := _player_effect_anchor_point()
 	if center == Vector2.ZERO:
@@ -1579,7 +1617,7 @@ func play_interrupt_effect(animate: bool = true) -> void:
 	slash.z_index = 28
 	add_child(slash)
 	_spawn_mechanic_text("Interrupted", center + Vector2(0.0, -62.0), Color(1.0, 0.34, 0.24, 1.0), animate)
-	if animate:
+	if animate and not anchored:
 		_play_interrupt_player_flash()
 
 
@@ -1595,6 +1633,7 @@ func play_dodge_effect(animate: bool = true) -> void:
 
 
 func play_outcome_pose(victory: bool, animate: bool = true) -> void:
+	_clear_flurry()
 	outcome_pose = OUTCOME_VICTORY if victory else OUTCOME_DEFEAT
 	_clear_stun_effect()
 	if victory:
@@ -2690,3 +2729,86 @@ func _apply_outcome_pose_position_after_layout(
 		enemy_actor_anchor.position = _enemy_base_position + (previous_enemy_position - previous_enemy_base)
 	elif outcome_pose == OUTCOME_DEFEAT and player_actor_anchor != null:
 		player_actor_anchor.position = _player_base_position + (previous_player_position - previous_player_base)
+
+
+## The ordinary opening attack belongs to the main actor. All extra
+## contacts use one faded copy; logical events/health remain in playback.
+func play_retrigger_event(event: CombatPlayback.PlaybackEvent, playback_speed: float, animate: bool) -> void:
+	if not event.visual_beat: return
+	if event.chain_index == 1:
+		play_cast_impact(event.cast, animate, false)
+		return
+	_clear_flurry()
+	_kill_player_tween()
+	player_actor_anchor.position = _player_base_position
+	player_actor_anchor.modulate = Color.WHITE
+	_set_player_animation("idle", animate)
+	if event.cast.was_dodged:
+		play_dodge_effect(animate)
+		return
+	if event.cast.was_interrupted:
+		play_interrupt_effect(animate, true)
+		return
+	if not animate or event.cast.resource_unavailable or event.cast.cooldown_blocked:
+		return
+	# Zero-damage status casts may attack, but Hold/failed attempts do not
+	# impersonate successful weapon contacts.
+	var kind := animation_kind_for_cast(event.cast)
+	if kind == ANIMATION_HOLD: return
+	var animation := _player_animation_for_key(_player_animation_key_for_kind(kind))
+	var frames: Array = animation.get("frames", [])
+	if frames.is_empty(): return
+	if not is_instance_valid(_retrigger_ghost):
+		_retrigger_ghost = RetriggerGhost.new()
+		_retrigger_ghost.name = "RetriggerGhost"
+		_retrigger_ghost.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_retrigger_ghost.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		_retrigger_ghost.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		_retrigger_ghost.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		_retrigger_ghost.z_index = 28
+		var shader := Shader.new()
+		shader.code = "shader_type canvas_item; void fragment() { float l = dot(COLOR.rgb, vec3(0.299,0.587,0.114)); COLOR.rgb = mix(COLOR.rgb, vec3(l), 0.28); }"
+		var ghost_material := ShaderMaterial.new()
+		ghost_material.shader = shader
+		_retrigger_ghost.material = ghost_material
+		add_child(_retrigger_ghost)
+	_retrigger_ghost.textures.clear()
+	for index in range(maxi(frames.size() - 2, 0), frames.size()):
+		var frame: Dictionary = frames[index]
+		var texture := _texture_from_path(frame.get("path", ""))
+		if texture != null: _retrigger_ghost.textures.append(texture)
+	if _retrigger_ghost.textures.is_empty(): return
+	_retrigger_ghost.texture = _retrigger_ghost.textures[0]
+	_retrigger_ghost.size = _retrigger_ghost.texture.get_size()
+	_retrigger_ghost.scale = Vector2(ROGUE_SPRITE_SCALE, ROGUE_SPRITE_SCALE)
+	_retrigger_ghost.pivot_offset = _retrigger_ghost.size * 0.5
+	var side := -1.0 if event.chain_index % 2 == 0 else 1.0
+	var target := _flurry_contact_point() + Vector2(-70.0 + side * 8.0, 12.0 + side * 4.0)
+	_retrigger_ghost.start_position = target - ACTOR_LOCAL_ANCHOR + _sprite_position_for_anchor(_retrigger_ghost.size, animation.get("anchor_point", ROGUE_ANCHOR_POINT), ROGUE_SPRITE_SCALE)
+	_retrigger_ghost.position = _retrigger_ghost.start_position
+	_retrigger_ghost.drift = Vector2(12.0, side * -3.0)
+	_retrigger_ghost.duration = maxf(RETRIGGER_GHOST_MIN_REAL_SEC, RETRIGGER_GHOST_SEC / maxf(playback_speed, 0.01))
+	_retrigger_ghost.elapsed = 0.0
+	_retrigger_ghost.modulate = Color(0.9, 0.92, 0.95, 0.48)
+	_retrigger_ghost.show()
+	_retrigger_ghost.set_process(true)
+	play_cast_impact(event.cast, true, false)
+
+
+func _clear_flurry() -> void:
+	if is_instance_valid(_retrigger_ghost): _retrigger_ghost.stop()
+
+
+func _flurry_contact_point() -> Vector2:
+	# Imported frames include transparent margins; use the visible target.
+	if _enemy_sprite == null or _enemy_sprite.texture == null:
+		return _enemy_effect_anchor_point() - _enemy_hit_effect_offset()
+	var texture := _enemy_sprite.texture
+	var key := texture.get_instance_id()
+	if not _flurry_contact_centers.has(key):
+		var pixels := texture.get_image()
+		var visible_rect := pixels.get_used_rect() if pixels != null else Rect2i()
+		_flurry_contact_centers[key] = Vector2(visible_rect.position) + Vector2(visible_rect.size) * 0.5 if visible_rect.has_area() else texture.get_size() * 0.5
+	var center: Vector2 = _flurry_contact_centers[key]
+	if _enemy_sprite.flip_h: center.x = texture.get_width() - center.x
+	return enemy_actor_anchor.position + _sprite_render_top_left(_enemy_sprite) + center * _enemy_sprite.scale

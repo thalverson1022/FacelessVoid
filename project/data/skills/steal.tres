@@ -1,9 +1,10 @@
-[gd_resource type="Resource" script_class="Skill" load_steps=7 format=3]
+[gd_resource type="Resource" script_class="Skill" format=3 uid="uid://cw3wgrpyn73hv"]
 
-[ext_resource type="Script" path="res://scripts/resources/skill.gd" id="1_skill"]
-[ext_resource type="Script" path="res://scripts/resources/physical_damage_effect.gd" id="2_physical"]
-[ext_resource type="Script" path="res://scripts/resources/steal_gold_on_crit_effect.gd" id="3_steal"]
-[ext_resource type="Texture2D" path="res://assets/skill_icons/rogue/steal.png" id="4_icon"]
+[ext_resource type="Script" uid="uid://b3jgtul4lne2k" path="res://scripts/resources/skill_effect.gd" id="1_50g2p"]
+[ext_resource type="Script" uid="uid://d3apprhhvrqum" path="res://scripts/resources/skill.gd" id="1_skill"]
+[ext_resource type="Script" uid="uid://dlekciyngr6xr" path="res://scripts/resources/physical_damage_effect.gd" id="2_physical"]
+[ext_resource type="Script" uid="uid://ca0nbqrm6vkpo" path="res://scripts/resources/steal_gold_on_crit_effect.gd" id="3_steal"]
+[ext_resource type="Texture2D" uid="uid://07wwydf6atjf" path="res://assets/skill_icons/rogue/steal.png" id="4_icon"]
 
 [sub_resource type="Resource" id="Resource_steal_phys"]
 script = ExtResource("2_physical")
@@ -19,6 +20,6 @@ id = "skill.steal"
 display_name = "Steal"
 icon = ExtResource("4_icon")
 icon_letter = "S"
-base_execution_ms = 1300
+base_execution_ms = 1100
 min_execution_ms = 650
-effects = Array[SkillEffect]([SubResource("Resource_steal_phys"), SubResource("Resource_steal_gold")])
+effects = Array[ExtResource("1_50g2p")]([SubResource("Resource_steal_phys"), SubResource("Resource_steal_gold")])

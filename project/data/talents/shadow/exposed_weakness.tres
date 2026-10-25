@@ -1,21 +1,22 @@
-[gd_resource type="Resource" script_class="Talent" load_steps=5 format=3]
+[gd_resource type="Resource" script_class="Talent" format=3 uid="uid://bhcdhubvkcd02"]
 
-[ext_resource type="Script" path="res://scripts/resources/talent.gd" id="1_talent"]
-[ext_resource type="Resource" path="res://data/skills/beguiling_strike.tres" id="2_skill"]
-[ext_resource type="Script" path="res://scripts/resources/stat_modifier.gd" id="3_modifier"]
+[ext_resource type="Script" uid="uid://bpusgj7hvipbl" path="res://scripts/resources/prerequisite_group.gd" id="1_gbe5s"]
+[ext_resource type="Script" uid="uid://bq2fx6c5wnwsg" path="res://scripts/resources/talent.gd" id="1_talent"]
+[ext_resource type="Script" uid="uid://evdact12hmik" path="res://scripts/resources/talent_rank.gd" id="2_c2vi4"]
+[ext_resource type="Resource" uid="uid://wh23l41m035m" path="res://data/skills/beguiling_strike.tres" id="2_skill"]
+[ext_resource type="Script" uid="uid://m13uapmegxo2" path="res://scripts/resources/stat_modifier.gd" id="3_modifier"]
+[ext_resource type="Script" uid="uid://c7fj7apjjsn5" path="res://scripts/resources/triggered_skill_effect.gd" id="5_pgox5"]
+[ext_resource type="Script" uid="uid://d3apprhhvrqum" path="res://scripts/resources/skill.gd" id="6_l82fh"]
 
 [sub_resource type="Resource" id="Resource_exposed_decay_mod"]
 script = ExtResource("3_modifier")
 stat_id = "decay_value"
 category = 0
-operation = 0
 value = 0.2
 
 [resource]
 script = ExtResource("1_talent")
 id = "talent.exposed_weakness"
 display_name = "Exposed Weakness"
-cost = 1
-prerequisites = Array[PrerequisiteGroup]([])
-stat_modifiers = Array[StatModifier]([SubResource("Resource_exposed_decay_mod")])
-unlocked_skills = Array[Skill]([ExtResource("2_skill")])
+stat_modifiers = Array[ExtResource("3_modifier")]([SubResource("Resource_exposed_decay_mod")])
+unlocked_skills = Array[ExtResource("6_l82fh")]([ExtResource("2_skill")])

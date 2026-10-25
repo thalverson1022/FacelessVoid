@@ -16,7 +16,7 @@ func _initialize() -> void:
 	_require(bladedancer.id == "tree.bladedancer", "Expected Bladedancer to remain separate.")
 	_require(rogue.trees.has(thief), "Expected Rogue to offer Thief.")
 	_require(rogue.trees.has(bladedancer), "Expected Rogue to keep Bladedancer.")
-	_require(steal.base_execution_ms == 1300, "Expected Steal cast time to be 1.3s.")
+	_require(steal.base_execution_ms == 1100, "Expected Steal cast time to be 1.1s.")
 
 	var stats := BuildResolver.resolve_stats(rogue, [thief], [], [], 0)
 	_require(is_equal_approx(stats.gold_reward_multiplier, 1.0), "Expected Thief intrinsic not to grant bonus gold rewards.")

@@ -7,6 +7,7 @@
 [sub_resource type="Resource" id="Resource_vyra_reward"]
 script = ExtResource("3_reward_script")
 gold_amount = 120
+talent_points = 5
 
 [resource]
 script = ExtResource("1_node")
@@ -19,7 +20,7 @@ reward = SubResource("Resource_vyra_reward")
 difficulty_label = "Contract Boss"
 reward_quality_label = "Contract Victory"
 summary_text = "Vyra is the Gilded Serpent target. Armor and poison resistance make this the final build exam."
-reward_summary = "120g. Contract victory."
+reward_summary = "120g, 5 talent points. Contract victory."
 before_selection_text = "The silk pajamas are a nice touch."
 selected_text = "Selected Route: Vyra
 Time to get paid."

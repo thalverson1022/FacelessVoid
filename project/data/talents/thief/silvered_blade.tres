@@ -1,10 +1,17 @@
-[gd_resource type="Resource" script_class="Talent" load_steps=8 format=3]
+[gd_resource type="Resource" script_class="Talent" format=3 uid="uid://be40fbnq25fxw"]
 
-[ext_resource type="Script" path="res://scripts/resources/talent.gd" id="1_talent"]
-[ext_resource type="Script" path="res://scripts/resources/stat_modifier.gd" id="2_modifier"]
-[ext_resource type="Script" path="res://scripts/resources/prerequisite_group.gd" id="3_group"]
-[ext_resource type="Resource" path="res://data/talents/thief/keen_eye.tres" id="4_keen_eye"]
-[ext_resource type="Resource" path="res://data/talents/thief/sticky_fingers.tres" id="5_sticky_fingers"]
+[ext_resource type="Script" uid="uid://bq2fx6c5wnwsg" path="res://scripts/resources/talent.gd" id="1_talent"]
+[ext_resource type="Script" uid="uid://m13uapmegxo2" path="res://scripts/resources/stat_modifier.gd" id="2_modifier"]
+[ext_resource type="Script" uid="uid://bpusgj7hvipbl" path="res://scripts/resources/prerequisite_group.gd" id="3_group"]
+[ext_resource type="Resource" uid="uid://bt85gix5snyoj" path="res://data/talents/thief/keen_eye.tres" id="4_keen_eye"]
+[ext_resource type="Resource" uid="uid://c3tlre1ug22jy" path="res://data/talents/thief/sticky_fingers.tres" id="5_sticky_fingers"]
+[ext_resource type="Script" uid="uid://evdact12hmik" path="res://scripts/resources/talent_rank.gd" id="5_vevxj"]
+[ext_resource type="Script" uid="uid://c7fj7apjjsn5" path="res://scripts/resources/triggered_skill_effect.gd" id="7_lhd7t"]
+[ext_resource type="Script" uid="uid://d3apprhhvrqum" path="res://scripts/resources/skill.gd" id="8_h42qb"]
+
+[sub_resource type="Resource" id="Resource_silvered_blade_group"]
+script = ExtResource("3_group")
+options = Array[ExtResource("1_talent")]([ExtResource("4_keen_eye"), ExtResource("5_sticky_fingers")])
 
 [sub_resource type="Resource" id="Resource_silvered_blade_phys"]
 script = ExtResource("2_modifier")
@@ -12,15 +19,9 @@ stat = 4
 operation = 1
 value = 1.3
 
-[sub_resource type="Resource" id="Resource_silvered_blade_group"]
-script = ExtResource("3_group")
-options = Array[Talent]([ExtResource("4_keen_eye"), ExtResource("5_sticky_fingers")])
-
 [resource]
 script = ExtResource("1_talent")
 id = "talent.silvered_blade"
 display_name = "Silvered Blade"
-cost = 1
-prerequisites = Array[PrerequisiteGroup]([SubResource("Resource_silvered_blade_group")])
-stat_modifiers = Array[StatModifier]([SubResource("Resource_silvered_blade_phys")])
-unlocked_skills = Array[Skill]([])
+prerequisites = Array[ExtResource("3_group")]([SubResource("Resource_silvered_blade_group")])
+stat_modifiers = Array[ExtResource("2_modifier")]([SubResource("Resource_silvered_blade_phys")])

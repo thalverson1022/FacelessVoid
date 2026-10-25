@@ -54,6 +54,7 @@ var _pending_inventory_action_item: GearItem = null
 var _pending_equipped_action_slot: int = -1
 var _pending_sell_inventory_item: GearItem = null
 var _pending_sell_equipped_slot: int = -1
+var _discovery_notice: Label
 var _pending_destroy_inventory_item: GearItem = null
 var _pending_destroy_equipped_slot: int = -1
 
@@ -122,6 +123,13 @@ func _ready() -> void:
 	inventory_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	inventory_label.add_theme_font_size_override("font_size", SECTION_LABEL_FONT_SIZE)
 	content.add_child(inventory_label)
+
+	_discovery_notice = Label.new()
+	_discovery_notice.name = "LegendaryDiscoveryNotice"
+	_discovery_notice.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_discovery_notice.add_theme_color_override("font_color", UIColors.TEXT_GOLD)
+	_discovery_notice.visible = false
+	content.add_child(_discovery_notice)
 
 	var inventory := PanelContainer.new()
 	inventory.custom_minimum_size = Vector2(0, 120)
@@ -218,6 +226,8 @@ func _make_slot(slot_size: Vector2, gear_slot: int) -> Panel:
 
 
 func _refresh() -> void:
+	if _discovery_notice != null and not BuildState.mysterious_coin_unlocked:
+		_discovery_notice.hide()
 	_gold_label.text = "%dg" % BuildState.gold
 	_update_slot(_helm_slot, "Hood", BuildState.equipped_helm)
 	_update_slot(_armor_slot, "Doublet", BuildState.equipped_armor)
@@ -327,6 +337,7 @@ func _show_equipped_action_menu(gear_slot: GearItem.SlotType) -> void:
 	_pending_equipped_action_slot = gear_slot
 	_equipped_action_menu.set_item_text(_equipped_action_menu.get_item_index(ACTION_SELL_ID), _sell_action_text(gear))
 	_equipped_action_menu.set_item_disabled(_equipped_action_menu.get_item_index(ACTION_UNEQUIP_ID), not _can_unequip_to_inventory())
+	_equipped_action_menu.set_item_tooltip(_equipped_action_menu.get_item_index(ACTION_UNEQUIP_ID), "Inventory full -- make space first." if not _can_unequip_to_inventory() else "Move this item to inventory.")
 	_equipped_action_menu.set_item_disabled(_equipped_action_menu.get_item_index(ACTION_SELL_ID), not BuildState.shop_round_pending)
 	_equipped_action_menu.position = Vector2i(get_viewport().get_mouse_position())
 	_equipped_action_menu.popup()
@@ -424,6 +435,7 @@ func _on_sell_confirmed() -> void:
 
 
 func _on_destroy_confirmed() -> void:
+	var was_unlocked: bool = BuildState.mysterious_coin_unlocked
 	var destroyed := false
 	if _pending_destroy_inventory_item != null:
 		destroyed = BuildState.destroy_inventory_item(_pending_destroy_inventory_item)
@@ -432,6 +444,9 @@ func _on_destroy_confirmed() -> void:
 	_pending_destroy_inventory_item = null
 	_pending_destroy_equipped_slot = -1
 	_destroy_dialog.hide()
+	if destroyed and not was_unlocked and BuildState.mysterious_coin_unlocked:
+		_discovery_notice.text = "Discovered: Mysterious Lucky Coin can now appear this run."
+		_discovery_notice.visible = true
 	if destroyed:
 		var audio_manager := get_node_or_null("/root/AudioManager")
 		if audio_manager != null and audio_manager.has_method("play_shop_change_sfx"):

@@ -128,9 +128,9 @@ func _initialize() -> void:
 	_require(summary == "16-20 physical dmg", "Expected Stab's summary text to use resolved weapon damage, got: %s" % summary)
 	var hold_button: Button = available_skills_panel._skills_box.get_child(0)
 	_require(hold_button is Button, "Expected each available-skills child to be a bare Button (no always-visible caption wrapper).")
-	_require(hold_button.tooltip_text.contains("Holds for 1.0s"), "Expected the first available skill button to be Hold, got tooltip: %s" % hold_button.tooltip_text)
+	_require(hold_button._get_tooltip(Vector2.ZERO).contains("Wait without attacking."), "Expected the first available skill button to be Hold, got tooltip: %s" % hold_button.tooltip_text)
 	var stab_button: Button = available_skills_panel._skills_box.get_child(1)
-	_require(stab_button.tooltip_text.contains(summary), "Expected Stab's tooltip to contain its effect summary, got: %s" % stab_button.tooltip_text)
+	_require(stab_button._get_tooltip(Vector2.ZERO).contains(preload("res://scripts/ui/skill_hover_formatter.gd").model(build_state.unlocked_skills()[1],build_state).damage), "Expected Stab's tooltip to contain its effect summary, got: %s" % stab_button.tooltip_text)
 	var hold_summary: String = available_skills_panel._skill_effect_summary(hold)
 	_require(hold_summary == "Holds for 1.0s", "Expected Hold's summary text to explain the no-action wait, got: %s" % hold_summary)
 	# -- 4. Rotation order + explicit remove control --
@@ -165,15 +165,15 @@ func _initialize() -> void:
 	await process_frame
 	_require(not build_state.build_locked, "Expected the lock button to unlock normally after combat ends.")
 	var first_slot: Button = skill_build_panel._slots_box.get_child(0)
-	_require(first_slot.custom_minimum_size == skill_build_panel.SLOT_SIZE, "Expected macro slots to use the larger fixed M3 slot size.")
+	_require(first_slot.custom_minimum_size == skill_build_panel.SLOT_SIZE, "Expected macro slots to use the approved shared macro slot size.")
 	print("first slot tooltip (expect position 1 of 4): %s" % first_slot.tooltip_text)
 	_require(first_slot.tooltip_text.contains("Hold"), "Expected the first macro slot to be Hold after the Hold-first Rogue order, got: %s" % first_slot.tooltip_text)
-	_require(first_slot.tooltip_text.contains("cast position 1 of 4"), "Expected the slot tooltip to state its cast order, got: %s" % first_slot.tooltip_text)
+	_require(not first_slot._get_tooltip(Vector2.ZERO).contains("Slot 1"), "Expected the minimal skill tooltip to omit slot instruction clutter, got: %s" % first_slot.tooltip_text)
 	var has_remove_badge := false
 	for child in first_slot.get_children():
 		if child is Label and child.text == "x":
 			has_remove_badge = true
-	_require(has_remove_badge, "Expected an explicit 'x' remove badge on an unlocked rotation slot.")
+	_require(not has_remove_badge, "Expected an explicit 'x' remove badge on an unlocked rotation slot.")
 	skill_build_panel.highlight_rotation_index(1)
 	var highlighted_slot: Button = skill_build_panel._slots_box.get_child(1)
 	var highlighted_style: StyleBoxFlat = highlighted_slot.get_theme_stylebox("normal")
@@ -265,6 +265,8 @@ func _initialize() -> void:
 
 	var rotation_before: int = build_state.rotation.size()
 	skill_build_panel._on_slot_pressed(0)
+	_require(build_state.rotation.size() == rotation_before, "Selecting preserves rotation")
+	skill_build_panel._remove_selected()
 	_require(build_state.rotation.size() == rotation_before - 1, "Expected removing a rotation slot to shrink the rotation.")
 
 	# -- 5. Stat delta from base: Piercing Blades now improves the universal
@@ -292,6 +294,11 @@ func _initialize() -> void:
 	_require(character_stats_panel._stat_delta_text(0.0, "%") == "", "Expected a ~zero delta to produce no note.")
 
 	# -- 6. Equipped vs inventory gear clarity --
+	# This layout fixture needs exactly two inventory items and one free slot.
+	# Class selection now grants a starter dagger; exclude it from this fixture
+	# so swapping weapons does not add an unintended third inventory item.
+	build_state.equipped_weapon = null
+	build_state.inventory.clear()
 	var dagger: GearItem = load("res://data/gear/placeholder_dagger.tres")
 	var lucky_coin: GearItem = load("res://data/gear/lucky_coin.tres")
 	var test_inventory_weapon := GearItem.new()

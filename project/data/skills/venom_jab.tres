@@ -1,9 +1,10 @@
-[gd_resource type="Resource" script_class="Skill" load_steps=5 format=3]
+[gd_resource type="Resource" script_class="Skill" format=3 uid="uid://b2o5b616i6578"]
 
-[ext_resource type="Script" path="res://scripts/resources/skill.gd" id="1_skill"]
-[ext_resource type="Script" path="res://scripts/resources/physical_damage_effect.gd" id="2_effect"]
-[ext_resource type="Script" path="res://scripts/resources/poison_damage_effect.gd" id="3_effect"]
-[ext_resource type="Texture2D" path="res://assets/skill_icons/rogue/venom_jab.png" id="4_icon"]
+[ext_resource type="Script" uid="uid://b3jgtul4lne2k" path="res://scripts/resources/skill_effect.gd" id="1_0pmyv"]
+[ext_resource type="Script" uid="uid://d3apprhhvrqum" path="res://scripts/resources/skill.gd" id="1_skill"]
+[ext_resource type="Script" uid="uid://dlekciyngr6xr" path="res://scripts/resources/physical_damage_effect.gd" id="2_effect"]
+[ext_resource type="Script" uid="uid://c6w7hky6emjld" path="res://scripts/resources/poison_damage_effect.gd" id="3_effect"]
+[ext_resource type="Texture2D" uid="uid://cf8pi50ddn2kx" path="res://assets/skill_icons/rogue/venom_jab.png" id="4_icon"]
 
 [sub_resource type="Resource" id="Resource_venom_jab_phys"]
 script = ExtResource("2_effect")
@@ -21,4 +22,4 @@ icon = ExtResource("4_icon")
 icon_letter = "V"
 base_execution_ms = 1000
 min_execution_ms = 500
-effects = Array[SkillEffect]([SubResource("Resource_venom_jab_phys"), SubResource("Resource_venom_jab_poison")])
+effects = Array[ExtResource("1_0pmyv")]([SubResource("Resource_venom_jab_phys"), SubResource("Resource_venom_jab_poison")])

@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="Talent" format=3]
+[ext_resource type="Script" path="res://scripts/resources/talent.gd" id="talent"]
+[ext_resource type="Script" path="res://scripts/resources/talent_rank.gd" id="rank"]
+[ext_resource type="Script" path="res://scripts/resources/stat_modifier.gd" id="modifier"]
+
+[sub_resource type="Resource" id="main1"]
+script = ExtResource("modifier")
+stat_id = "percent_physical_damage"
+value = 0.50000000
+
+[sub_resource type="Resource" id="rank1"]
+script = ExtResource("rank")
+stat_modifiers = Array[ExtResource("modifier")]([SubResource("main1")])
+
+[sub_resource type="Resource" id="main2"]
+script = ExtResource("modifier")
+stat_id = "percent_physical_damage"
+value = 1.00000000
+
+[sub_resource type="Resource" id="rank2"]
+script = ExtResource("rank")
+stat_modifiers = Array[ExtResource("modifier")]([SubResource("main2")])
+
+[resource]
+script = ExtResource("talent")
+id = "talent.bladedancer.weapon_master"
+display_name = "Weapon Master"
+max_ranks = 2
+required_tree_points = 15
+ranks = Array[ExtResource("rank")]([SubResource("rank1"), SubResource("rank2")])

@@ -1,25 +1,26 @@
-[gd_resource type="Resource" script_class="Talent" load_steps=7 format=3]
+[gd_resource type="Resource" script_class="Talent" format=3 uid="uid://cun6qnya5ltbf"]
 
-[ext_resource type="Script" path="res://scripts/resources/talent.gd" id="1_talent"]
-[ext_resource type="Script" path="res://scripts/resources/stat_modifier.gd" id="2_modifier"]
-[ext_resource type="Script" path="res://scripts/resources/prerequisite_group.gd" id="3_group"]
-[ext_resource type="Resource" path="res://data/talents/thief/silvered_blade.tres" id="4_silvered_blade"]
+[ext_resource type="Script" uid="uid://bq2fx6c5wnwsg" path="res://scripts/resources/talent.gd" id="1_talent"]
+[ext_resource type="Script" uid="uid://m13uapmegxo2" path="res://scripts/resources/stat_modifier.gd" id="2_modifier"]
+[ext_resource type="Script" uid="uid://bpusgj7hvipbl" path="res://scripts/resources/prerequisite_group.gd" id="3_group"]
+[ext_resource type="Script" uid="uid://evdact12hmik" path="res://scripts/resources/talent_rank.gd" id="4_213li"]
+[ext_resource type="Resource" uid="uid://be40fbnq25fxw" path="res://data/talents/thief/silvered_blade.tres" id="4_silvered_blade"]
+[ext_resource type="Script" uid="uid://c7fj7apjjsn5" path="res://scripts/resources/triggered_skill_effect.gd" id="6_m6m7o"]
+[ext_resource type="Script" uid="uid://d3apprhhvrqum" path="res://scripts/resources/skill.gd" id="7_s7rxj"]
+
+[sub_resource type="Resource" id="Resource_big_score_group"]
+script = ExtResource("3_group")
+options = Array[ExtResource("1_talent")]([ExtResource("4_silvered_blade")])
 
 [sub_resource type="Resource" id="Resource_big_score_crit"]
 script = ExtResource("2_modifier")
 stat = 9
-operation = 0
 value = 0.01
-
-[sub_resource type="Resource" id="Resource_big_score_group"]
-script = ExtResource("3_group")
-options = Array[Talent]([ExtResource("4_silvered_blade")])
 
 [resource]
 script = ExtResource("1_talent")
 id = "talent.big_score"
 display_name = "Big Score"
 cost = 2
-prerequisites = Array[PrerequisiteGroup]([SubResource("Resource_big_score_group")])
-stat_modifiers = Array[StatModifier]([SubResource("Resource_big_score_crit")])
-unlocked_skills = Array[Skill]([])
+prerequisites = Array[ExtResource("3_group")]([SubResource("Resource_big_score_group")])
+stat_modifiers = Array[ExtResource("2_modifier")]([SubResource("Resource_big_score_crit")])

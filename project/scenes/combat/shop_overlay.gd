@@ -197,7 +197,7 @@ func _make_shop_offer_row(offer: GearItem) -> Control:
 	item_box.custom_minimum_size = Vector2(88, 88)
 	item_box.tooltip_text = _shop_offer_text(offer)
 	item_box.tooltip_builder = func(): return CardStyle.build_gear_compare_tooltip(self, _shop_offer_text(offer), BuildState.equipped_item_for_slot(offer.slot), offer)
-	item_box.disabled = BuildState.shop_purchase_price_for(offer) > BuildState.gold
+	item_box.disabled = BuildState.shop_purchase_price_for(offer) > BuildState.gold or not BuildState.can_store_shop_offer(offer)
 	item_box.pressed.connect(func(): buy_pressed.emit(offer, item_box))
 	CardStyle.style_shop_item_box(item_box, offer)
 	CardStyle.build_gear_box_content(item_box, offer)
@@ -258,12 +258,16 @@ func _shop_offer_footer_lines(offer: GearItem) -> PackedStringArray:
 	var lines: PackedStringArray = []
 	var price := BuildState.shop_purchase_price_for(offer)
 	lines.append("Price: %dg" % price)
-	if not BuildState.can_store_shop_offer(offer):
+	var reason := preload("res://scripts/ui/gear_action_feedback.gd").legendary_reason(BuildState, offer)
+	if reason != "":
+		lines.append(reason)
+	elif not BuildState.can_store_shop_offer(offer):
 		lines.append("Inventory full -- make space first.")
 	elif price > BuildState.gold:
 		lines.append("Not enough gold.")
 	else:
-		lines.append("Click to buy.")
+		lines.append("Click to buy. Bought items enter your inventory.")
+	lines.append("Comparison assumes equipping with your current gold.")
 	return lines
 
 

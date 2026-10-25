@@ -29,7 +29,7 @@ enum RunOutcome {
 }
 
 const INVENTORY_CAPACITY := 3
-const TALENT_POINT_CAP := 10
+const TALENT_POINT_CAP := BuildProgression.POINT_CAP
 const SELL_VALUE_RATIO := 0.5
 const DEFAULT_ADVENTURE_SEED := 1
 const RunRngSystem = preload("res://scripts/systems/run_rng.gd")
@@ -41,6 +41,11 @@ const SHOP_REROLL_COST_STEP := 5
 const OVERKILL_GOLD_DAMAGE_STEP := 100.0
 const OVERKILL_GOLD_PER_STEP := 10
 const OVERKILL_GOLD_CAP := 50
+
+var ranked_build: RankedBuild = null
+var is_test_mode := false
+var last_build_error := ""
+var rotation_changes: Dictionary = {"removed": [], "overflow": []}
 
 var selected_class: ClassDef = null
 var selected_trees: Array[SubclassTree] = []
@@ -130,10 +135,13 @@ var active_contract: ContractDef = null
 var current_route_node: ContractRouteNode = null
 var claimed_route_reward_ids: Array[String] = []
 var completed_contract_count: int = 0
+# Stable reward identities; optional in older version-2 saves.
+var secondary_subclass_offer_ids: Array[String] = []
 var highest_run_dps: float = 0.0
 var run_encounter_history: Array[Dictionary] = []
 var contract_offer_index: int = 0
 var defeated_generated_boss_ids: Array[String] = []
+var mysterious_coin_unlocked := false
 var current_encounter_index: int = 0
 var encounter_failure_counts: Dictionary = {}
 var encounter_retry_counts: Dictionary = {}
@@ -168,7 +176,12 @@ func set_locked(locked: bool) -> void:
 
 
 func reset(preserve_adventure_seed: bool = false) -> void:
+	is_test_mode = false
+	SaveSystem.session_only = false
 	var kept_seed := adventure_seed
+	ranked_build = null
+	last_build_error = ""
+	rotation_changes = {"removed": [], "overflow": []}
 	selected_class = null
 	selected_trees = []
 	selected_talents = []
@@ -197,10 +210,12 @@ func reset(preserve_adventure_seed: bool = false) -> void:
 	current_route_node = null
 	claimed_route_reward_ids = []
 	completed_contract_count = 0
+	secondary_subclass_offer_ids = []
 	highest_run_dps = 0.0
 	run_encounter_history = []
 	contract_offer_index = 0
 	defeated_generated_boss_ids = []
+	mysterious_coin_unlocked = false
 	current_encounter_index = 0
 	encounter_failure_counts = {}
 	encounter_retry_counts = {}
@@ -250,10 +265,22 @@ func current_target_duration_ms() -> int:
 
 
 func current_reward() -> EncounterReward:
+	var reward: EncounterReward
+	var points := 0
 	if is_contract_fight_active():
-		return current_route_node.reward
-	var encounter := current_encounter()
-	return encounter.reward if encounter != null else null
+		reward = current_route_node.reward
+		if current_route_node.node_type == ContractRouteNode.NodeType.BOSS:
+			points = BuildProgression.CONTRACT_POINTS
+	else:
+		var encounter := current_encounter()
+		reward = encounter.reward if encounter != null else null
+		if current_encounter_index >= 0 and current_encounter_index < BuildProgression.TAVERN_POINTS.size():
+			points = BuildProgression.TAVERN_POINTS[current_encounter_index]
+	if reward == null:
+		return null
+	var effective := reward.duplicate(false) as EncounterReward
+	effective.talent_points = BuildProgression.reward_amount(earned_talent_points, points)
+	return effective
 
 
 func current_fight_label() -> String:
@@ -388,6 +415,8 @@ func _contract_offer_key(contract: ContractDef) -> String:
 
 
 func accept_contract_offer(contract_id: String = "") -> bool:
+	if not is_test_mode and needs_secondary_subclass_choice():
+		return false
 	if contract_id != "" and not select_pending_contract_offer(contract_id):
 		return false
 	if not pending_contract_offer():
@@ -430,13 +459,46 @@ func return_to_contract_offer() -> bool:
 
 func needs_secondary_subclass_choice() -> bool:
 	return (
-		active_contract != null
-		and run_phase in [RunPhase.CONTRACT_ROUTE, RunPhase.PLANNING]
-		and selected_trees.size() < PassiveAllocator.MAX_TREES
+		selected_class != null
+		and selected_trees.size() == 1
+		and (completed_contract_count >= 1 if not is_test_mode else active_contract != null)
+		and (run_phase in [RunPhase.CONTRACT_ROUTE, RunPhase.PLANNING] if is_test_mode else run_phase in [RunPhase.CONTRACT_OFFER, RunPhase.CONTRACT_ROUTE, RunPhase.PLANNING])
 	)
 
 
+func secondary_subclass_choices() -> Array[SubclassTree]:
+	var choices: Array[SubclassTree] = []
+	if not needs_secondary_subclass_choice():
+		return choices
+	var pool: Array[SubclassTree] = []
+	for tree in selected_class.trees:
+		if tree != null and not selected_trees.has(tree):
+			pool.append(tree)
+	# Test Mode keeps all supported trees available.
+	if is_test_mode:
+		return pool
+	if secondary_subclass_offer_ids.is_empty():
+		var rng := RunRng.rng_for_context(adventure_seed, "secondary_tree_choices", [selected_class.id, selected_trees[0].id])
+		while secondary_subclass_offer_ids.size() < 2 and not pool.is_empty():
+			secondary_subclass_offer_ids.append(pool.pop_at(rng.randi_range(0, pool.size() - 1)).id)
+	for id in secondary_subclass_offer_ids:
+		for tree in selected_class.trees:
+			if tree.id == id and not selected_trees.has(tree):
+				choices.append(tree)
+	return choices
+
+
 func choose_secondary_tree(tree: SubclassTree) -> bool:
+	if tree == null or not secondary_subclass_choices().has(tree):
+		last_build_error = "Choose one of the earned subclass offers."
+		return false
+	if ranked_build != null:
+		if tree == null or selected_class == null or not selected_class.trees.has(tree):
+			return false
+		last_build_error = RankedBuild.content_error(tree)
+		if last_build_error != "":
+			return false
+		return _finish_rank_edit(ranked_build.choose_secondary(tree, needs_secondary_subclass_choice()))
 	if not needs_secondary_subclass_choice() or tree == null:
 		return false
 	if selected_trees.has(tree):
@@ -535,6 +597,18 @@ func start_fight() -> bool:
 	return true
 
 
+## An invalid simulation is neither a loss nor a reward-bearing result.
+func cancel_invalid_fight(result: CombatResolver.CombatResult) -> bool:
+	if result == null or result.is_valid or run_phase != RunPhase.FIGHTING:
+		return false
+	run_phase = RunPhase.PLANNING
+	run_outcome = RunOutcome.NONE
+	if is_tavern_planning():
+		tavern_map_choice_made = true
+	run_state_changed.emit()
+	return true
+
+
 func finish_fight(won: bool) -> void:
 	last_fight_won = won
 	if won:
@@ -579,7 +653,7 @@ func record_fight_dps(dps: float) -> void:
 
 
 func record_fight_result(result: CombatResolver.CombatResult, monster: Monster) -> void:
-	if result == null or monster == null:
+	if result == null or monster == null or not result.is_valid:
 		return
 	last_combat_result = result
 	record_fight_dps(result.dps)
@@ -681,7 +755,8 @@ func claim_current_reward(defer_currency: bool = false) -> bool:
 	if reward != null:
 		if not defer_currency:
 			add_gold(current_modified_reward_gold())
-			add_talent_points(reward.talent_points)
+		# Points commit with the claim, not after a cosmetic animation.
+		add_talent_points(reward.talent_points)
 		for gear in reward.fixed_gear_rewards:
 			grant_gear(gear)
 		pending_reward_choices = _gear_choices_for_reward(reward)
@@ -700,6 +775,16 @@ func can_claim_current_reward() -> bool:
 	var reward := current_reward()
 	if reward == null:
 		return true
+	# Fixed rewards commit as a batch. Check every identity before recording
+	# the claim or granting currency, so a stale/duplicate Legendary cannot
+	# leave a partially collected reward behind.
+	var fixed_legendary_ids := {}
+	for gear in reward.fixed_gear_rewards:
+		if gear == null or gear.tier != GearItem.Tier.LEGENDARY:
+			continue
+		if fixed_legendary_ids.has(gear.id) or not _legendary_claim_eligible(gear):
+			return false
+		fixed_legendary_ids[gear.id] = true
 	return inventory_space_available() >= _fixed_reward_inventory_slots_needed(reward)
 
 
@@ -711,7 +796,7 @@ func can_choose_pending_reward_gear(gear: GearItem) -> bool:
 	if gear == null or not pending_reward_choices.has(gear):
 		return false
 	if gear.tier == GearItem.Tier.LEGENDARY:
-		return true
+		return _legendary_claim_eligible(gear)
 	return can_add_inventory_item()
 
 
@@ -803,7 +888,7 @@ func buy_shop_offer(offer: GearItem) -> bool:
 
 
 func can_store_shop_offer(offer: GearItem) -> bool:
-	return offer != null and can_add_inventory_item()
+	return offer != null and can_add_inventory_item() and _legendary_claim_eligible(offer)
 
 
 func has_open_equipment_slot(slot: GearItem.SlotType) -> bool:
@@ -865,6 +950,7 @@ func _complete_contract_and_offer_next() -> bool:
 		end_run(true, RunOutcome.ALL_BOSSES_DEFEATED)
 		return false
 	run_phase = RunPhase.CONTRACT_OFFER
+	secondary_subclass_choices()
 	if start_generated_contract_loop_offer():
 		return true
 	end_run(true, RunOutcome.CONTRACT_VICTORY)
@@ -1118,7 +1204,7 @@ func _unowned_shop_legendary_paths() -> Array[String]:
 	var available: Array[String] = []
 	for path in shop_legendary_paths():
 		var candidate: GearItem = load(path)
-		if not owned_ids.has(candidate.id):
+		if not owned_ids.has(candidate.id) and (candidate.legendary_effect_id != "coin" or mysterious_coin_unlocked):
 			available.append(path)
 	return available
 
@@ -1132,10 +1218,11 @@ func _shop_offer_signature(offer: GearItem) -> String:
 
 
 func _gear_choices_for_reward(reward: EncounterReward) -> Array[GearItem]:
-	var choices: Array[GearItem] = []
-	for gear in reward.gear_choice_rewards:
-		if gear != null:
-			choices.append(gear)
+	var choices := _eligible_legendary_rewards(reward.gear_choice_rewards)
+	var offered_legendary_ids := {}
+	for gear in choices:
+		if gear.tier == GearItem.Tier.LEGENDARY:
+			offered_legendary_ids[gear.id] = true
 	var reward_context := _current_reward_context_key()
 	if reward.legendary_choice_count > 0 and not reward.legendary_choice_pool.is_empty():
 		var legendary_rng := RunRngSystem.rng_for_context(
@@ -1143,7 +1230,7 @@ func _gear_choices_for_reward(reward: EncounterReward) -> Array[GearItem]:
 			RunRngSystem.CONTEXT_REWARD_CHOICE,
 			[reward_context, "legendary", reward.legendary_choice_count]
 		)
-		choices.append_array(_sample_distinct_gear(reward.legendary_choice_pool, reward.legendary_choice_count, legendary_rng))
+		choices.append_array(_sample_distinct_gear(_eligible_legendary_rewards(reward.legendary_choice_pool, offered_legendary_ids), reward.legendary_choice_count, legendary_rng))
 	if reward.generated_gear_choice_count <= 0:
 		return choices
 	var rng := RunRngSystem.rng_for_context(
@@ -1496,7 +1583,14 @@ func current_modified_reward_gold() -> int:
 
 
 func current_player_stats() -> PlayerStats:
-	return BuildResolver.resolve_stats(selected_class, selected_trees, selected_talents, equipped_gear(), gold)
+	if ranked_build != null:
+		var resolved := BuildResolver.resolve_ranked_build(selected_class, ranked_build, equipped_gear(), gold, inventory)
+		if resolved.get("error", "") != "":
+			var invalid := PlayerStats.new()
+			invalid.derivation_error = resolved.error
+			return invalid
+		return _with_legendary_encounter_context(resolved.get("stats"))
+	return _with_legendary_encounter_context(BuildResolver.resolve_stats(selected_class, selected_trees, selected_talents, equipped_gear(), gold, inventory))
 
 
 func current_shop_discount() -> float:
@@ -1518,7 +1612,9 @@ func shop_purchase_price_for(offer: GearItem) -> int:
 
 
 func add_talent_points(amount: int) -> void:
-	earned_talent_points = clampi(earned_talent_points + amount, 0, TALENT_POINT_CAP)
+	earned_talent_points += BuildProgression.reward_amount(earned_talent_points, amount)
+	if ranked_build != null:
+		ranked_build.set_budget(earned_talent_points)
 	build_changed.emit()
 
 
@@ -1531,7 +1627,7 @@ func spend_gold(amount: int) -> bool:
 
 
 func add_inventory_item(gear: GearItem) -> bool:
-	if gear == null or inventory.has(gear) or not can_add_inventory_item():
+	if gear == null or not can_add_inventory_item() or not _legendary_claim_eligible(gear):
 		return false
 	inventory.append(gear)
 	build_changed.emit()
@@ -1569,7 +1665,7 @@ func has_inventory_item(gear: GearItem) -> bool:
 
 
 func grant_gear(gear: GearItem, auto_equip: bool = false) -> bool:
-	if gear == null:
+	if gear == null or not _legendary_claim_eligible(gear):
 		return false
 	if auto_equip:
 		equip(gear)
@@ -1612,6 +1708,7 @@ func sell_equipped_item(slot: GearItem.SlotType) -> bool:
 func destroy_inventory_item(gear: GearItem) -> bool:
 	if not has_inventory_item(gear):
 		return false
+	_unlock_destroyed_coin(gear)
 	inventory.erase(gear)
 	build_changed.emit()
 	run_state_changed.emit()
@@ -1622,6 +1719,7 @@ func destroy_equipped_item(slot: GearItem.SlotType) -> bool:
 	var gear := equipped_item_for_slot(slot)
 	if gear == null:
 		return false
+	_unlock_destroyed_coin(gear)
 	match slot:
 		GearItem.SlotType.WEAPON:
 			equipped_weapon = null
@@ -1656,6 +1754,9 @@ func equip_from_inventory(gear: GearItem) -> bool:
 func equip(gear: GearItem) -> void:
 	if gear == null:
 		return
+	var was_carried := inventory.has(gear)
+	if not was_carried and equipped_item_for_slot(gear.slot) == gear:
+		return
 	inventory.erase(gear)
 	var replaced: GearItem = equipped_item_for_slot(gear.slot)
 	match gear.slot:
@@ -1677,7 +1778,7 @@ func equip(gear: GearItem) -> void:
 	# gear is going away" and keeps equip() always succeeding, which
 	# choose_pending_reward_gear() relies on for auto-equipped Legendaries.
 	var sold_displaced_for_gold := false
-	if replaced != null and replaced != gear and not inventory.has(replaced):
+	if replaced != null:
 		if can_add_inventory_item():
 			inventory.append(replaced)
 		else:
@@ -1690,7 +1791,7 @@ func equip(gear: GearItem) -> void:
 
 func unequip(slot: GearItem.SlotType) -> void:
 	var removed: GearItem = equipped_item_for_slot(slot)
-	if removed == null:
+	if removed == null or not can_add_inventory_item():
 		return
 	match slot:
 		GearItem.SlotType.WEAPON:
@@ -1703,8 +1804,7 @@ func unequip(slot: GearItem.SlotType) -> void:
 			equipped_trinket = null
 		GearItem.SlotType.CHARM:
 			equipped_charm = null
-	if not inventory.has(removed):
-		inventory.append(removed)
+	inventory.append(removed)
 	build_changed.emit()
 
 
@@ -1736,6 +1836,9 @@ func equipped_gear() -> Array[GearItem]:
 
 
 func set_class(class_def: ClassDef) -> void:
+	if ranked_build != null:
+		last_build_error = "Ranked Adventure class is fixed until a new run."
+		return
 	selected_class = class_def
 	selected_trees = []
 	selected_talents = []
@@ -1759,6 +1862,12 @@ func _is_starter_weapon(gear: GearItem) -> bool:
 ## from toggle_tree()'s multi-select (up to PassiveAllocator.MAX_TREES)
 ## semantics, used by the single-choice subclass_select screen.
 func select_tree(tree: SubclassTree) -> void:
+	if ranked_build == null and tree != null and tree.ranked_content_ready:
+		configure_ranked_build(tree)
+		return
+	if ranked_build != null:
+		last_build_error = "Ranked Adventure trees and roles are fixed."
+		return
 	selected_trees = [tree]
 	var remaining: Array[Talent] = []
 	for talent in selected_talents:
@@ -1770,6 +1879,9 @@ func select_tree(tree: SubclassTree) -> void:
 
 
 func toggle_tree(tree: SubclassTree) -> bool:
+	if ranked_build != null:
+		last_build_error = "Ranked Adventure trees and roles are fixed."
+		return false
 	if selected_trees.has(tree):
 		selected_trees.erase(tree)
 		var remaining: Array[Talent] = []
@@ -1789,6 +1901,11 @@ func toggle_tree(tree: SubclassTree) -> bool:
 
 
 func select_talent(talent: Talent) -> bool:
+	if ranked_build != null:
+		if talent == null or run_phase not in [RunPhase.PLANNING, RunPhase.CONTRACT_ROUTE, RunPhase.CONTRACT_OFFER]:
+			last_build_error = "Talent purchases require a planning phase."
+			return false
+		return _finish_rank_edit(ranked_build.buy(talent.id))
 	if not PassiveAllocator.can_select_talent(selected_trees, selected_talents, talent, earned_talent_points):
 		return false
 	selected_talents.append(talent)
@@ -1798,6 +1915,8 @@ func select_talent(talent: Talent) -> bool:
 
 
 func deselect_talent(talent: Talent) -> bool:
+	if ranked_build != null:
+		return _finish_rank_edit(ranked_build.refund(talent.id, can_respec())) if talent != null else false
 	if not PassiveAllocator.can_deselect_talent(selected_talents, talent):
 		return false
 	selected_talents.erase(talent)
@@ -1807,15 +1926,113 @@ func deselect_talent(talent: Talent) -> bool:
 
 
 func set_rotation(skills: Array[Skill]) -> void:
-	rotation = BuildResolver.resolve_rotation(skills, unlocked_skills())
+	rotation_changes = BuildResolver.normalize_rotation(skills, unlocked_skills())
+	rotation = rotation_changes["rotation"]
 	build_changed.emit()
 
 
 func unlocked_skills() -> Array[Skill]:
+	if ranked_build != null:
+		var resolved := BuildResolver.resolve_ranked_build(selected_class, ranked_build, equipped_gear(), gold, inventory)
+		if resolved.get("error", "") != "":
+			last_build_error = resolved["error"]
+			return []
+		return resolved["skills"]
 	return BuildResolver.resolve_unlocked_skills(selected_class, selected_trees, selected_talents, equipped_gear())
 
 
 func _prune_rotation_to_unlocked() -> void:
 	var unlocked := unlocked_skills()
-	var pruned := BuildResolver.resolve_rotation(rotation, unlocked)
-	rotation = pruned
+	rotation_changes = BuildResolver.normalize_rotation(rotation, unlocked)
+	rotation = rotation_changes["rotation"]
+
+
+## T7 calls this only after converting a complete, reviewed content registry.
+## Current authored trees have ranked_content_ready=false and cannot activate it.
+func configure_ranked_build(primary: SubclassTree, secondary: SubclassTree = null) -> bool:
+	if primary == null:
+		last_build_error = "Adventure requires a primary tree."
+		return false
+	if ranked_build != null:
+		return false
+	if secondary != null and not is_test_mode:
+		last_build_error = "Adventure secondary access is earned by completing the first contract."
+		return false
+	var candidate := RankedBuild.new()
+	if not candidate.configure(primary, secondary, earned_talent_points):
+		last_build_error = candidate.last_error
+		return false
+	if candidate.resolved_content()["error"] != "":
+		last_build_error = candidate.resolved_content()["error"]
+		return false
+	ranked_build = candidate
+	return _finish_rank_edit(true)
+
+
+func can_respec() -> bool:
+	if is_test_mode:
+		return run_phase in [RunPhase.PLANNING, RunPhase.CONTRACT_ROUTE, RunPhase.CONTRACT_OFFER]
+	return (active_contract == null and is_tavern_planning()) or (run_phase == RunPhase.CONTRACT_OFFER and (active_contract == null or pending_contract_offer()))
+
+
+func refund_all_talents() -> bool:
+	if ranked_build == null:
+		return false
+	return _finish_rank_edit(ranked_build.refund_all(can_respec()))
+
+
+func refund_tree_talents(tree_id: String) -> bool:
+	if ranked_build == null: return false
+	return _finish_rank_edit(ranked_build.refund_tree(tree_id, can_respec()))
+
+
+func _finish_rank_edit(success: bool) -> bool:
+	last_build_error = ranked_build.last_error
+	if not success:
+		return false
+	selected_trees = ranked_build.trees()
+	# No binary projection of ranks: updated callers use the model directly.
+	selected_talents = []
+	earned_talent_points = ranked_build.budget()
+	_prune_rotation_to_unlocked()
+	set_locked(false)
+	build_changed.emit()
+	return true
+
+
+func _with_legendary_encounter_context(stats: PlayerStats) -> PlayerStats:
+	if stats != null:
+		var effects: Dictionary = stats.special_effects.get("legendary", {})
+		effects["missing_attempts"] = failure_count_for_current_encounter()
+		effects["unlimited_retries"] = is_unlimited_retry_encounter()
+		stats.special_effects["legendary"] = effects
+		if stats.derivation_base != null:
+			stats.derivation_base.special_effects["legendary"] = effects.duplicate(true)
+	return stats
+
+
+func _unlock_destroyed_coin(gear: GearItem) -> void:
+	if gear.id == "gear.lucky_coin":
+		mysterious_coin_unlocked = true
+
+
+func _legendary_claim_eligible(gear: GearItem) -> bool:
+	if gear.tier != GearItem.Tier.LEGENDARY:
+		return true
+	for path in _unowned_shop_legendary_paths():
+		if (load(path) as GearItem).id == gear.id:
+			return true
+	return false
+
+
+func _eligible_legendary_rewards(pool: Array[GearItem], excluded_legendary_ids: Dictionary = {}) -> Array[GearItem]:
+	var result: Array[GearItem] = []
+	var seen_ids := excluded_legendary_ids.duplicate()
+	for item in pool:
+		if item != null and _legendary_claim_eligible(item):
+			if item.tier == GearItem.Tier.LEGENDARY:
+				if seen_ids.has(item.id):
+					continue
+				seen_ids[item.id] = true
+			result.append(item)
+	return result

@@ -8,16 +8,20 @@ extends RefCounted
 const KIND_CAST := "cast"
 const KIND_POISON := "poison"
 const KIND_PROC := "proc"
-const POISON_ICON := preload("res://assets/combat_ui_icons/poison_stack.png")
+const KIND_HEALTH_REMOVAL := "health_removal"
+static var POISON_ICON: Texture2D = GameIcons.icon_for("status.poison")
 
 
 static func build(result: CombatResolver.CombatResult, monster: Monster = null) -> Dictionary:
 	return {
+		"is_valid": result.is_valid,
+		"failure": result.failure.duplicate(true),
 		"summary": CombatRecap.summarize(result, monster),
 		"duration_ms": result.duration_ms,
 		"is_win": result.is_win,
 		"timeline_rows": _timeline_rows(result),
 		"damage_rows": _damage_rows(result),
+		"health_removal_rows": _health_removal_rows(result),
 		"max_event_damage": _max_event_damage(result),
 	}
 
@@ -25,12 +29,17 @@ static func build(result: CombatResolver.CombatResult, monster: Monster = null) 
 static func _timeline_rows(result: CombatResolver.CombatResult) -> Array[Dictionary]:
 	var rows: Array[Dictionary] = []
 	var row_by_key := {}
+	var consume_by_sequence := {}
+	for record in result.trace.presentation_records:
+		if record.kind == "poison_tick": consume_by_sequence[int(record.sequence)] = bool(record.payload.get("keyword_consume", false))
 	for event in result.cast_events:
 		var skill_name := _skill_name(event.skill)
-		var cast_row: Dictionary = _row_for(row_by_key, rows, skill_name, KIND_CAST, event.skill.icon if event.skill != null else null)
+		var health_removal := preload("res://scripts/ui/combat_effect_text.gd").is_health_removal(event)
+		var cast_row: Dictionary = _row_for(row_by_key, rows, skill_name, KIND_HEALTH_REMOVAL if health_removal else KIND_CAST, event.skill.icon if event.skill != null else null)
 		var cast_events: Array = cast_row["events"]
 		var cast_contribution := _combined_contribution(event, KIND_CAST)
 		cast_events.append({
+			"health_removed": event.health_removed,
 			"start_ms": event.cast_start_ms,
 			"end_ms": event.time_ms,
 			"contact_ms": event.time_ms,
@@ -63,7 +72,7 @@ static func _timeline_rows(result: CombatResolver.CombatResult) -> Array[Diction
 	var poison_row: Dictionary = {}
 	var has_poison_row := false
 	for tick in result.tick_events:
-		if tick.damage <= 0.0 and tick.absorbed_amount <= 0.0:
+		if not tick.had_active_stack:
 			continue
 		if not has_poison_row:
 			poison_row = _row_for(row_by_key, rows, "Poison Ticks", KIND_POISON, POISON_ICON)
@@ -72,9 +81,30 @@ static func _timeline_rows(result: CombatResolver.CombatResult) -> Array[Diction
 		poison_events.append({
 			"time_ms": tick.time_ms,
 			"damage": tick.damage,
+			"is_crit": tick.is_crit,
+			"origin_kind": tick.origin_kind,
+			"stacks_before": tick.stacks_before,
+			"stacks_depleted": tick.stacks_consumed,
+			"free_retrigger": tick.origin_kind == "poison_repeat",
+			"keyword_consume": bool(consume_by_sequence.get(tick.sequence, false)),
+			"charge_spends": tick.charge_spends.duplicate(true),
 			"stacks_remaining": tick.stacks_remaining,
 		})
 		poison_row["events"] = poison_events
+	return rows
+
+
+static func _health_removal_rows(result: CombatResolver.CombatResult) -> Array[Dictionary]:
+	var rows: Array[Dictionary] = []
+	var by_name := {}
+	for event in result.cast_events:
+		if not preload("res://scripts/ui/combat_effect_text.gd").is_health_removal(event): continue
+		var name := _skill_name(event.skill)
+		if not by_name.has(name):
+			by_name[name] = {"name": name, "kind": KIND_HEALTH_REMOVAL, "health_removed": 0.0, "icon": event.skill.icon if event.skill != null else null}
+			rows.append(by_name[name])
+		by_name[name].health_removed += event.health_removed
+	rows.sort_custom(func(a, b): return a.health_removed > b.health_removed)
 	return rows
 
 

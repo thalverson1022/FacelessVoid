@@ -1,25 +1,26 @@
-[gd_resource type="Resource" script_class="Talent" load_steps=7 format=3]
+[gd_resource type="Resource" script_class="Talent" format=3 uid="uid://dccaoajq25org"]
 
-[ext_resource type="Script" path="res://scripts/resources/talent.gd" id="1_talent"]
-[ext_resource type="Script" path="res://scripts/resources/stat_modifier.gd" id="2_modifier"]
-[ext_resource type="Script" path="res://scripts/resources/prerequisite_group.gd" id="3_group"]
-[ext_resource type="Resource" path="res://data/talents/thief/big_score.tres" id="4_big_score"]
+[ext_resource type="Script" uid="uid://bq2fx6c5wnwsg" path="res://scripts/resources/talent.gd" id="1_talent"]
+[ext_resource type="Script" uid="uid://m13uapmegxo2" path="res://scripts/resources/stat_modifier.gd" id="2_modifier"]
+[ext_resource type="Script" uid="uid://bpusgj7hvipbl" path="res://scripts/resources/prerequisite_group.gd" id="3_group"]
+[ext_resource type="Resource" uid="uid://cun6qnya5ltbf" path="res://data/talents/thief/big_score.tres" id="4_big_score"]
+[ext_resource type="Script" uid="uid://evdact12hmik" path="res://scripts/resources/talent_rank.gd" id="4_dk8ob"]
+[ext_resource type="Script" uid="uid://c7fj7apjjsn5" path="res://scripts/resources/triggered_skill_effect.gd" id="6_ji7c7"]
+[ext_resource type="Script" uid="uid://d3apprhhvrqum" path="res://scripts/resources/skill.gd" id="7_7j3h8"]
+
+[sub_resource type="Resource" id="Resource_gilded_blade_group"]
+script = ExtResource("3_group")
+options = Array[ExtResource("1_talent")]([ExtResource("4_big_score")])
 
 [sub_resource type="Resource" id="Resource_gilded_blade_crit_damage"]
 script = ExtResource("2_modifier")
 stat = 10
-operation = 0
 value = 0.01
-
-[sub_resource type="Resource" id="Resource_gilded_blade_group"]
-script = ExtResource("3_group")
-options = Array[Talent]([ExtResource("4_big_score")])
 
 [resource]
 script = ExtResource("1_talent")
 id = "talent.gilded_blade"
 display_name = "Gilded Blade"
 cost = 3
-prerequisites = Array[PrerequisiteGroup]([SubResource("Resource_gilded_blade_group")])
-stat_modifiers = Array[StatModifier]([SubResource("Resource_gilded_blade_crit_damage")])
-unlocked_skills = Array[Skill]([])
+prerequisites = Array[ExtResource("3_group")]([SubResource("Resource_gilded_blade_group")])
+stat_modifiers = Array[ExtResource("2_modifier")]([SubResource("Resource_gilded_blade_crit_damage")])

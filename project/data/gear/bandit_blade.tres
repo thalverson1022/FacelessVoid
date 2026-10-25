@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="GearItem" load_steps=5 format=3]
+[gd_resource type="Resource" script_class="GearItem" load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/resources/gear_item.gd" id="1_gear"]
 [ext_resource type="Script" path="res://scripts/resources/stat_modifier.gd" id="2_affix"]
@@ -27,12 +27,13 @@ stat_id = "increased_gold"
 stat = 7
 category = 0
 operation = 0
-value = 0.3
+value = 0.5
 display_label = "Increased Gold"
 
 [resource]
 script = ExtResource("1_gear")
 id = "gear.legendary.bandit_blade"
+legendary_effect_id = "bandit"
 display_name = "Bandit Blade"
 slot = 0
 tier = 3

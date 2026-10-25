@@ -161,6 +161,8 @@ func _numeric_modifier(stat_id: String, value: float, is_drawback: bool = false)
 
 
 func _write_save(data: Dictionary) -> void:
+	# Keep this gear canonicalization test inside the current Phase 6 envelope.
+	data["build"] = BuildSaveCodec.encode(root.get_node("BuildState"), SaveSystemScript.registry())
 	SaveSystemScript.delete_save()
 	var file := FileAccess.open(SaveSystemScript.save_path, FileAccess.WRITE)
 	_require(file != null, "Expected test save file to open for writing.")

@@ -85,6 +85,8 @@ static func resolve_damage_packet(
 	amount *= maxf(1.0, crit_multiplier) if is_crit else 1.0
 	if began_physical:
 		amount *= maxf(0.0, physical_damage_penalty)
+	if not is_finite(amount):
+		return _invalid_packet(is_crit)
 
 	var entered_mitigation := amount > 0.0
 	var fully_prevented := not entered_mitigation
@@ -116,6 +118,8 @@ static func resolve_damage_packet(
 			absorbed_amount += after_resistance - amount
 			if after_resistance > 0.0 and amount <= 0.0:
 				fully_prevented = true
+		if not is_finite(amount) or not is_finite(blocked_amount) or not is_finite(absorbed_amount) or not is_finite(crit_negation_applied):
+			return _invalid_packet(is_crit)
 	amount = _final_damage_amount(amount, entered_mitigation, fully_prevented)
 	return {
 		"amount": amount,
@@ -151,4 +155,11 @@ static func _mitigation_types_for(original_type: String, convert_to_physical: bo
 static func _final_damage_amount(amount: float, entered_mitigation: bool, fully_prevented: bool) -> float:
 	if not entered_mitigation or fully_prevented or amount <= 0.0:
 		return 0.0
-	return float(maxi(1, roundi(amount)))
+	# Damage is a float; an intermediate int64 conversion can wrap a large but
+	# finite hit. Preserve rounding without introducing an integer damage cap.
+	return maxf(1.0, round(amount))
+
+static func _invalid_packet(is_crit: bool) -> Dictionary:
+	return {"amount": NAN, "is_crit": is_crit, "blocked_amount": 0.0,
+		"absorbed_amount": 0.0, "crit_negation_applied": 0.0,
+		"crit_negation_damage_prevented": 0.0}

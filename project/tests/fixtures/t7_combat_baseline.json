@@ -1,0 +1,32 @@
+{
+	"1": {
+		"damage": 94.0,
+		"rng": "-5192702437526480500",
+		"signature": "cc5480ddc93607b8c6c2ac64ac6d1f8f3c73e9f651c7305a9427e3716e26a9c3"
+	},
+	"103": {
+		"damage": 72.0,
+		"rng": "683055767653715651",
+		"signature": "2b06fea054d6ee8d3f7cdfab6ba9735db43b51a13957ea5542db752412f7e481"
+	},
+	"11": {
+		"damage": 111.0,
+		"rng": "3243338183271701898",
+		"signature": "5f80491dc045a688935451bea34abc9a8e84c5fa30b17097cc435d3ab567c93b"
+	},
+	"23": {
+		"damage": 72.0,
+		"rng": "3366994981355780100",
+		"signature": "05360ccf53290fff86a453f016d1aa5633c28ee2fc898ed9c05e09172e68cd07"
+	},
+	"42": {
+		"damage": 114.0,
+		"rng": "8247106403170279323",
+		"signature": "0e742178d6d190f1db8d8f2475bcf32efd5ba32f7d2d4c0f1b189e783e1b1442"
+	},
+	"7": {
+		"damage": 66.0,
+		"rng": "-2184107895382415250",
+		"signature": "8b4ebb237ed3b437ea5ce0abe4264972af26d3008bae2d742c37bb580f96b132"
+	}
+}

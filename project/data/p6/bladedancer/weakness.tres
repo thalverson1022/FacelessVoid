@@ -1,0 +1,57 @@
+[gd_resource type="Resource" script_class="Talent" format=3]
+[ext_resource type="Script" path="res://scripts/resources/talent.gd" id="talent"]
+[ext_resource type="Script" path="res://scripts/resources/talent_rank.gd" id="rank"]
+[ext_resource type="Script" path="res://scripts/resources/stat_modifier.gd" id="modifier"]
+
+[sub_resource type="Resource" id="main1"]
+script = ExtResource("modifier")
+stat_id = "shred_value"
+value = 5.00000000
+
+[sub_resource type="Resource" id="rank1"]
+script = ExtResource("rank")
+stat_modifiers = Array[ExtResource("modifier")]([SubResource("main1")])
+
+[sub_resource type="Resource" id="main2"]
+script = ExtResource("modifier")
+stat_id = "shred_value"
+value = 10.00000000
+
+[sub_resource type="Resource" id="rank2"]
+script = ExtResource("rank")
+stat_modifiers = Array[ExtResource("modifier")]([SubResource("main2")])
+
+[sub_resource type="Resource" id="main3"]
+script = ExtResource("modifier")
+stat_id = "shred_value"
+value = 15.00000000
+
+[sub_resource type="Resource" id="rank3"]
+script = ExtResource("rank")
+stat_modifiers = Array[ExtResource("modifier")]([SubResource("main3")])
+
+[sub_resource type="Resource" id="main4"]
+script = ExtResource("modifier")
+stat_id = "shred_value"
+value = 20.00000000
+
+[sub_resource type="Resource" id="rank4"]
+script = ExtResource("rank")
+stat_modifiers = Array[ExtResource("modifier")]([SubResource("main4")])
+
+[sub_resource type="Resource" id="main5"]
+script = ExtResource("modifier")
+stat_id = "shred_value"
+value = 25.00000000
+
+[sub_resource type="Resource" id="rank5"]
+script = ExtResource("rank")
+stat_modifiers = Array[ExtResource("modifier")]([SubResource("main5")])
+
+[resource]
+script = ExtResource("talent")
+id = "talent.bladedancer.weakness"
+display_name = "Weakness"
+max_ranks = 5
+required_tree_points = 0
+ranks = Array[ExtResource("rank")]([SubResource("rank1"), SubResource("rank2"), SubResource("rank3"), SubResource("rank4"), SubResource("rank5")])

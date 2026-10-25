@@ -1,13 +1,17 @@
-[gd_resource type="Resource" script_class="SubclassTree" load_steps=10 format=3]
+[gd_resource type="Resource" script_class="SubclassTree" format=3 uid="uid://3igs64m8p0cu"]
 
-[ext_resource type="Script" path="res://scripts/resources/subclass_tree.gd" id="1_tree"]
-[ext_resource type="Resource" path="res://data/talents/assassin/venom_edge.tres" id="2_venom_edge"]
-[ext_resource type="Resource" path="res://data/talents/assassin/precise_cuts.tres" id="3_precise_cuts"]
-[ext_resource type="Resource" path="res://data/talents/assassin/lethal_intent.tres" id="4_lethal_intent"]
-[ext_resource type="Resource" path="res://data/talents/assassin/toxic_technique.tres" id="5_toxic_technique"]
-[ext_resource type="Resource" path="res://data/talents/assassin/perfect_toxin.tres" id="6_perfect_toxin"]
-[ext_resource type="Texture2D" path="res://assets/subclass_icons/rogue/assassin.png" id="7_icon"]
-[ext_resource type="Script" path="res://scripts/resources/stat_modifier.gd" id="8_modifier"]
+[ext_resource type="Script" uid="uid://bu6ht8c08e4an" path="res://scripts/resources/subclass_tree.gd" id="1_tree"]
+[ext_resource type="Script" uid="uid://ccn5oxlw8r50c" path="res://scripts/resources/tree_skill_unlock.gd" id="1_vlyr1"]
+[ext_resource type="Resource" uid="uid://djcye6io1ql0j" path="res://data/talents/assassin/venom_edge.tres" id="2_venom_edge"]
+[ext_resource type="Resource" uid="uid://20oi7pvo0q6m" path="res://data/talents/assassin/precise_cuts.tres" id="3_precise_cuts"]
+[ext_resource type="Resource" uid="uid://ttkg4qtgbdwr" path="res://data/talents/assassin/lethal_intent.tres" id="4_lethal_intent"]
+[ext_resource type="Script" uid="uid://cbkin0ub6teak" path="res://scripts/resources/skill_augment.gd" id="5_ss4ci"]
+[ext_resource type="Resource" uid="uid://c8ixr51y88egn" path="res://data/talents/assassin/toxic_technique.tres" id="5_toxic_technique"]
+[ext_resource type="Resource" uid="uid://r1utyqfoj4t5" path="res://data/talents/assassin/perfect_toxin.tres" id="6_perfect_toxin"]
+[ext_resource type="Script" uid="uid://bq2fx6c5wnwsg" path="res://scripts/resources/talent.gd" id="6_xa3kc"]
+[ext_resource type="Texture2D" uid="uid://b0fc043aawnn3" path="res://assets/subclass_icons/rogue/assassin.png" id="7_icon"]
+[ext_resource type="Script" uid="uid://m13uapmegxo2" path="res://scripts/resources/stat_modifier.gd" id="8_modifier"]
+[ext_resource type="Script" uid="uid://d3apprhhvrqum" path="res://scripts/resources/skill.gd" id="12_p7jmo"]
 
 [sub_resource type="Resource" id="Resource_assassin_intrinsic_mod"]
 script = ExtResource("8_modifier")
@@ -21,5 +25,5 @@ id = "tree.assassin"
 display_name = "Assassin"
 icon = ExtResource("7_icon")
 intrinsic_text = "x20% Poison Damage"
-talents = Array[Talent]([ExtResource("2_venom_edge"), ExtResource("3_precise_cuts"), ExtResource("4_lethal_intent"), ExtResource("5_toxic_technique"), ExtResource("6_perfect_toxin")])
-innate_modifiers = Array[StatModifier]([SubResource("Resource_assassin_intrinsic_mod")])
+talents = Array[ExtResource("6_xa3kc")]([ExtResource("2_venom_edge"), ExtResource("3_precise_cuts"), ExtResource("4_lethal_intent"), ExtResource("5_toxic_technique"), ExtResource("6_perfect_toxin")])
+innate_modifiers = Array[ExtResource("8_modifier")]([SubResource("Resource_assassin_intrinsic_mod")])

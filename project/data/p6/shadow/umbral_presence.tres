@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="Talent" format=3]
+[ext_resource type="Script" path="res://scripts/resources/talent.gd" id="talent"]
+[ext_resource type="Script" path="res://scripts/resources/talent_rank.gd" id="rank"]
+
+[sub_resource type="Resource" id="rank1"]
+script = ExtResource("rank")
+umbral_presence_enabled = true
+
+[resource]
+script = ExtResource("talent")
+id = "talent.umbral_pressure"
+display_name = "Umbral Presence"
+max_ranks = 1
+required_tree_points = 20
+ranks = Array[ExtResource("rank")]([SubResource("rank1")])

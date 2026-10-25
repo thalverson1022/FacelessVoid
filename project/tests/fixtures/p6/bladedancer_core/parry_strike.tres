@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="Skill" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/skill.gd" id="skill"]
+[ext_resource type="Script" path="res://scripts/resources/physical_damage_effect.gd" id="damage"]
+[sub_resource type="Resource" id="damage"]
+script = ExtResource("damage")
+amount = 1.0
+[resource]
+script = ExtResource("skill")
+id = "skill.parry_strike"
+display_name = "Parry Strike"
+base_execution_ms = 500
+min_execution_ms = 300
+enables_readiness = true
+effects = Array[SkillEffect]([SubResource("damage")])

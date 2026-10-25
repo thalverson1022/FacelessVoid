@@ -1,0 +1,2260 @@
+{
+  "version": 1,
+  "title": "Rogue subclass balance protocol",
+  "source_balance_authority": "P6M5-D023",
+  "durations_ms": [
+    30000,
+    120000
+  ],
+  "gear": [
+    "res://data/gear/crude_dagger.tres"
+  ],
+  "starting_gold": 0,
+  "monster": "res://data/monsters/training_dummy.tres",
+  "monster_hp": 1000000000,
+  "baseline_seed_start": 1,
+  "seed_count": 200,
+  "validation_seed_start": 201,
+  "search": {
+    "screen_seed_count": 3,
+    "shortlist_count": 20,
+    "shortlist_seed_count": 12,
+    "finalist_count": 3,
+    "max_macro_slots": 10,
+    "random_candidates": 80,
+    "mutation_generations": 2,
+    "mutations_per_parent": 16,
+    "parents_per_generation": 8
+  },
+  "notes": [
+    "Allocations are fixed; optimization changes macro only. All unlocked Rogue and primary-tree skills are eligible.",
+    "Heavy Strike in the request is the existing Heavy Slash skill.",
+    "No boss or resource evaluation is part of this protocol.",
+    "Historical rotations seed the search only; their old DPS values are never reused.",
+    "Optimization is deterministic and heuristic, not a proof of global optimum.",
+    "Retain bladedancer_21_bd2; both original BD21 candidates and their results are archived in subclass_protocol_d023."
+  ],
+  "cases": [
+    {
+      "id": "bladedancer_1",
+      "tree": "bladedancer",
+      "points": 1,
+      "variant": "standard",
+      "talent_ranks": {
+        "talent.bladedancer.wet_stone": 1
+      },
+      "full_tree": false,
+      "baseline_rotation": [
+        "quick_cut"
+      ],
+      "reference_optimized_rotations": {
+        "30": [
+          "quick_cut"
+        ],
+        "120": [
+          "quick_cut"
+        ]
+      }
+    },
+    {
+      "id": "thief_1",
+      "tree": "thief",
+      "points": 1,
+      "variant": "standard",
+      "talent_ranks": {
+        "talent.keen_eye": 1
+      },
+      "full_tree": false,
+      "baseline_rotation": [
+        "steal"
+      ],
+      "reference_optimized_rotations": {
+        "30": [
+          "steal"
+        ],
+        "120": [
+          "steal"
+        ]
+      }
+    },
+    {
+      "id": "assassin_1",
+      "tree": "assassin",
+      "points": 1,
+      "variant": "standard",
+      "talent_ranks": {
+        "talent.assassin.precision": 1
+      },
+      "full_tree": false,
+      "baseline_rotation": [
+        "venom_jab",
+        "heavy_slash",
+        "heavy_slash"
+      ],
+      "reference_optimized_rotations": {
+        "30": [
+          "venom_jab",
+          "venom_jab",
+          "heavy_slash",
+          "heavy_slash",
+          "heavy_slash"
+        ],
+        "120": [
+          "venom_jab",
+          "stab",
+          "venom_jab",
+          "heavy_slash",
+          "heavy_slash",
+          "heavy_slash"
+        ]
+      }
+    },
+    {
+      "id": "shadow_1",
+      "tree": "shadow",
+      "points": 1,
+      "variant": "standard",
+      "talent_ranks": {
+        "talent.shadow.coated_weapons": 1
+      },
+      "full_tree": false,
+      "baseline_rotation": [
+        "stab"
+      ],
+      "reference_optimized_rotations": {
+        "30": [
+          "stab",
+          "heavy_slash",
+          "heavy_slash"
+        ],
+        "120": [
+          "heavy_slash",
+          "heavy_slash",
+          "heavy_slash",
+          "stab"
+        ]
+      }
+    },
+    {
+      "id": "bladedancer_10",
+      "tree": "bladedancer",
+      "points": 10,
+      "variant": "standard",
+      "talent_ranks": {
+        "talent.bladedancer.weakness": 3,
+        "talent.bladedancer.wet_stone": 5,
+        "talent.bladedancer.rending_slash": 1,
+        "talent.bladedancer.precision_attacks": 1
+      },
+      "full_tree": false,
+      "baseline_rotation": [
+        "rending_thrust",
+        "quick_cut",
+        "stab",
+        "parry_strike"
+      ],
+      "reference_optimized_rotations": {
+        "30": [
+          "rending_thrust",
+          "quick_cut",
+          "heavy_slash",
+          "parry_strike"
+        ],
+        "120": [
+          "rending_thrust",
+          "quick_cut",
+          "heavy_slash",
+          "parry_strike"
+        ]
+      }
+    },
+    {
+      "id": "thief_10",
+      "tree": "thief",
+      "points": 10,
+      "variant": "standard",
+      "talent_ranks": {
+        "talent.sticky_fingers": 5,
+        "talent.thief.fast_hands": 5
+      },
+      "full_tree": false,
+      "baseline_rotation": [
+        "pick_pocket",
+        "steal",
+        "mug",
+        "steal",
+        "mug"
+      ],
+      "reference_optimized_rotations": {
+        "30": [
+          "pick_pocket",
+          "mug",
+          "mug",
+          "mug",
+          "pick_pocket",
+          "mug",
+          "mug"
+        ],
+        "120": [
+          "pick_pocket",
+          "mug",
+          "mug",
+          "mug",
+          "mug",
+          "mug",
+          "mug"
+        ]
+      }
+    },
+    {
+      "id": "assassin_10",
+      "tree": "assassin",
+      "points": 10,
+      "variant": "standard",
+      "talent_ranks": {
+        "talent.assassin.quick_hands": 5,
+        "talent.assassin.hastened_poison": 2,
+        "talent.assassin.echoing_toxin": 3
+      },
+      "full_tree": false,
+      "baseline_rotation": [
+        "venom_jab",
+        "blinding_powder",
+        "virulent_poison"
+      ],
+      "reference_optimized_rotations": {
+        "30": [
+          "venom_jab",
+          "virulent_poison",
+          "blinding_powder"
+        ],
+        "120": [
+          "virulent_poison",
+          "venom_jab",
+          "virulent_poison",
+          "blinding_powder"
+        ]
+      }
+    },
+    {
+      "id": "shadow_10",
+      "tree": "shadow",
+      "points": 10,
+      "variant": "standard",
+      "talent_ranks": {
+        "talent.shadow.snake_oil": 4,
+        "talent.shadow.coated_weapons": 1,
+        "talent.shadow.deception": 5
+      },
+      "full_tree": false,
+      "baseline_rotation": [
+        "stab",
+        "heavy_slash",
+        "heavy_slash"
+      ],
+      "reference_optimized_rotations": {
+        "30": [
+          "stab",
+          "stab",
+          "stab",
+          "stab",
+          "touch_of_darkness",
+          "killers_mark"
+        ],
+        "120": [
+          "stab",
+          "stab",
+          "stab",
+          "stab",
+          "stab",
+          "touch_of_darkness",
+          "killers_mark"
+        ]
+      }
+    },
+    {
+      "id": "bladedancer_21_bd2",
+      "tree": "bladedancer",
+      "points": 21,
+      "variant": "bd2",
+      "talent_ranks": {
+        "talent.bladedancer.wet_stone": 5,
+        "talent.bladedancer.rending_slash": 1,
+        "talent.bladedancer.fancy_footwork": 5,
+        "talent.bladedancer.cloak_and_dagger": 2,
+        "talent.bladedancer.opportunity": 3,
+        "talent.bladedancer.weapon_master": 2,
+        "talent.bladedancer.riposte": 2,
+        "talent.bladedancer.virulent_corruption": 1
+      },
+      "full_tree": false,
+      "baseline_rotation": [
+        "dance_of_death",
+        "quick_cut",
+        "quick_cut",
+        "quick_cut",
+        "quick_cut",
+        "quick_cut",
+        "leaping_plunge"
+      ],
+      "reference_optimized_rotations": {
+        "30": [
+          "quick_cut",
+          "quick_cut",
+          "dance_of_death",
+          "quick_cut",
+          "dance_of_death",
+          "leaping_plunge"
+        ],
+        "120": [
+          "quick_cut",
+          "quick_cut",
+          "dance_of_death",
+          "quick_cut",
+          "leaping_plunge"
+        ]
+      }
+    },
+    {
+      "id": "thief_21",
+      "tree": "thief",
+      "points": 21,
+      "variant": "standard",
+      "talent_ranks": {
+        "talent.keen_eye": 4,
+        "talent.sticky_fingers": 5,
+        "talent.thief.fast_hands": 5,
+        "talent.thief.silvered_edge": 3,
+        "talent.thief.bribery": 3,
+        "talent.gilded_blade": 1
+      },
+      "full_tree": false,
+      "baseline_rotation": [
+        "pick_pocket",
+        "mug"
+      ],
+      "reference_optimized_rotations": {
+        "30": [
+          "pick_pocket",
+          "steal",
+          "big_score",
+          "big_score",
+          "big_score",
+          "big_score",
+          "big_score",
+          "big_score",
+          "big_score",
+          "mug"
+        ],
+        "120": [
+          "pick_pocket",
+          "steal",
+          "steal",
+          "big_score",
+          "big_score",
+          "big_score",
+          "big_score",
+          "big_score",
+          "big_score"
+        ]
+      }
+    },
+    {
+      "id": "assassin_21",
+      "tree": "assassin",
+      "points": 21,
+      "variant": "standard",
+      "talent_ranks": {
+        "talent.assassin.quick_hands": 5,
+        "talent.assassin.hastened_poison": 2,
+        "talent.assassin.echoing_toxin": 3,
+        "talent.assassin.bypass": 1,
+        "talent.assassin.toxic_tradeoff": 5,
+        "talent.assassin.resonance": 4,
+        "talent.assassin.critical_poison": 1
+      },
+      "full_tree": false,
+      "baseline_rotation": [
+        "venom_jab",
+        "blinding_powder",
+        "virulent_poison"
+      ],
+      "reference_optimized_rotations": {
+        "30": [
+          "virulent_poison",
+          "blinding_powder",
+          "blinding_powder",
+          "poison_vile",
+          "blinding_powder"
+        ],
+        "120": [
+          "virulent_poison",
+          "hold",
+          "blinding_powder",
+          "poison_vile",
+          "blinding_powder"
+        ]
+      }
+    },
+    {
+      "id": "shadow_21",
+      "tree": "shadow",
+      "points": 21,
+      "variant": "standard",
+      "talent_ranks": {
+        "talent.shadow.snake_oil": 4,
+        "talent.shadow.coated_weapons": 1,
+        "talent.shadow.deception": 5,
+        "talent.shadow.death_touch": 3,
+        "talent.shadow.death_pact": 2,
+        "talent.shadow.shadow_mastery": 2,
+        "talent.shadow.dusk_strike": 1,
+        "talent.shadow.death_blade": 2,
+        "talent.umbral_pressure": 1
+      },
+      "full_tree": false,
+      "baseline_rotation": [
+        "toxic_flurry",
+        "distilled_corruption",
+        "killers_mark",
+        "toxic_flurry",
+        "distilled_corruption",
+        "killers_mark",
+        "touch_of_darkness",
+        "beguiling_presence"
+      ],
+      "reference_optimized_rotations": {
+        "30": [
+          "toxic_flurry",
+          "distilled_corruption",
+          "distilled_corruption",
+          "toxic_flurry",
+          "distilled_corruption",
+          "heavy_slash",
+          "distilled_corruption",
+          "killers_mark",
+          "killers_mark",
+          "touch_of_darkness"
+        ],
+        "120": [
+          "toxic_flurry",
+          "distilled_corruption",
+          "killers_mark",
+          "toxic_flurry",
+          "distilled_corruption",
+          "killers_mark",
+          "touch_of_darkness",
+          "beguiling_presence"
+        ]
+      }
+    },
+    {
+      "id": "bladedancer_35",
+      "tree": "bladedancer",
+      "points": 35,
+      "variant": "standard",
+      "talent_ranks": {},
+      "full_tree": true,
+      "baseline_rotation": [
+        "dance_of_death",
+        "quick_cut",
+        "stab",
+        "quick_cut",
+        "parry_strike",
+        "quick_cut",
+        "leaping_plunge"
+      ],
+      "reference_optimized_rotations": {
+        "30": [
+          "dance_of_death",
+          "quick_cut",
+          "quick_cut",
+          "parry_strike",
+          "quick_cut",
+          "stab",
+          "leaping_plunge"
+        ],
+        "120": [
+          "quick_cut",
+          "dance_of_death",
+          "quick_cut",
+          "parry_strike",
+          "quick_cut",
+          "stab",
+          "leaping_plunge"
+        ]
+      }
+    },
+    {
+      "id": "thief_35",
+      "tree": "thief",
+      "points": 35,
+      "variant": "standard",
+      "talent_ranks": {},
+      "full_tree": true,
+      "baseline_rotation": [
+        "pick_pocket",
+        "steal",
+        "big_score",
+        "big_score",
+        "mug",
+        "big_score"
+      ],
+      "reference_optimized_rotations": {
+        "30": [
+          "pick_pocket",
+          "steal",
+          "big_score",
+          "big_score",
+          "mug",
+          "big_score"
+        ],
+        "120": [
+          "pick_pocket",
+          "steal",
+          "big_score",
+          "steal",
+          "big_score",
+          "big_score"
+        ]
+      }
+    },
+    {
+      "id": "assassin_35",
+      "tree": "assassin",
+      "points": 35,
+      "variant": "standard",
+      "talent_ranks": {},
+      "full_tree": true,
+      "baseline_rotation": [
+        "virulent_poison",
+        "poison_vile",
+        "poison_strike",
+        "poison_strike"
+      ],
+      "reference_optimized_rotations": {
+        "30": [
+          "virulent_poison",
+          "poison_vile",
+          "poison_strike",
+          "poison_strike"
+        ],
+        "120": [
+          "poison_vile",
+          "virulent_poison",
+          "blinding_powder",
+          "poison_strike",
+          "poison_strike"
+        ]
+      }
+    },
+    {
+      "id": "shadow_35",
+      "tree": "shadow",
+      "points": 35,
+      "variant": "standard",
+      "talent_ranks": {},
+      "full_tree": true,
+      "baseline_rotation": [
+        "toxic_flurry",
+        "distilled_corruption",
+        "distilled_corruption",
+        "toxic_flurry",
+        "distilled_corruption",
+        "distilled_corruption",
+        "killers_mark",
+        "killers_mark",
+        "killers_mark",
+        "touch_of_darkness"
+      ],
+      "reference_optimized_rotations": {
+        "30": [
+          "toxic_flurry",
+          "distilled_corruption",
+          "distilled_corruption",
+          "toxic_flurry",
+          "distilled_corruption",
+          "distilled_corruption",
+          "killers_mark",
+          "killers_mark",
+          "killers_mark",
+          "touch_of_darkness"
+        ],
+        "120": [
+          "toxic_flurry",
+          "distilled_corruption",
+          "killers_mark",
+          "touch_of_darkness",
+          "killers_mark",
+          "killers_mark",
+          "toxic_flurry",
+          "beguiling_presence"
+        ]
+      }
+    }
+  ],
+  "seed_rotations": {
+    "bladedancer": [
+      [
+        "parry_strike",
+        "quick_cut",
+        "heavy_slash",
+        "rending_thrust"
+      ],
+      [
+        "parry_strike",
+        "quick_cut",
+        "rending_thrust",
+        "heavy_slash"
+      ],
+      [
+        "parry_strike",
+        "rending_thrust",
+        "quick_cut",
+        "heavy_slash"
+      ],
+      [
+        "quick_cut",
+        "heavy_slash",
+        "parry_strike",
+        "rending_thrust"
+      ],
+      [
+        "quick_cut",
+        "heavy_slash",
+        "rending_thrust",
+        "parry_strike"
+      ],
+      [
+        "quick_cut",
+        "parry_strike",
+        "heavy_slash",
+        "rending_thrust"
+      ],
+      [
+        "quick_cut",
+        "parry_strike",
+        "rending_thrust",
+        "heavy_slash"
+      ],
+      [
+        "quick_cut",
+        "rending_thrust",
+        "heavy_slash",
+        "parry_strike"
+      ],
+      [
+        "quick_cut",
+        "rending_thrust",
+        "parry_strike",
+        "heavy_slash"
+      ],
+      [
+        "quick_cut",
+        "rending_thrust",
+        "quick_cut",
+        "heavy_slash",
+        "parry_strike"
+      ],
+      [
+        "rending_thrust",
+        "heavy_slash",
+        "parry_strike",
+        "quick_cut"
+      ],
+      [
+        "rending_thrust",
+        "heavy_slash",
+        "quick_cut",
+        "parry_strike"
+      ],
+      [
+        "rending_thrust",
+        "parry_strike",
+        "quick_cut",
+        "heavy_slash"
+      ],
+      [
+        "rending_thrust",
+        "quick_cut",
+        "heavy_slash",
+        "parry_strike"
+      ],
+      [
+        "rending_thrust",
+        "quick_cut",
+        "parry_strike",
+        "heavy_slash"
+      ],
+      [
+        "rending_thrust",
+        "quick_cut",
+        "stab",
+        "parry_strike"
+      ]
+    ],
+    "thief": [
+      [
+        "mug",
+        "pick_pocket",
+        "mug"
+      ],
+      [
+        "mug",
+        "pick_pocket",
+        "mug",
+        "mug",
+        "mug"
+      ],
+      [
+        "mug",
+        "pick_pocket",
+        "mug",
+        "pick_pocket",
+        "mug",
+        "mug"
+      ],
+      [
+        "mug",
+        "pick_pocket",
+        "pick_pocket",
+        "mug",
+        "mug",
+        "mug"
+      ],
+      [
+        "pick_pocket",
+        "mug",
+        "mug"
+      ],
+      [
+        "pick_pocket",
+        "mug",
+        "mug",
+        "mug"
+      ],
+      [
+        "pick_pocket",
+        "mug",
+        "mug",
+        "mug",
+        "mug"
+      ],
+      [
+        "pick_pocket",
+        "mug",
+        "mug",
+        "mug",
+        "pick_pocket",
+        "mug"
+      ],
+      [
+        "pick_pocket",
+        "mug",
+        "mug",
+        "mug",
+        "pick_pocket",
+        "mug",
+        "mug"
+      ],
+      [
+        "pick_pocket",
+        "mug",
+        "mug",
+        "pick_pocket",
+        "mug",
+        "mug"
+      ],
+      [
+        "pick_pocket",
+        "mug",
+        "mug",
+        "pick_pocket",
+        "pick_pocket",
+        "mug",
+        "mug"
+      ],
+      [
+        "pick_pocket",
+        "mug",
+        "pick_pocket",
+        "mug",
+        "mug",
+        "mug"
+      ],
+      [
+        "pick_pocket",
+        "mug",
+        "pick_pocket",
+        "mug",
+        "pick_pocket",
+        "mug",
+        "mug"
+      ],
+      [
+        "pick_pocket",
+        "pick_pocket",
+        "mug",
+        "mug",
+        "mug",
+        "mug"
+      ],
+      [
+        "pick_pocket",
+        "pick_pocket",
+        "mug",
+        "mug",
+        "pick_pocket",
+        "mug",
+        "mug"
+      ],
+      [
+        "pick_pocket",
+        "steal",
+        "mug",
+        "steal",
+        "mug"
+      ]
+    ],
+    "assassin": [
+      [
+        "blinding_powder",
+        "virulent_poison",
+        "venom_jab"
+      ],
+      [
+        "venom_jab",
+        "blinding_powder",
+        "virulent_poison"
+      ],
+      [
+        "venom_jab",
+        "virulent_poison",
+        "blinding_powder"
+      ],
+      [
+        "venom_jab",
+        "virulent_poison",
+        "blinding_powder",
+        "master_of_poisons",
+        "virulent_poison"
+      ],
+      [
+        "venom_jab",
+        "virulent_poison",
+        "blinding_powder",
+        "virulent_poison"
+      ],
+      [
+        "venom_jab",
+        "virulent_poison",
+        "blinding_powder",
+        "virulent_poison",
+        "virulent_poison"
+      ],
+      [
+        "venom_jab",
+        "virulent_poison",
+        "virulent_poison",
+        "blinding_powder",
+        "virulent_poison"
+      ],
+      [
+        "virulent_poison",
+        "venom_jab",
+        "blinding_powder"
+      ],
+      [
+        "virulent_poison",
+        "venom_jab",
+        "blinding_powder",
+        "virulent_poison"
+      ],
+      [
+        "virulent_poison",
+        "venom_jab",
+        "virulent_poison",
+        "blinding_powder"
+      ],
+      [
+        "virulent_poison",
+        "venom_jab",
+        "virulent_poison",
+        "blinding_powder",
+        "virulent_poison"
+      ],
+      [
+        "virulent_poison",
+        "venom_jab",
+        "virulent_poison",
+        "master_of_poisons",
+        "blinding_powder"
+      ],
+      [
+        "virulent_poison",
+        "venom_jab",
+        "virulent_poison",
+        "virulent_poison",
+        "blinding_powder"
+      ],
+      [
+        "virulent_poison",
+        "virulent_poison",
+        "venom_jab",
+        "blinding_powder"
+      ],
+      [
+        "virulent_poison",
+        "virulent_poison",
+        "venom_jab",
+        "virulent_poison",
+        "blinding_powder"
+      ]
+    ],
+    "shadow": [
+      [
+        "distilled_corruption",
+        "toxic_flurry",
+        "distilled_corruption",
+        "distilled_corruption",
+        "toxic_flurry",
+        "killers_mark",
+        "distilled_corruption",
+        "killers_mark",
+        "killers_mark",
+        "touch_of_darkness"
+      ],
+      [
+        "heavy_slash",
+        "heavy_slash",
+        "stab"
+      ],
+      [
+        "heavy_slash",
+        "heavy_slash",
+        "stab",
+        "heavy_slash"
+      ],
+      [
+        "heavy_slash",
+        "stab",
+        "heavy_slash"
+      ],
+      [
+        "heavy_slash",
+        "stab",
+        "killers_mark",
+        "heavy_slash",
+        "touch_of_darkness"
+      ],
+      [
+        "heavy_slash",
+        "stab",
+        "stab"
+      ],
+      [
+        "heavy_slash",
+        "stab",
+        "stab",
+        "killers_mark",
+        "touch_of_darkness"
+      ],
+      [
+        "heavy_slash",
+        "stab",
+        "stab",
+        "stab",
+        "stab"
+      ],
+      [
+        "heavy_slash",
+        "toxic_flurry",
+        "distilled_corruption",
+        "toxic_flurry",
+        "distilled_corruption",
+        "killers_mark",
+        "killers_mark",
+        "touch_of_darkness",
+        "distilled_corruption"
+      ],
+      [
+        "killers_mark",
+        "killers_mark",
+        "toxic_flurry",
+        "distilled_corruption",
+        "killers_mark",
+        "distilled_corruption",
+        "heavy_slash",
+        "touch_of_darkness"
+      ],
+      [
+        "killers_mark",
+        "killers_mark",
+        "toxic_flurry",
+        "distilled_corruption",
+        "killers_mark",
+        "touch_of_darkness",
+        "distilled_corruption",
+        "heavy_slash"
+      ],
+      [
+        "killers_mark",
+        "killers_mark",
+        "toxic_flurry",
+        "distilled_corruption",
+        "killers_mark",
+        "touch_of_darkness",
+        "distilled_corruption",
+        "heavy_slash",
+        "touch_of_darkness"
+      ],
+      [
+        "killers_mark",
+        "killers_mark",
+        "toxic_flurry",
+        "distilled_corruption",
+        "touch_of_darkness",
+        "killers_mark",
+        "touch_of_darkness",
+        "distilled_corruption",
+        "heavy_slash",
+        "touch_of_darkness"
+      ],
+      [
+        "killers_mark",
+        "toxic_flurry",
+        "distilled_corruption",
+        "beguiling_presence",
+        "toxic_flurry",
+        "killers_mark",
+        "distilled_corruption",
+        "killers_mark",
+        "touch_of_darkness",
+        "distilled_corruption"
+      ],
+      [
+        "killers_mark",
+        "toxic_flurry",
+        "distilled_corruption",
+        "killers_mark",
+        "beguiling_presence",
+        "toxic_flurry",
+        "killers_mark",
+        "distilled_corruption",
+        "touch_of_darkness",
+        "distilled_corruption"
+      ],
+      [
+        "killers_mark",
+        "toxic_flurry",
+        "distilled_corruption",
+        "touch_of_darkness",
+        "killers_mark",
+        "distilled_corruption",
+        "killers_mark"
+      ],
+      [
+        "killers_mark",
+        "toxic_flurry",
+        "distilled_corruption",
+        "toxic_flurry",
+        "killers_mark",
+        "distilled_corruption",
+        "touch_of_darkness",
+        "distilled_corruption"
+      ],
+      [
+        "killers_mark",
+        "toxic_flurry",
+        "toxic_flurry",
+        "distilled_corruption",
+        "beguiling_presence",
+        "toxic_flurry",
+        "killers_mark",
+        "distilled_corruption",
+        "touch_of_darkness",
+        "distilled_corruption"
+      ],
+      [
+        "stab"
+      ],
+      [
+        "stab",
+        "heavy_slash"
+      ],
+      [
+        "stab",
+        "heavy_slash",
+        "heavy_slash"
+      ],
+      [
+        "stab",
+        "heavy_slash",
+        "heavy_slash",
+        "heavy_slash",
+        "touch_of_darkness"
+      ],
+      [
+        "stab",
+        "heavy_slash",
+        "heavy_slash",
+        "stab"
+      ],
+      [
+        "stab",
+        "heavy_slash",
+        "heavy_slash",
+        "touch_of_darkness"
+      ],
+      [
+        "stab",
+        "heavy_slash",
+        "heavy_slash",
+        "touch_of_darkness",
+        "touch_of_darkness"
+      ],
+      [
+        "stab",
+        "heavy_slash",
+        "stab"
+      ],
+      [
+        "stab",
+        "heavy_slash",
+        "stab",
+        "killers_mark",
+        "touch_of_darkness"
+      ],
+      [
+        "stab",
+        "heavy_slash",
+        "stab",
+        "stab",
+        "heavy_slash",
+        "heavy_slash"
+      ],
+      [
+        "stab",
+        "killers_mark"
+      ],
+      [
+        "stab",
+        "killers_mark",
+        "stab",
+        "killers_mark"
+      ],
+      [
+        "stab",
+        "killers_mark",
+        "stab",
+        "killers_mark",
+        "killers_mark"
+      ],
+      [
+        "stab",
+        "killers_mark",
+        "stab",
+        "killers_mark",
+        "touch_of_darkness"
+      ],
+      [
+        "stab",
+        "killers_mark",
+        "stab",
+        "touch_of_darkness",
+        "killers_mark"
+      ],
+      [
+        "stab",
+        "killers_mark",
+        "toxic_flurry",
+        "distilled_corruption",
+        "beguiling_presence",
+        "toxic_flurry",
+        "killers_mark",
+        "distilled_corruption",
+        "touch_of_darkness",
+        "distilled_corruption"
+      ],
+      [
+        "stab",
+        "stab"
+      ],
+      [
+        "stab",
+        "stab",
+        "heavy_slash",
+        "heavy_slash"
+      ],
+      [
+        "stab",
+        "stab",
+        "heavy_slash",
+        "heavy_slash",
+        "heavy_slash"
+      ],
+      [
+        "stab",
+        "stab",
+        "heavy_slash",
+        "heavy_slash",
+        "heavy_slash",
+        "heavy_slash"
+      ],
+      [
+        "stab",
+        "stab",
+        "heavy_slash",
+        "heavy_slash",
+        "stab"
+      ],
+      [
+        "stab",
+        "stab",
+        "heavy_slash",
+        "heavy_slash",
+        "toxic_flurry",
+        "heavy_slash"
+      ],
+      [
+        "stab",
+        "stab",
+        "heavy_slash",
+        "killers_mark",
+        "stab"
+      ],
+      [
+        "stab",
+        "stab",
+        "heavy_slash",
+        "killers_mark",
+        "touch_of_darkness"
+      ],
+      [
+        "stab",
+        "stab",
+        "heavy_slash",
+        "stab"
+      ],
+      [
+        "stab",
+        "stab",
+        "heavy_slash",
+        "stab",
+        "stab",
+        "stab"
+      ],
+      [
+        "stab",
+        "stab",
+        "killers_mark",
+        "killers_mark"
+      ],
+      [
+        "stab",
+        "stab",
+        "killers_mark",
+        "killers_mark",
+        "killers_mark"
+      ],
+      [
+        "stab",
+        "stab",
+        "killers_mark",
+        "touch_of_darkness"
+      ],
+      [
+        "stab",
+        "stab",
+        "killers_mark",
+        "touch_of_darkness",
+        "killers_mark"
+      ],
+      [
+        "stab",
+        "stab",
+        "stab"
+      ],
+      [
+        "stab",
+        "stab",
+        "stab",
+        "heavy_slash"
+      ],
+      [
+        "stab",
+        "stab",
+        "stab",
+        "heavy_slash",
+        "heavy_slash"
+      ],
+      [
+        "stab",
+        "stab",
+        "stab",
+        "heavy_slash",
+        "stab"
+      ],
+      [
+        "stab",
+        "stab",
+        "stab",
+        "killers_mark"
+      ],
+      [
+        "stab",
+        "stab",
+        "stab",
+        "killers_mark",
+        "touch_of_darkness"
+      ],
+      [
+        "stab",
+        "stab",
+        "stab",
+        "stab"
+      ],
+      [
+        "stab",
+        "stab",
+        "stab",
+        "stab",
+        "killers_mark"
+      ],
+      [
+        "stab",
+        "stab",
+        "stab",
+        "stab",
+        "stab"
+      ],
+      [
+        "stab",
+        "stab",
+        "stab",
+        "stab",
+        "stab",
+        "heavy_slash"
+      ],
+      [
+        "stab",
+        "stab",
+        "stab",
+        "stab",
+        "stab",
+        "stab"
+      ],
+      [
+        "stab",
+        "stab",
+        "stab",
+        "stab",
+        "touch_of_darkness"
+      ],
+      [
+        "stab",
+        "stab",
+        "stab",
+        "touch_of_darkness",
+        "killers_mark"
+      ],
+      [
+        "stab",
+        "stab",
+        "stab",
+        "toxic_flurry"
+      ],
+      [
+        "stab",
+        "stab",
+        "stab",
+        "toxic_flurry",
+        "heavy_slash",
+        "heavy_slash"
+      ],
+      [
+        "stab",
+        "stab",
+        "touch_of_darkness",
+        "killers_mark",
+        "killers_mark"
+      ],
+      [
+        "stab",
+        "stab",
+        "toxic_flurry",
+        "stab",
+        "heavy_slash",
+        "heavy_slash"
+      ],
+      [
+        "stab",
+        "toxic_flurry",
+        "stab",
+        "heavy_slash",
+        "heavy_slash",
+        "heavy_slash"
+      ],
+      [
+        "toxic_flurry",
+        "distilled_corruption",
+        "beguiling_presence",
+        "toxic_flurry",
+        "distilled_corruption",
+        "killers_mark",
+        "distilled_corruption",
+        "killers_mark",
+        "touch_of_darkness",
+        "distilled_corruption"
+      ],
+      [
+        "toxic_flurry",
+        "distilled_corruption",
+        "beguiling_presence",
+        "toxic_flurry",
+        "distilled_corruption",
+        "killers_mark",
+        "distilled_corruption",
+        "touch_of_darkness",
+        "killers_mark",
+        "distilled_corruption"
+      ],
+      [
+        "toxic_flurry",
+        "distilled_corruption",
+        "beguiling_presence",
+        "toxic_flurry",
+        "heavy_slash",
+        "killers_mark",
+        "distilled_corruption",
+        "killers_mark",
+        "touch_of_darkness",
+        "distilled_corruption"
+      ],
+      [
+        "toxic_flurry",
+        "distilled_corruption",
+        "beguiling_presence",
+        "toxic_flurry",
+        "killers_mark",
+        "distilled_corruption",
+        "killers_mark",
+        "heavy_slash",
+        "touch_of_darkness",
+        "distilled_corruption"
+      ],
+      [
+        "toxic_flurry",
+        "distilled_corruption",
+        "beguiling_presence",
+        "toxic_flurry",
+        "killers_mark",
+        "distilled_corruption",
+        "killers_mark",
+        "killers_mark",
+        "touch_of_darkness",
+        "distilled_corruption"
+      ],
+      [
+        "toxic_flurry",
+        "distilled_corruption",
+        "beguiling_presence",
+        "toxic_flurry",
+        "killers_mark",
+        "distilled_corruption",
+        "killers_mark",
+        "touch_of_darkness",
+        "distilled_corruption"
+      ],
+      [
+        "toxic_flurry",
+        "distilled_corruption",
+        "beguiling_presence",
+        "toxic_flurry",
+        "killers_mark",
+        "distilled_corruption",
+        "touch_of_darkness",
+        "distilled_corruption",
+        "killers_mark",
+        "distilled_corruption"
+      ],
+      [
+        "toxic_flurry",
+        "distilled_corruption",
+        "beguiling_presence",
+        "toxic_flurry",
+        "killers_mark",
+        "distilled_corruption",
+        "touch_of_darkness",
+        "killers_mark",
+        "distilled_corruption"
+      ],
+      [
+        "toxic_flurry",
+        "distilled_corruption",
+        "beguiling_presence",
+        "toxic_flurry",
+        "killers_mark",
+        "killers_mark",
+        "distilled_corruption",
+        "touch_of_darkness",
+        "killers_mark",
+        "distilled_corruption"
+      ],
+      [
+        "toxic_flurry",
+        "distilled_corruption",
+        "distilled_corruption",
+        "distilled_corruption",
+        "toxic_flurry",
+        "distilled_corruption",
+        "killers_mark",
+        "distilled_corruption",
+        "killers_mark",
+        "touch_of_darkness"
+      ],
+      [
+        "toxic_flurry",
+        "distilled_corruption",
+        "distilled_corruption",
+        "heavy_slash",
+        "toxic_flurry",
+        "distilled_corruption",
+        "killers_mark",
+        "distilled_corruption",
+        "killers_mark",
+        "touch_of_darkness"
+      ],
+      [
+        "toxic_flurry",
+        "distilled_corruption",
+        "distilled_corruption",
+        "killers_mark",
+        "touch_of_darkness"
+      ],
+      [
+        "toxic_flurry",
+        "distilled_corruption",
+        "distilled_corruption",
+        "toxic_flurry",
+        "distilled_corruption",
+        "distilled_corruption",
+        "killers_mark",
+        "killers_mark",
+        "killers_mark",
+        "touch_of_darkness"
+      ],
+      [
+        "toxic_flurry",
+        "distilled_corruption",
+        "distilled_corruption",
+        "toxic_flurry",
+        "distilled_corruption",
+        "heavy_slash",
+        "killers_mark",
+        "distilled_corruption",
+        "killers_mark",
+        "touch_of_darkness"
+      ],
+      [
+        "toxic_flurry",
+        "distilled_corruption",
+        "distilled_corruption",
+        "toxic_flurry",
+        "distilled_corruption",
+        "killers_mark",
+        "distilled_corruption",
+        "heavy_slash",
+        "killers_mark",
+        "touch_of_darkness"
+      ],
+      [
+        "toxic_flurry",
+        "distilled_corruption",
+        "distilled_corruption",
+        "toxic_flurry",
+        "distilled_corruption",
+        "killers_mark",
+        "distilled_corruption",
+        "killers_mark",
+        "killers_mark",
+        "touch_of_darkness"
+      ],
+      [
+        "toxic_flurry",
+        "distilled_corruption",
+        "distilled_corruption",
+        "toxic_flurry",
+        "distilled_corruption",
+        "killers_mark",
+        "distilled_corruption",
+        "killers_mark",
+        "touch_of_darkness"
+      ],
+      [
+        "toxic_flurry",
+        "distilled_corruption",
+        "distilled_corruption",
+        "toxic_flurry",
+        "distilled_corruption",
+        "killers_mark",
+        "distilled_corruption",
+        "killers_mark",
+        "touch_of_darkness",
+        "distilled_corruption"
+      ],
+      [
+        "toxic_flurry",
+        "distilled_corruption",
+        "distilled_corruption",
+        "toxic_flurry",
+        "distilled_corruption",
+        "killers_mark",
+        "killers_mark",
+        "distilled_corruption",
+        "touch_of_darkness"
+      ],
+      [
+        "toxic_flurry",
+        "distilled_corruption",
+        "distilled_corruption",
+        "toxic_flurry",
+        "heavy_slash",
+        "distilled_corruption",
+        "killers_mark",
+        "distilled_corruption",
+        "killers_mark",
+        "touch_of_darkness"
+      ],
+      [
+        "toxic_flurry",
+        "distilled_corruption",
+        "distilled_corruption",
+        "toxic_flurry",
+        "heavy_slash",
+        "distilled_corruption",
+        "killers_mark",
+        "killers_mark",
+        "distilled_corruption",
+        "touch_of_darkness"
+      ],
+      [
+        "toxic_flurry",
+        "distilled_corruption",
+        "distilled_corruption",
+        "toxic_flurry",
+        "killers_mark",
+        "distilled_corruption",
+        "distilled_corruption",
+        "killers_mark",
+        "killers_mark",
+        "touch_of_darkness"
+      ],
+      [
+        "toxic_flurry",
+        "distilled_corruption",
+        "distilled_corruption",
+        "toxic_flurry",
+        "killers_mark",
+        "distilled_corruption",
+        "distilled_corruption",
+        "killers_mark",
+        "touch_of_darkness"
+      ],
+      [
+        "toxic_flurry",
+        "distilled_corruption",
+        "distilled_corruption",
+        "toxic_flurry",
+        "killers_mark",
+        "distilled_corruption",
+        "distilled_corruption",
+        "killers_mark",
+        "touch_of_darkness",
+        "distilled_corruption"
+      ],
+      [
+        "toxic_flurry",
+        "distilled_corruption",
+        "distilled_corruption",
+        "toxic_flurry",
+        "killers_mark",
+        "distilled_corruption",
+        "heavy_slash",
+        "killers_mark",
+        "killers_mark",
+        "touch_of_darkness"
+      ],
+      [
+        "toxic_flurry",
+        "distilled_corruption",
+        "distilled_corruption",
+        "toxic_flurry",
+        "killers_mark",
+        "distilled_corruption",
+        "killers_mark",
+        "distilled_corruption",
+        "killers_mark",
+        "touch_of_darkness"
+      ],
+      [
+        "toxic_flurry",
+        "distilled_corruption",
+        "distilled_corruption",
+        "toxic_flurry",
+        "killers_mark",
+        "distilled_corruption",
+        "killers_mark",
+        "distilled_corruption",
+        "touch_of_darkness"
+      ],
+      [
+        "toxic_flurry",
+        "distilled_corruption",
+        "distilled_corruption",
+        "toxic_flurry",
+        "killers_mark",
+        "distilled_corruption",
+        "killers_mark",
+        "heavy_slash",
+        "distilled_corruption",
+        "touch_of_darkness"
+      ],
+      [
+        "toxic_flurry",
+        "distilled_corruption",
+        "distilled_corruption",
+        "toxic_flurry",
+        "killers_mark",
+        "distilled_corruption",
+        "killers_mark",
+        "heavy_slash",
+        "killers_mark",
+        "touch_of_darkness"
+      ],
+      [
+        "toxic_flurry",
+        "distilled_corruption",
+        "distilled_corruption",
+        "toxic_flurry",
+        "killers_mark",
+        "distilled_corruption",
+        "killers_mark",
+        "killers_mark",
+        "distilled_corruption",
+        "touch_of_darkness"
+      ],
+      [
+        "toxic_flurry",
+        "distilled_corruption",
+        "distilled_corruption",
+        "toxic_flurry",
+        "killers_mark",
+        "distilled_corruption",
+        "killers_mark",
+        "killers_mark",
+        "killers_mark",
+        "touch_of_darkness"
+      ],
+      [
+        "toxic_flurry",
+        "distilled_corruption",
+        "distilled_corruption",
+        "toxic_flurry",
+        "killers_mark",
+        "distilled_corruption",
+        "killers_mark",
+        "killers_mark",
+        "touch_of_darkness"
+      ],
+      [
+        "toxic_flurry",
+        "distilled_corruption",
+        "distilled_corruption",
+        "toxic_flurry",
+        "killers_mark",
+        "distilled_corruption",
+        "killers_mark",
+        "killers_mark",
+        "touch_of_darkness",
+        "distilled_corruption"
+      ],
+      [
+        "toxic_flurry",
+        "distilled_corruption",
+        "distilled_corruption",
+        "toxic_flurry",
+        "killers_mark",
+        "heavy_slash",
+        "killers_mark",
+        "killers_mark",
+        "killers_mark",
+        "touch_of_darkness"
+      ],
+      [
+        "toxic_flurry",
+        "distilled_corruption",
+        "heavy_slash",
+        "distilled_corruption",
+        "toxic_flurry",
+        "killers_mark",
+        "distilled_corruption",
+        "killers_mark",
+        "touch_of_darkness",
+        "distilled_corruption"
+      ],
+      [
+        "toxic_flurry",
+        "distilled_corruption",
+        "killers_mark",
+        "beguiling_presence",
+        "toxic_flurry",
+        "killers_mark",
+        "distilled_corruption",
+        "touch_of_darkness",
+        "distilled_corruption"
+      ],
+      [
+        "toxic_flurry",
+        "distilled_corruption",
+        "killers_mark",
+        "beguiling_presence",
+        "toxic_flurry",
+        "killers_mark",
+        "distilled_corruption",
+        "touch_of_darkness",
+        "killers_mark"
+      ],
+      [
+        "toxic_flurry",
+        "distilled_corruption",
+        "killers_mark",
+        "distilled_corruption",
+        "touch_of_darkness"
+      ],
+      [
+        "toxic_flurry",
+        "distilled_corruption",
+        "killers_mark",
+        "distilled_corruption",
+        "touch_of_darkness",
+        "touch_of_darkness"
+      ],
+      [
+        "toxic_flurry",
+        "distilled_corruption",
+        "killers_mark",
+        "touch_of_darkness"
+      ],
+      [
+        "toxic_flurry",
+        "distilled_corruption",
+        "killers_mark",
+        "touch_of_darkness",
+        "distilled_corruption",
+        "beguiling_presence",
+        "beguiling_presence",
+        "killers_mark"
+      ],
+      [
+        "toxic_flurry",
+        "distilled_corruption",
+        "killers_mark",
+        "touch_of_darkness",
+        "distilled_corruption",
+        "beguiling_presence",
+        "killers_mark",
+        "killers_mark"
+      ],
+      [
+        "toxic_flurry",
+        "distilled_corruption",
+        "killers_mark",
+        "touch_of_darkness",
+        "distilled_corruption",
+        "killers_mark"
+      ],
+      [
+        "toxic_flurry",
+        "distilled_corruption",
+        "killers_mark",
+        "touch_of_darkness",
+        "distilled_corruption",
+        "killers_mark",
+        "beguiling_presence"
+      ],
+      [
+        "toxic_flurry",
+        "distilled_corruption",
+        "killers_mark",
+        "touch_of_darkness",
+        "distilled_corruption",
+        "killers_mark",
+        "touch_of_darkness",
+        "beguiling_presence"
+      ],
+      [
+        "toxic_flurry",
+        "distilled_corruption",
+        "killers_mark",
+        "touch_of_darkness",
+        "distilled_corruption",
+        "touch_of_darkness",
+        "killers_mark",
+        "beguiling_presence"
+      ],
+      [
+        "toxic_flurry",
+        "distilled_corruption",
+        "killers_mark",
+        "touch_of_darkness",
+        "killers_mark",
+        "distilled_corruption",
+        "killers_mark"
+      ],
+      [
+        "toxic_flurry",
+        "distilled_corruption",
+        "killers_mark",
+        "toxic_flurry",
+        "distilled_corruption",
+        "killers_mark",
+        "touch_of_darkness",
+        "beguiling_presence"
+      ],
+      [
+        "toxic_flurry",
+        "distilled_corruption",
+        "touch_of_darkness",
+        "distilled_corruption",
+        "killers_mark"
+      ],
+      [
+        "toxic_flurry",
+        "distilled_corruption",
+        "touch_of_darkness",
+        "distilled_corruption",
+        "killers_mark",
+        "killers_mark"
+      ],
+      [
+        "toxic_flurry",
+        "distilled_corruption",
+        "touch_of_darkness",
+        "distilled_corruption",
+        "killers_mark",
+        "killers_mark",
+        "killers_mark"
+      ],
+      [
+        "toxic_flurry",
+        "distilled_corruption",
+        "touch_of_darkness",
+        "distilled_corruption",
+        "killers_mark",
+        "touch_of_darkness"
+      ],
+      [
+        "toxic_flurry",
+        "distilled_corruption",
+        "touch_of_darkness",
+        "distilled_corruption",
+        "touch_of_darkness",
+        "killers_mark"
+      ],
+      [
+        "toxic_flurry",
+        "distilled_corruption",
+        "touch_of_darkness",
+        "heavy_slash",
+        "killers_mark",
+        "distilled_corruption",
+        "killers_mark"
+      ],
+      [
+        "toxic_flurry",
+        "distilled_corruption",
+        "touch_of_darkness",
+        "killers_mark"
+      ],
+      [
+        "toxic_flurry",
+        "distilled_corruption",
+        "touch_of_darkness",
+        "killers_mark",
+        "distilled_corruption",
+        "heavy_slash",
+        "killers_mark"
+      ],
+      [
+        "toxic_flurry",
+        "distilled_corruption",
+        "touch_of_darkness",
+        "killers_mark",
+        "killers_mark"
+      ],
+      [
+        "toxic_flurry",
+        "distilled_corruption",
+        "touch_of_darkness",
+        "killers_mark",
+        "touch_of_darkness",
+        "distilled_corruption",
+        "killers_mark",
+        "beguiling_presence"
+      ],
+      [
+        "toxic_flurry",
+        "distilled_corruption",
+        "touch_of_darkness",
+        "touch_of_darkness",
+        "distilled_corruption",
+        "killers_mark"
+      ],
+      [
+        "toxic_flurry",
+        "distilled_corruption",
+        "toxic_flurry",
+        "distilled_corruption",
+        "heavy_slash",
+        "killers_mark",
+        "distilled_corruption",
+        "touch_of_darkness",
+        "distilled_corruption",
+        "killers_mark"
+      ],
+      [
+        "toxic_flurry",
+        "distilled_corruption",
+        "toxic_flurry",
+        "distilled_corruption",
+        "heavy_slash",
+        "killers_mark",
+        "distilled_corruption",
+        "touch_of_darkness",
+        "killers_mark",
+        "killers_mark"
+      ],
+      [
+        "toxic_flurry",
+        "distilled_corruption",
+        "toxic_flurry",
+        "distilled_corruption",
+        "killers_mark",
+        "killers_mark",
+        "touch_of_darkness",
+        "distilled_corruption"
+      ],
+      [
+        "toxic_flurry",
+        "distilled_corruption",
+        "toxic_flurry",
+        "heavy_slash",
+        "distilled_corruption",
+        "killers_mark",
+        "killers_mark",
+        "touch_of_darkness",
+        "distilled_corruption"
+      ],
+      [
+        "toxic_flurry",
+        "distilled_corruption",
+        "toxic_flurry",
+        "killers_mark",
+        "distilled_corruption",
+        "distilled_corruption",
+        "killers_mark",
+        "killers_mark",
+        "touch_of_darkness",
+        "distilled_corruption"
+      ],
+      [
+        "toxic_flurry",
+        "distilled_corruption",
+        "toxic_flurry",
+        "killers_mark",
+        "distilled_corruption",
+        "distilled_corruption",
+        "killers_mark",
+        "killers_mark",
+        "touch_of_darkness",
+        "toxic_flurry"
+      ],
+      [
+        "toxic_flurry",
+        "distilled_corruption",
+        "toxic_flurry",
+        "killers_mark",
+        "distilled_corruption",
+        "killers_mark",
+        "killers_mark",
+        "heavy_slash",
+        "touch_of_darkness",
+        "distilled_corruption"
+      ],
+      [
+        "toxic_flurry",
+        "distilled_corruption",
+        "toxic_flurry",
+        "killers_mark",
+        "distilled_corruption",
+        "killers_mark",
+        "killers_mark",
+        "killers_mark",
+        "touch_of_darkness",
+        "distilled_corruption"
+      ],
+      [
+        "toxic_flurry",
+        "distilled_corruption",
+        "toxic_flurry",
+        "killers_mark",
+        "distilled_corruption",
+        "killers_mark",
+        "killers_mark",
+        "touch_of_darkness",
+        "distilled_corruption"
+      ],
+      [
+        "toxic_flurry",
+        "distilled_corruption",
+        "toxic_flurry",
+        "killers_mark",
+        "distilled_corruption",
+        "killers_mark",
+        "touch_of_darkness",
+        "distilled_corruption"
+      ],
+      [
+        "toxic_flurry",
+        "distilled_corruption",
+        "toxic_flurry",
+        "killers_mark",
+        "distilled_corruption",
+        "killers_mark",
+        "touch_of_darkness",
+        "heavy_slash",
+        "killers_mark",
+        "distilled_corruption"
+      ],
+      [
+        "toxic_flurry",
+        "distilled_corruption",
+        "toxic_flurry",
+        "killers_mark",
+        "distilled_corruption",
+        "killers_mark",
+        "touch_of_darkness",
+        "killers_mark",
+        "distilled_corruption"
+      ],
+      [
+        "toxic_flurry",
+        "distilled_corruption",
+        "toxic_flurry",
+        "killers_mark",
+        "distilled_corruption",
+        "touch_of_darkness",
+        "killers_mark",
+        "distilled_corruption"
+      ],
+      [
+        "toxic_flurry",
+        "heavy_slash",
+        "distilled_corruption",
+        "toxic_flurry",
+        "distilled_corruption",
+        "killers_mark",
+        "distilled_corruption",
+        "killers_mark",
+        "touch_of_darkness",
+        "distilled_corruption"
+      ],
+      [
+        "toxic_flurry",
+        "heavy_slash",
+        "distilled_corruption",
+        "toxic_flurry",
+        "distilled_corruption",
+        "killers_mark",
+        "killers_mark",
+        "touch_of_darkness",
+        "distilled_corruption"
+      ],
+      [
+        "toxic_flurry",
+        "heavy_slash",
+        "distilled_corruption",
+        "toxic_flurry",
+        "killers_mark",
+        "distilled_corruption",
+        "distilled_corruption",
+        "killers_mark",
+        "touch_of_darkness",
+        "distilled_corruption"
+      ],
+      [
+        "toxic_flurry",
+        "heavy_slash",
+        "distilled_corruption",
+        "toxic_flurry",
+        "killers_mark",
+        "distilled_corruption",
+        "killers_mark",
+        "killers_mark",
+        "touch_of_darkness",
+        "distilled_corruption"
+      ],
+      [
+        "toxic_flurry",
+        "heavy_slash",
+        "distilled_corruption",
+        "toxic_flurry",
+        "killers_mark",
+        "distilled_corruption",
+        "killers_mark",
+        "touch_of_darkness",
+        "distilled_corruption"
+      ],
+      [
+        "toxic_flurry",
+        "killers_mark",
+        "distilled_corruption",
+        "beguiling_presence",
+        "toxic_flurry",
+        "killers_mark",
+        "distilled_corruption",
+        "killers_mark",
+        "touch_of_darkness",
+        "distilled_corruption"
+      ]
+    ]
+  },
+  "comparison_candidates": [
+    {
+      "id": "bladedancer_21_bd1",
+      "tree": "bladedancer",
+      "points": 21,
+      "variant": "bd1",
+      "talent_ranks": {
+        "talent.bladedancer.weakness": 3,
+        "talent.bladedancer.wet_stone": 5,
+        "talent.bladedancer.rending_slash": 1,
+        "talent.bladedancer.precision_attacks": 1,
+        "talent.bladedancer.sharpened_edge": 5,
+        "talent.bladedancer.opportunity": 3,
+        "talent.bladedancer.weapon_master": 1,
+        "talent.bladedancer.side_step": 1,
+        "talent.bladedancer.virulent_corruption": 1
+      },
+      "full_tree": false,
+      "baseline_rotation": [
+        "dance_of_death",
+        "quick_cut",
+        "stab",
+        "parry_strike"
+      ]
+    }
+  ],
+  "bd21_retained": "bladedancer_21_bd2"
+}

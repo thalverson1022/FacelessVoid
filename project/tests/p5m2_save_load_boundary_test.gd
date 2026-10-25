@@ -5,6 +5,8 @@ const TEST_SAVE_PATH := "res://.test_p5m2_save_load_boundary.json"
 
 
 func _initialize() -> void:
+	# This suite intentionally exercises the retained legacy save fixture registry.
+	SaveSystem.registry_override = BuildContentRegistry.current()
 	var build_state = root.get_node("BuildState")
 	build_state.reset()
 	SaveSystem.save_path = TEST_SAVE_PATH
@@ -152,6 +154,9 @@ func _check_invalid_runtime_gear_is_quarantined(build_state) -> void:
 
 
 func _write_save(data: Dictionary) -> void:
+	# Exercise inherited gear encodings inside a valid current envelope.
+	# Whole version-1 saves are covered by P6 reset tests instead.
+	data["build"] = BuildSaveCodec.encode(root.get_node("BuildState"), SaveSystem.registry())
 	SaveSystem.delete_save()
 	var file := FileAccess.open(SaveSystem.save_path, FileAccess.WRITE)
 	_require(file != null, "Expected test save file to open for writing.")
@@ -162,7 +167,7 @@ func _write_save(data: Dictionary) -> void:
 func _read_save() -> Dictionary:
 	var file := FileAccess.open(SaveSystem.save_path, FileAccess.READ)
 	_require(file != null, "Expected test save file to open for reading.")
-	var parsed = JSON.parse_string(file.get_as_text())
+	var parsed = StrictSaveJson.read(file.get_as_text())["data"]
 	file.close()
 	_require(typeof(parsed) == TYPE_DICTIONARY, "Expected saved JSON object.")
 	return parsed

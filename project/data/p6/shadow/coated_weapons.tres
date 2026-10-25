@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="Talent" format=3]
+[ext_resource type="Script" path="res://scripts/resources/talent.gd" id="talent"]
+[ext_resource type="Script" path="res://scripts/resources/talent_rank.gd" id="rank"]
+[ext_resource type="Script" path="res://scripts/resources/skill_augment.gd" id="effect"]
+
+[sub_resource type="Resource" id="effect1"]
+script = ExtResource("effect")
+target_skill_ids = PackedStringArray("skill.stab", "skill.heavy_slash")
+poison_stacks_applied = 2
+
+[sub_resource type="Resource" id="rank1"]
+script = ExtResource("rank")
+skill_augments = Array[SkillAugment]([SubResource("effect1")])
+
+[resource]
+script = ExtResource("talent")
+id = "talent.shadow.coated_weapons"
+display_name = "Coated Weapons"
+max_ranks = 1
+required_tree_points = 0
+ranks = Array[ExtResource("rank")]([SubResource("rank1")])

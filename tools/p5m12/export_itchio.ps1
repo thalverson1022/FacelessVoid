@@ -1,10 +1,10 @@
 param(
     [string]$GodotExe = "F:\Applications\Godot\Godot_v4.7-stable_win64_console.exe",
     [string]$ProjectPath = "project",
-    [string]$PresetName = "Project Enigma Web Itch",
+    [string]$PresetName = "FacelessVoid Web Itch",
     [string]$ExportDir = "project\export\web\itch",
     [string]$PackageDir = "release\itchio",
-    [string]$PackageName = "project-enigma-phase5-itch.zip"
+    [string]$PackageName = "facelessvoid-phase6-itch.zip"
 )
 
 $ErrorActionPreference = "Stop"

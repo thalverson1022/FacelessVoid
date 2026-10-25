@@ -1,0 +1,388 @@
+{
+  "format": "faceless-void.tree-lab",
+  "schema_version": 1,
+  "tree": {
+    "id": "draft.assassin",
+    "name": "Bladedancer",
+    "subclass": "Bladedancer",
+    "notes": "",
+    "levels": [
+      {
+        "id": "level.1",
+        "order": 1,
+        "required_points": 0
+      },
+      {
+        "id": "level.2",
+        "order": 2,
+        "required_points": 5
+      },
+      {
+        "id": "level.3",
+        "order": 3,
+        "required_points": 10
+      },
+      {
+        "id": "level.4",
+        "order": 4,
+        "required_points": 15
+      },
+      {
+        "id": "level.5",
+        "order": 5,
+        "required_points": 20
+      }
+    ],
+    "talents": [
+      {
+        "id": "talent.quick_hands",
+        "name": "Weakness",
+        "flavour_text": "",
+        "description": "Increase armor shred by 5 per point",
+        "icon_id": "rogue.quick_cut",
+        "level_id": "level.1",
+        "position": {
+          "x": 0.35
+        },
+        "max_ranks": 5,
+        "prerequisite_ids": [],
+        "values": [
+          {
+            "id": "ias",
+            "label": "Armor Shred",
+            "unit": "",
+            "rank_1": 5,
+            "per_rank": 5
+          }
+        ],
+        "skill_grant": null
+      },
+      {
+        "id": "talent.precision",
+        "name": "Whetstone",
+        "flavour_text": "",
+        "description": "Increase base physical damage by 1 per point",
+        "icon_id": "rogue.stab",
+        "level_id": "level.1",
+        "position": {
+          "x": 0.5
+        },
+        "max_ranks": 5,
+        "prerequisite_ids": [],
+        "values": [
+          {
+            "id": "crit",
+            "label": "Base Physical Damage",
+            "unit": "",
+            "rank_1": 1,
+            "per_rank": 1
+          }
+        ],
+        "skill_grant": null
+      },
+      {
+        "id": "talent.bypass",
+        "name": "Opportunity",
+        "flavour_text": "",
+        "description": "Quick Cut has a chance to trigger rending slash",
+        "icon_id": "rogue.heavy_slash",
+        "level_id": "level.3",
+        "position": {
+          "x": 0.7
+        },
+        "max_ranks": 3,
+        "prerequisite_ids": [
+          "talent.3249b911-9477-4ce7-afe2-fbeaefc253ee"
+        ],
+        "values": [
+          {
+            "id": "value.11dbc9bc-717a-4b8c-b6d3-cccb6878a55d",
+            "label": "Rending Slash Chance",
+            "unit": "%",
+            "rank_1": 10,
+            "per_rank": 10
+          }
+        ],
+        "skill_grant": null
+      },
+      {
+        "id": "talent.critical_poison",
+        "name": "Virulent Corruption",
+        "flavour_text": "",
+        "description": "Increased armor shred by 100. Increase Shred stacks by +2. Shred can no longer be cleansed",
+        "icon_id": "rogue.beguiling_strike",
+        "level_id": "level.5",
+        "position": {
+          "x": 0.5
+        },
+        "max_ranks": 1,
+        "prerequisite_ids": [],
+        "values": [],
+        "skill_grant": null
+      },
+      {
+        "id": "talent.3249b911-9477-4ce7-afe2-fbeaefc253ee",
+        "name": "Rending Slash",
+        "flavour_text": "",
+        "description": "Unlocks Rending Slash ",
+        "icon_id": "rogue.rending_slash",
+        "level_id": "level.1",
+        "position": {
+          "x": 0.7
+        },
+        "max_ranks": 1,
+        "prerequisite_ids": [],
+        "values": [],
+        "skill_grant": {
+          "id": "draft.skill.49b91564-06ec-4b57-8e70-5d381e5bc6b0",
+          "name": "Rending Slash",
+          "description": "Applies 2 stacks of Shred"
+        }
+      },
+      {
+        "id": "talent.376142b8-8b16-48cc-b805-38128a2d8282",
+        "name": "Fancy Footwork",
+        "flavour_text": "",
+        "description": "Quick cut grants stacks of Footwork. Footwork lasts for 3 sec and stacks up to 5 times. Leaping Plunge consumes all stacks of Footwork for increased attack speed.",
+        "icon_id": "rogue.steal",
+        "level_id": "level.2",
+        "position": {
+          "x": 0.55
+        },
+        "max_ranks": 5,
+        "prerequisite_ids": [],
+        "values": [
+          {
+            "id": "value.fda62a9f-e759-4426-876d-0615139b1bf6",
+            "label": "Leaping Plunge Attack Speed",
+            "unit": "%",
+            "rank_1": 10,
+            "per_rank": 10
+          }
+        ],
+        "skill_grant": null
+      },
+      {
+        "id": "talent.ebb369f0-708d-4bff-9f8e-d499d76cca0d",
+        "name": "Precision Attacks",
+        "flavour_text": "",
+        "description": "Quick cut grants a stack of Precision. Your next Stab or Heavy Strike consumes a stack of Precision causing it to automatically retrigger. ",
+        "icon_id": "rogue.stab",
+        "level_id": "level.2",
+        "position": {
+          "x": 0.4
+        },
+        "max_ranks": 1,
+        "prerequisite_ids": [],
+        "values": [],
+        "skill_grant": null
+      },
+      {
+        "id": "talent.ca0264a3-1480-480b-9221-f18c473f8bc8",
+        "name": "Double Dip",
+        "flavour_text": "",
+        "description": "Your crit chance is increased by your retrigger chance",
+        "icon_id": "rogue.death_strike",
+        "level_id": "level.2",
+        "position": {
+          "x": 0.25
+        },
+        "max_ranks": 2,
+        "prerequisite_ids": [],
+        "values": [
+          {
+            "id": "value.f2bd8f6d-54c8-43f9-80e5-966336c8ce61",
+            "label": "Retrigger Amount",
+            "unit": "%",
+            "rank_1": 50,
+            "per_rank": 50
+          }
+        ],
+        "skill_grant": null
+      },
+      {
+        "id": "talent.14d6bac1-7e24-478a-b975-ed8dfa6e49a6",
+        "name": "Sharpened Edge",
+        "flavour_text": "",
+        "description": "Increase the damage of Stab and Heavy Strike",
+        "icon_id": "rogue.heavy_slash",
+        "level_id": "level.3",
+        "position": {
+          "x": 0.4
+        },
+        "max_ranks": 5,
+        "prerequisite_ids": [
+          "talent.ebb369f0-708d-4bff-9f8e-d499d76cca0d"
+        ],
+        "values": [
+          {
+            "id": "value.751dba4b-5d9e-4b68-b2cd-d3c0727fc87c",
+            "label": "Increase Damage",
+            "unit": "%",
+            "rank_1": 20,
+            "per_rank": 20
+          }
+        ],
+        "skill_grant": null
+      },
+      {
+        "id": "talent.16e189cb-7afc-41eb-ad4e-2125c54b6023",
+        "name": "Cloak & Dagger",
+        "flavour_text": "",
+        "description": "Increase your critical damage",
+        "icon_id": "rogue.beguiling_strike",
+        "level_id": "level.3",
+        "position": {
+          "x": 0.25
+        },
+        "max_ranks": 2,
+        "prerequisite_ids": [],
+        "values": [
+          {
+            "id": "value.7200c38e-5b3e-4cdb-93db-3ca45b80cfcf",
+            "label": "Crit Damage",
+            "unit": "%",
+            "rank_1": 50,
+            "per_rank": 50
+          }
+        ],
+        "skill_grant": null
+      },
+      {
+        "id": "talent.539ba91f-6825-481e-ba85-0571e4a41159",
+        "name": "Riposte",
+        "flavour_text": "",
+        "description": "Footwork stacks also increase the damage of Leaping Plunge",
+        "icon_id": "rogue.poison_strike",
+        "level_id": "level.4",
+        "position": {
+          "x": 0.55
+        },
+        "max_ranks": 2,
+        "prerequisite_ids": [
+          "talent.376142b8-8b16-48cc-b805-38128a2d8282"
+        ],
+        "values": [
+          {
+            "id": "value.ecdc409f-9917-495e-b8fe-a70e41d35891",
+            "label": "Increased Damage per stack",
+            "unit": "%",
+            "rank_1": 10,
+            "per_rank": 10
+          }
+        ],
+        "skill_grant": null
+      },
+      {
+        "id": "talent.1783a26f-1621-4a7f-8ca4-b4f2ab32bda8",
+        "name": "Side Step",
+        "flavour_text": "",
+        "description": "Parry Strike has 100% crit chance",
+        "icon_id": "rogue.quick_cut",
+        "level_id": "level.4",
+        "position": {
+          "x": 0.4
+        },
+        "max_ranks": 1,
+        "prerequisite_ids": [],
+        "values": [],
+        "skill_grant": null
+      },
+      {
+        "id": "talent.a5e65340-7311-4e13-934b-20dad7a0e16b",
+        "name": "Weapon Master",
+        "flavour_text": "",
+        "description": "Increase all physical damage",
+        "icon_id": "rogue.death_strike",
+        "level_id": "level.4",
+        "position": {
+          "x": 0.25
+        },
+        "max_ranks": 2,
+        "prerequisite_ids": [],
+        "values": [
+          {
+            "id": "value.ebd3f61f-1266-436f-b9b0-e4d521ef76c7",
+            "label": "Increased Physical Damage",
+            "unit": "%",
+            "rank_1": 50,
+            "per_rank": 50
+          }
+        ],
+        "skill_grant": null
+      }
+    ],
+    "intrinsic": {
+      "name": "Bladedancer intrinsic",
+      "description": "Base: 5% Retrigger Chance\nMain: 0.2% retrigger chance per point invested",
+      "icon_id": "rogue.venom_jab",
+      "values": [
+        {
+          "id": "poison_per_point",
+          "label": "Retrigger Chance",
+          "unit": "%",
+          "base": 5,
+          "per_point": 0.2
+        }
+      ]
+    },
+    "automatic_unlocks": [
+      {
+        "id": "unlock.1",
+        "order": 1,
+        "required_points": 1,
+        "icon_id": "rogue.quick_cut",
+        "skill": {
+          "id": "draft.skill.venom_jab",
+          "name": "Quick Cut",
+          "description": "Low damage, fast attack, high dps"
+        },
+        "values": []
+      },
+      {
+        "id": "unlock.2",
+        "order": 2,
+        "required_points": 3,
+        "icon_id": "rogue.quick_cut",
+        "skill": {
+          "id": "draft.skill.ee8c31ab-b736-4637-a4bd-849cd9213c8a",
+          "name": "Leaping Plunge",
+          "description": "Long windup high damage attack"
+        },
+        "values": []
+      },
+      {
+        "id": "unlock.3",
+        "order": 3,
+        "required_points": 6,
+        "icon_id": "rogue.quick_cut",
+        "skill": {
+          "id": "draft.skill.168fefcf-da69-48f4-a9d9-177541d411d0",
+          "name": "Parry Strike",
+          "description": "Very fast attack that can only be used after a retriggered attack"
+        },
+        "values": []
+      },
+      {
+        "id": "unlock.4",
+        "order": 4,
+        "required_points": 9,
+        "icon_id": "placeholder",
+        "skill": null,
+        "values": []
+      },
+      {
+        "id": "unlock.5",
+        "order": 5,
+        "required_points": 12,
+        "icon_id": "rogue.heavy_slash",
+        "skill": {
+          "id": "draft.skill.25d484b9-a49d-410e-8e1d-f318765a48e2",
+          "name": "Dance of Death",
+          "description": "For the next 5 sec. the first hit of any skill has 100% retrigger chance. 20 sec. cooldown"
+        },
+        "values": []
+      }
+    ]
+  }
+}

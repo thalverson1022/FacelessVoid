@@ -11,6 +11,8 @@ const InspectorData := preload("res://scripts/systems/combat_log_inspector_data.
 var _summary_row: HBoxContainer
 var _timeline_chart: TimelineChart
 var _damage_chart: DamageChart
+var _health_removal_chart: DamageChart
+var _health_removal_title: Label
 
 
 func _ready() -> void:
@@ -33,6 +35,13 @@ func _ready() -> void:
 	_damage_chart.custom_minimum_size = Vector2(760, 160)
 	_damage_chart.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	add_child(_damage_chart)
+	_health_removal_title = _section_label("Health Removed By Skill (separate from damage)")
+	add_child(_health_removal_title)
+	_health_removal_chart = DamageChart.new()
+	_health_removal_chart.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	add_child(_health_removal_chart)
+	_health_removal_title.hide()
+	_health_removal_chart.hide()
 
 
 func set_result(result: CombatResolver.CombatResult, monster: Monster, practice_mode: bool = false) -> void:
@@ -40,6 +49,9 @@ func set_result(result: CombatResolver.CombatResult, monster: Monster, practice_
 	_set_summary(inspector, practice_mode)
 	_timeline_chart.set_rows(inspector["timeline_rows"], result.duration_ms, float(inspector["max_event_damage"]))
 	_damage_chart.set_rows(inspector["damage_rows"])
+	_health_removal_chart.set_rows(inspector["health_removal_rows"], "health_removed")
+	_health_removal_chart.visible = not inspector["health_removal_rows"].is_empty()
+	_health_removal_title.visible = _health_removal_chart.visible
 	visible = true
 
 
@@ -48,6 +60,9 @@ func clear() -> void:
 		child.queue_free()
 	_timeline_chart.set_rows([], 0)
 	_damage_chart.set_rows([])
+	_health_removal_chart.set_rows([])
+	_health_removal_chart.hide()
+	_health_removal_title.hide()
 	visible = false
 
 
@@ -55,10 +70,16 @@ func _set_summary(inspector: Dictionary, practice_mode: bool) -> void:
 	for child in _summary_row.get_children():
 		child.queue_free()
 	var summary: Dictionary = inspector["summary"]
-	var damage_text := "%.1f" % summary["total_damage"] if practice_mode else "%.1f / %d" % [summary["total_damage"], summary["damage_required"]]
-	var dps_text := "%.1f" % summary["actual_dps"] if practice_mode else "%.1f / %.1f" % [summary["actual_dps"], summary["required_dps"]]
+	if not bool(inspector.get("is_valid", true)):
+		_summary_row.add_child(_summary_chip("Result", "Invalid simulation"))
+		_summary_row.add_child(_summary_chip("Partial damage", "%.1f" % summary["total_damage"]))
+		return
+	var damage_text := "%.1f" % summary["total_damage"] if practice_mode or float(summary["health_removed"]) > 0 else "%.1f / %d" % [summary["total_damage"], summary["damage_required"]]
+	var dps_text := "%.1f" % summary["actual_dps"] if practice_mode or float(summary["health_removed"]) > 0 else "%.1f / %.1f" % [summary["actual_dps"], summary["required_dps"]]
 	_summary_row.add_child(_summary_chip("Damage", damage_text))
 	_summary_row.add_child(_summary_chip("DPS", dps_text))
+	if float(summary["health_removed"]) > 0:
+		_summary_row.add_child(_summary_chip("Health removed", "%.1f" % summary["health_removed"]))
 	var result_text := "Victory" if bool(inspector["is_win"]) else "Defeat"
 	if practice_mode:
 		result_text = "Practice"
@@ -107,6 +128,7 @@ class TimelineChart:
 	const CAST_COLOR := UIColors.COMBAT_CHART_CAST
 	const POISON_COLOR := UIColors.COMBAT_CHART_POISON
 	const PROC_COLOR := UIColors.COMBAT_CHART_PROC
+	const REMOVAL_COLOR := UIColors.TEXT_MAGIC
 	const GRID_COLOR := UIColors.COMBAT_CHART_GRID
 	const LINE_COLOR := UIColors.COMBAT_CHART_LINE
 	const TEXT_COLOR := UIColors.COMBAT_CHART_TEXT
@@ -123,6 +145,19 @@ class TimelineChart:
 		_max_event_damage = max_event_damage
 		custom_minimum_size.y = TOP_PAD + max(1, _rows.size()) * ROW_H + 18.0
 		queue_redraw()
+
+	func _get_tooltip(at_position: Vector2) -> String:
+		var index := floori((at_position.y - TOP_PAD) / ROW_H)
+		if index < 0 or index >= _rows.size(): return ""
+		var row: Dictionary = _rows[index]
+		var lines: PackedStringArray = [str(row["label"])]
+		for entry in row["events"]:
+			var amount := "%.1f health removed" % float(entry.get("health_removed", 0)) if row.kind == InspectorData.KIND_HEALTH_REMOVAL else "%.1f damage" % float(entry.get("damage", 0))
+			var detail := ""
+			if row.kind == InspectorData.KIND_POISON:
+				detail = " | Free Retrigger; current buffs; no Consume" if entry.get("free_retrigger", false) else (" | Consume %d" if entry.get("keyword_consume", false) else " | %d depleted, not Consume") % int(entry.get("stacks_depleted", 0))
+			lines.append("%.3fs: %s%s" % [int(entry.get("contact_ms", entry.get("time_ms", 0))) / 1000.0, amount, detail])
+		return "\n".join(lines)
 
 	func _draw() -> void:
 		var chart_rect := Rect2(Vector2(LEFT_PAD, TOP_PAD), Vector2(maxf(size.x - LEFT_PAD - RIGHT_PAD, 1.0), maxf(size.y - TOP_PAD - 8.0, 1.0)))
@@ -149,6 +184,9 @@ class TimelineChart:
 					if bool(entry["has_poison_apply"]):
 						color = POISON_COLOR
 					var bar_h := _bar_height(float(entry["damage"]))
+					if kind == InspectorData.KIND_HEALTH_REMOVAL:
+						color = REMOVAL_COLOR
+						bar_h = MAX_BAR_H if float(entry.get("health_removed", 0)) > 0 else MIN_BAR_H
 					var bar_rect := Rect2(Vector2(start_x, y - bar_h * 0.5), Vector2(maxf(end_x - start_x, 3.0), bar_h))
 					draw_rect(bar_rect, color, true)
 					draw_rect(bar_rect, UIColors.COMBAT_CHART_BAR_BORDER, false, 1.0)
@@ -232,16 +270,26 @@ class DamageChart:
 	const CAST_COLOR := UIColors.COMBAT_CHART_CAST
 	const POISON_COLOR := UIColors.COMBAT_CHART_POISON
 	const PROC_COLOR := UIColors.COMBAT_CHART_PROC
+	const REMOVAL_COLOR := UIColors.TEXT_MAGIC
 	const TEXT_COLOR := UIColors.COMBAT_CHART_TEXT
 	const VALUE_COLOR := UIColors.COMBAT_CHART_VALUE
 	const LINE_COLOR := UIColors.COMBAT_CHART_LINE_SOFT
 
 	var _rows: Array = []
 
-	func set_rows(rows: Array) -> void:
+	var _metric := "damage"
+
+	func set_rows(rows: Array, metric: String = "damage") -> void:
+		_metric = metric
 		_rows = rows
 		custom_minimum_size.y = TOP_PAD + max(1, _rows.size()) * ROW_H + 8.0
 		queue_redraw()
+
+	func _get_tooltip(at_position: Vector2) -> String:
+		var index := floori((at_position.y - TOP_PAD) / ROW_H)
+		if index < 0 or index >= _rows.size(): return ""
+		var row: Dictionary = _rows[index]
+		return "%s: %.1f %s" % [row.name, float(row[_metric]), "health removed (separate from damage)" if _metric == "health_removed" else "damage"]
 
 	func _draw() -> void:
 		var font := get_theme_default_font()
@@ -249,14 +297,14 @@ class DamageChart:
 		if _rows.is_empty():
 			draw_string(font, Vector2(12, TOP_PAD + 22), "No damage dealt.", HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, TEXT_COLOR)
 			return
-		var max_damage := maxf(float(_rows[0]["damage"]), 1.0)
+		var max_damage := maxf(float(_rows[0][_metric]), 1.0)
 		var bar_width := maxf(size.x - LEFT_PAD - RIGHT_PAD, 1.0)
 		for i in range(_rows.size()):
 			var row: Dictionary = _rows[i]
 			var y := TOP_PAD + float(i) * ROW_H + ROW_H * 0.5
 			draw_line(Vector2(0, y + ROW_H * 0.45), Vector2(size.x, y + ROW_H * 0.45), LINE_COLOR, 1.0)
 			_draw_row_icon(row, Vector2(24.0, y - 12.0), font, font_size)
-			var damage := float(row["damage"])
+			var damage := float(row[_metric])
 			var fill_width := maxf((damage / max_damage) * bar_width, 3.0)
 			var color := _color_for_kind(String(row["kind"]))
 			var rect := Rect2(Vector2(LEFT_PAD, y - BAR_H * 0.5), Vector2(fill_width, BAR_H))
@@ -266,6 +314,8 @@ class DamageChart:
 			draw_string(font, Vector2(LEFT_PAD + bar_width + 12.0, y + 5), "%.0f" % damage, HORIZONTAL_ALIGNMENT_LEFT, RIGHT_PAD - 12.0, font_size, VALUE_COLOR)
 
 	func _color_for_kind(kind: String) -> Color:
+		if kind == InspectorData.KIND_HEALTH_REMOVAL:
+			return REMOVAL_COLOR
 		if kind == InspectorData.KIND_POISON:
 			return POISON_COLOR
 		if kind == InspectorData.KIND_PROC:

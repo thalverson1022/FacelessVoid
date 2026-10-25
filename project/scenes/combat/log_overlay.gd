@@ -10,6 +10,9 @@ const RUN_ROW_FONT_SIZE := 17
 const MODAL_Z_INDEX := 930
 const INSPECTOR_SCENE := preload("res://scenes/combat/combat_log_inspector.gd")
 
+var category_preview := false
+var _category_result: CombatResolver.CombatResult
+var _original_text := ""
 var _inspector
 var _log_label: RichTextLabel
 var _run_chart: RunDpsChart
@@ -107,12 +110,17 @@ func _ready() -> void:
 func set_result_text(text: String) -> void:
 	if _inspector != null:
 		_inspector.clear()
+	_category_result = null
+	_original_text = text
+	_log_label.bbcode_enabled = false
 	_log_label.text = text
 
 
 func set_result(result: CombatResolver.CombatResult, monster: Monster, text: String) -> void:
 	_inspector.set_result(result, monster)
-	_log_label.text = text
+	_category_result = result
+	_original_text = text
+	refresh_category_preview()
 
 
 func show_log() -> void:
@@ -298,3 +306,8 @@ class RunDpsChart:
 			var x := chart.position.x + float(i) * slot_w + slot_w * 0.5
 			var color := UIColors.TEXT_GOLD if fight_number <= count else UIColors.TEXT_DISABLED
 			draw_string(font, Vector2(x - 12.0, chart.end.y + 20.0), "%d" % fight_number, HORIZONTAL_ALIGNMENT_CENTER, 24.0, font_size, color)
+
+func refresh_category_preview() -> void:
+	if _log_label == null: return
+	_log_label.bbcode_enabled = category_preview and _category_result != null
+	_log_label.text = preload("res://scripts/ui/skill_category_preview_style.gd").log_text(_category_result) + "\n\nFULL EVENT LOG\n" + _original_text.replace("[", "[lb]") if category_preview and _category_result != null else _original_text

@@ -3,6 +3,8 @@
 Date: 2026-09-16
 Source baseline: Project Enigma audited Phase 5, commit `d0e025ae9ff6b86aa389582443be6382547cb4cc` on `main` (integrated 2026-09-21; original closeout `91c1f2fdfaae7b48aa1e193adfb910956b1d6574`). See `docs/P6_Audited_Baseline_Integration.md`.
 
+> Scope update (2026-10-17): the user promoted Legendary item revamp and expansion into Phase 6 M8, with scoped gear stat pool additions under P6M8-D002. See the [M8 tracker](P6M8_Legendary_Item_Revamp_And_Expansion_Tracker.md) and [current ten-milestone roadmap](P6_Milestone_Tracker.md). Broad gear/economy redesign and procedural Legendary generation remain outside the approved scope. The original brief below is historical design context.
+
 ## Purpose
 
 Phase 6 redesigns the Rogue skill trees so player build choices become as clear, expressive, and matchup-relevant as the Phase 5 gear system. The phase should treat Phase 5 as a stable gameplay baseline, not as an invitation to reopen gear, route generation, shop economy, or broad combat architecture.
@@ -88,6 +90,13 @@ Phase 6 is ready to close when:
 - Phase 6 docs clearly separate completed work from deferred balance or future class design.
 
 ## Suggested Milestones
+
+**Superseded on 2026-09-21:** Use the current ten-milestone roadmap in the
+[Phase 6 milestone tracker](P6_Milestone_Tracker.md). P6M1 closed as roadmap and
+planning setup on 2026-09-21; M2 starts with the carried-forward draft audit and
+foundational design. Enemy/progression rebalance required by the new trees, temporary-effect
+UI, and icon production are explicitly included. The original outline below is
+retained as historical planning context, not the current milestone numbering.
 
 P6M1: Design Charter And Tree Identity
 

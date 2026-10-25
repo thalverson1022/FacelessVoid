@@ -4,7 +4,7 @@ extends RefCounted
 ## docs/Phase 1 Context Docs/Current_Mechanics_Reference.md: point budget,
 ## max trees, tree membership, OR-group prerequisites, and dependent locks.
 
-const POINT_BUDGET: int = 7
+const POINT_BUDGET: int = BuildProgression.POINT_CAP
 const MAX_TREES: int = 2
 
 

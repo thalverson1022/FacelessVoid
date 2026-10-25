@@ -1,6 +1,40 @@
 .claude/
+
+# Local agent state, disposable validation projects and player/test userdata.
+/.codex/
+/.godot_user/
+/work/
+/release/
+/project/prototype_saves/
+/project/tmp/
+/project/reports/
+/tools/icon-lab/reports/
+**/__pycache__/
 Godot_v4.7-stable_export_templates.tpz
 *.log
 project/reports/balance/**/*.translation
 project/reports/balance/**/*.import
 docs_phase3_imported_backup/
+
+# Generated isolated T6 test runners, saves and reports.
+project/reports/p6_t6/
+
+# T7 persistence test outputs and conversion Python cache.
+project/reports/p6_t7/
+tools/p6/__pycache__/
+
+project/reports/p6_t8/
+
+# T2 isolated diagnostic runs and logs.
+project/reports/p6_m3_t2/
+
+# T3 isolated stat-derivation tests and logs.
+project/reports/p6_m3_t3/
+project/reports/p6_m3_t3_followup/
+
+# T4 isolated lifecycle tests and logs.
+project/reports/p6_m3_t4/
+project/reports/p6_m3_t4_followup/
+
+# T5 isolated scheduling tests and logs.
+project/reports/p6_m3_t5/

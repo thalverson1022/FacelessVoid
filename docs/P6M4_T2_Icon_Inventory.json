@@ -1,0 +1,678 @@
+{
+  "schema_version": 1,
+  "date": "2026-09-25",
+  "status": "T2 inventory only; not an Icon Lab mapping or release approval",
+  "identity_manifest_revision": "p6m2-t4-2",
+  "entries": [
+    {
+      "kind": "talent",
+      "id": "talent.assassin.quick_hands",
+      "name": "Quick Hands",
+      "tree_id": "tree.assassin",
+      "scope": "full_library",
+      "existing_asset": null,
+      "assignment_status": "unassigned",
+      "source": "P6M2_T4_Content_Identity_Manifest.json"
+    },
+    {
+      "kind": "talent",
+      "id": "talent.assassin.precision",
+      "name": "Precision",
+      "tree_id": "tree.assassin",
+      "scope": "full_library",
+      "existing_asset": null,
+      "assignment_status": "unassigned",
+      "source": "P6M2_T4_Content_Identity_Manifest.json"
+    },
+    {
+      "kind": "talent",
+      "id": "talent.assassin.hastened_poison",
+      "name": "Hastened Poison",
+      "tree_id": "tree.assassin",
+      "scope": "full_library",
+      "existing_asset": null,
+      "assignment_status": "unassigned",
+      "source": "P6M2_T4_Content_Identity_Manifest.json"
+    },
+    {
+      "kind": "talent",
+      "id": "talent.assassin.echoing_toxin",
+      "name": "Echoing Toxin",
+      "tree_id": "tree.assassin",
+      "scope": "full_library",
+      "existing_asset": null,
+      "assignment_status": "unassigned",
+      "source": "P6M2_T4_Content_Identity_Manifest.json"
+    },
+    {
+      "kind": "talent",
+      "id": "talent.assassin.poison_strike",
+      "name": "Poison Strike",
+      "tree_id": "tree.assassin",
+      "scope": "full_library",
+      "existing_asset": null,
+      "assignment_status": "unassigned",
+      "source": "P6M2_T4_Content_Identity_Manifest.json"
+    },
+    {
+      "kind": "skill",
+      "id": "skill.poison_strike",
+      "name": "Poison Strike",
+      "tree_id": "tree.assassin",
+      "scope": "full_library",
+      "existing_asset": "res://assets/skill_icons/rogue/poison_strike.png",
+      "assignment_status": "existing_skill_resource_reference_requires_review",
+      "source": "P6M2_T4_Content_Identity_Manifest.json"
+    },
+    {
+      "kind": "talent",
+      "id": "talent.assassin.bypass",
+      "name": "Bypass",
+      "tree_id": "tree.assassin",
+      "scope": "full_library",
+      "existing_asset": null,
+      "assignment_status": "unassigned",
+      "source": "P6M2_T4_Content_Identity_Manifest.json"
+    },
+    {
+      "kind": "talent",
+      "id": "talent.assassin.toxic_tradeoff",
+      "name": "Toxic Tradeoff",
+      "tree_id": "tree.assassin",
+      "scope": "full_library",
+      "existing_asset": null,
+      "assignment_status": "unassigned",
+      "source": "P6M2_T4_Content_Identity_Manifest.json"
+    },
+    {
+      "kind": "talent",
+      "id": "talent.assassin.accelerant",
+      "name": "Accelerant",
+      "tree_id": "tree.assassin",
+      "scope": "full_library",
+      "existing_asset": null,
+      "assignment_status": "unassigned",
+      "source": "P6M2_T4_Content_Identity_Manifest.json"
+    },
+    {
+      "kind": "talent",
+      "id": "talent.assassin.resonance",
+      "name": "Resonance",
+      "tree_id": "tree.assassin",
+      "scope": "full_library",
+      "existing_asset": null,
+      "assignment_status": "unassigned",
+      "source": "P6M2_T4_Content_Identity_Manifest.json"
+    },
+    {
+      "kind": "talent",
+      "id": "talent.assassin.critical_poison",
+      "name": "Critical Poison",
+      "tree_id": "tree.assassin",
+      "scope": "full_library",
+      "existing_asset": null,
+      "assignment_status": "unassigned",
+      "source": "P6M2_T4_Content_Identity_Manifest.json"
+    },
+    {
+      "kind": "skill",
+      "id": "skill.venom_jab",
+      "name": "Venom Jab",
+      "tree_id": "tree.assassin",
+      "scope": "full_library",
+      "existing_asset": "res://assets/skill_icons/rogue/venom_jab.png",
+      "assignment_status": "existing_skill_resource_reference_requires_review",
+      "source": "P6M2_T4_Content_Identity_Manifest.json"
+    },
+    {
+      "kind": "skill",
+      "id": "skill.blinding_powder",
+      "name": "Blinding Powder",
+      "tree_id": "tree.assassin",
+      "scope": "full_library",
+      "existing_asset": null,
+      "assignment_status": "unassigned",
+      "source": "P6M2_T4_Content_Identity_Manifest.json"
+    },
+    {
+      "kind": "skill",
+      "id": "skill.virulent_poison",
+      "name": "Virulent Poison",
+      "tree_id": "tree.assassin",
+      "scope": "full_library",
+      "existing_asset": null,
+      "assignment_status": "unassigned",
+      "source": "P6M2_T4_Content_Identity_Manifest.json"
+    },
+    {
+      "kind": "skill",
+      "id": "skill.master_of_poisons",
+      "name": "Master of Poisons",
+      "tree_id": "tree.assassin",
+      "scope": "full_library",
+      "existing_asset": null,
+      "assignment_status": "unassigned",
+      "source": "P6M2_T4_Content_Identity_Manifest.json"
+    },
+    {
+      "kind": "skill",
+      "id": "skill.poison_vile",
+      "name": "Poison Vile",
+      "tree_id": "tree.assassin",
+      "scope": "full_library",
+      "existing_asset": null,
+      "assignment_status": "unassigned",
+      "source": "P6M2_T4_Content_Identity_Manifest.json"
+    },
+    {
+      "kind": "talent",
+      "id": "talent.bladedancer.weakness",
+      "name": "Weakness",
+      "tree_id": "tree.bladedancer",
+      "scope": "full_library",
+      "existing_asset": null,
+      "assignment_status": "unassigned",
+      "source": "P6M2_T4_Content_Identity_Manifest.json"
+    },
+    {
+      "kind": "talent",
+      "id": "talent.bladedancer.wet_stone",
+      "name": "Whetstone",
+      "tree_id": "tree.bladedancer",
+      "scope": "m4_core",
+      "existing_asset": null,
+      "assignment_status": "unassigned",
+      "source": "P6M2_T4_Content_Identity_Manifest.json"
+    },
+    {
+      "kind": "talent",
+      "id": "talent.bladedancer.opportunity",
+      "name": "Opportunity",
+      "tree_id": "tree.bladedancer",
+      "scope": "m4_mixed_addition",
+      "existing_asset": null,
+      "assignment_status": "unassigned",
+      "source": "P6M2_T4_Content_Identity_Manifest.json"
+    },
+    {
+      "kind": "talent",
+      "id": "talent.bladedancer.virulent_corruption",
+      "name": "Virulent Corruption",
+      "tree_id": "tree.bladedancer",
+      "scope": "full_library",
+      "existing_asset": null,
+      "assignment_status": "unassigned",
+      "source": "P6M2_T4_Content_Identity_Manifest.json"
+    },
+    {
+      "kind": "talent",
+      "id": "talent.bladedancer.rending_slash",
+      "name": "Rending Slash",
+      "tree_id": "tree.bladedancer",
+      "scope": "m4_core",
+      "existing_asset": null,
+      "assignment_status": "unassigned",
+      "source": "P6M2_T4_Content_Identity_Manifest.json"
+    },
+    {
+      "kind": "skill",
+      "id": "skill.rending_thrust",
+      "name": "Rending Slash",
+      "tree_id": "tree.bladedancer",
+      "scope": "m4_core",
+      "existing_asset": "res://assets/skill_icons/rogue/rending_slash.png",
+      "assignment_status": "existing_skill_resource_reference_requires_review",
+      "source": "P6M2_T4_Content_Identity_Manifest.json"
+    },
+    {
+      "kind": "talent",
+      "id": "talent.bladedancer.fancy_footwork",
+      "name": "Fancy Footwork",
+      "tree_id": "tree.bladedancer",
+      "scope": "m4_core",
+      "existing_asset": null,
+      "assignment_status": "unassigned",
+      "source": "P6M2_T4_Content_Identity_Manifest.json"
+    },
+    {
+      "kind": "talent",
+      "id": "talent.bladedancer.precision_attacks",
+      "name": "Precision Attacks",
+      "tree_id": "tree.bladedancer",
+      "scope": "full_library",
+      "existing_asset": null,
+      "assignment_status": "unassigned",
+      "source": "P6M2_T4_Content_Identity_Manifest.json"
+    },
+    {
+      "kind": "talent",
+      "id": "talent.bladedancer.double_dip",
+      "name": "Double Dip",
+      "tree_id": "tree.bladedancer",
+      "scope": "full_library",
+      "existing_asset": null,
+      "assignment_status": "unassigned",
+      "source": "P6M2_T4_Content_Identity_Manifest.json"
+    },
+    {
+      "kind": "talent",
+      "id": "talent.bladedancer.sharpened_edge",
+      "name": "Sharpened Edge",
+      "tree_id": "tree.bladedancer",
+      "scope": "full_library",
+      "existing_asset": null,
+      "assignment_status": "unassigned",
+      "source": "P6M2_T4_Content_Identity_Manifest.json"
+    },
+    {
+      "kind": "talent",
+      "id": "talent.bladedancer.cloak_and_dagger",
+      "name": "Cloak & Dagger",
+      "tree_id": "tree.bladedancer",
+      "scope": "m4_mixed_addition",
+      "existing_asset": null,
+      "assignment_status": "unassigned",
+      "source": "P6M2_T4_Content_Identity_Manifest.json"
+    },
+    {
+      "kind": "talent",
+      "id": "talent.bladedancer.riposte",
+      "name": "Riposte",
+      "tree_id": "tree.bladedancer",
+      "scope": "full_library",
+      "existing_asset": null,
+      "assignment_status": "unassigned",
+      "source": "P6M2_T4_Content_Identity_Manifest.json"
+    },
+    {
+      "kind": "talent",
+      "id": "talent.bladedancer.side_step",
+      "name": "Side Step",
+      "tree_id": "tree.bladedancer",
+      "scope": "full_library",
+      "existing_asset": null,
+      "assignment_status": "unassigned",
+      "source": "P6M2_T4_Content_Identity_Manifest.json"
+    },
+    {
+      "kind": "talent",
+      "id": "talent.bladedancer.weapon_master",
+      "name": "Weapon Master",
+      "tree_id": "tree.bladedancer",
+      "scope": "full_library",
+      "existing_asset": null,
+      "assignment_status": "unassigned",
+      "source": "P6M2_T4_Content_Identity_Manifest.json"
+    },
+    {
+      "kind": "skill",
+      "id": "skill.quick_cut",
+      "name": "Quick Cut",
+      "tree_id": "tree.bladedancer",
+      "scope": "m4_core",
+      "existing_asset": "res://assets/skill_icons/rogue/quick_cut.png",
+      "assignment_status": "existing_skill_resource_reference_requires_review",
+      "source": "P6M2_T4_Content_Identity_Manifest.json"
+    },
+    {
+      "kind": "skill",
+      "id": "skill.leaping_plunge",
+      "name": "Leaping Plunge",
+      "tree_id": "tree.bladedancer",
+      "scope": "m4_core",
+      "existing_asset": null,
+      "assignment_status": "unassigned",
+      "source": "P6M2_T4_Content_Identity_Manifest.json"
+    },
+    {
+      "kind": "skill",
+      "id": "skill.parry_strike",
+      "name": "Parry Strike",
+      "tree_id": "tree.bladedancer",
+      "scope": "m4_core",
+      "existing_asset": null,
+      "assignment_status": "unassigned",
+      "source": "P6M2_T4_Content_Identity_Manifest.json"
+    },
+    {
+      "kind": "skill",
+      "id": "skill.dance_of_death",
+      "name": "Dance of Death",
+      "tree_id": "tree.bladedancer",
+      "scope": "m4_mixed_addition",
+      "existing_asset": null,
+      "assignment_status": "unassigned",
+      "source": "P6M2_T4_Content_Identity_Manifest.json"
+    },
+    {
+      "kind": "talent",
+      "id": "talent.umbral_pressure",
+      "name": "Umbral Presence",
+      "tree_id": "tree.shadow",
+      "scope": "full_library",
+      "existing_asset": null,
+      "assignment_status": "unassigned",
+      "source": "P6M2_T4_Content_Identity_Manifest.json"
+    },
+    {
+      "kind": "talent",
+      "id": "talent.shadow.coated_weapons",
+      "name": "Coated Weapons",
+      "tree_id": "tree.shadow",
+      "scope": "full_library",
+      "existing_asset": null,
+      "assignment_status": "unassigned",
+      "source": "P6M2_T4_Content_Identity_Manifest.json"
+    },
+    {
+      "kind": "talent",
+      "id": "talent.shadow.blind_spot",
+      "name": "Blind Spot",
+      "tree_id": "tree.shadow",
+      "scope": "full_library",
+      "existing_asset": null,
+      "assignment_status": "unassigned",
+      "source": "P6M2_T4_Content_Identity_Manifest.json"
+    },
+    {
+      "kind": "talent",
+      "id": "talent.shadow.snake_oil",
+      "name": "Snake Oil",
+      "tree_id": "tree.shadow",
+      "scope": "full_library",
+      "existing_asset": null,
+      "assignment_status": "unassigned",
+      "source": "P6M2_T4_Content_Identity_Manifest.json"
+    },
+    {
+      "kind": "talent",
+      "id": "talent.shadow.death_touch",
+      "name": "Death Touch",
+      "tree_id": "tree.shadow",
+      "scope": "full_library",
+      "existing_asset": null,
+      "assignment_status": "unassigned",
+      "source": "P6M2_T4_Content_Identity_Manifest.json"
+    },
+    {
+      "kind": "talent",
+      "id": "talent.shadow.dusk_strike",
+      "name": "Dusk Strike",
+      "tree_id": "tree.shadow",
+      "scope": "full_library",
+      "existing_asset": null,
+      "assignment_status": "unassigned",
+      "source": "P6M2_T4_Content_Identity_Manifest.json"
+    },
+    {
+      "kind": "talent",
+      "id": "talent.shadow.shadow_mastery",
+      "name": "Shadow Mastery",
+      "tree_id": "tree.shadow",
+      "scope": "full_library",
+      "existing_asset": null,
+      "assignment_status": "unassigned",
+      "source": "P6M2_T4_Content_Identity_Manifest.json"
+    },
+    {
+      "kind": "talent",
+      "id": "talent.shadow.deception",
+      "name": "Deception",
+      "tree_id": "tree.shadow",
+      "scope": "full_library",
+      "existing_asset": null,
+      "assignment_status": "unassigned",
+      "source": "P6M2_T4_Content_Identity_Manifest.json"
+    },
+    {
+      "kind": "talent",
+      "id": "talent.shadow.death_from_the_shadows",
+      "name": "Death from the Shadows",
+      "tree_id": "tree.shadow",
+      "scope": "full_library",
+      "existing_asset": null,
+      "assignment_status": "unassigned",
+      "source": "P6M2_T4_Content_Identity_Manifest.json"
+    },
+    {
+      "kind": "talent",
+      "id": "talent.shadow.death_pact",
+      "name": "Death Pact",
+      "tree_id": "tree.shadow",
+      "scope": "full_library",
+      "existing_asset": null,
+      "assignment_status": "unassigned",
+      "source": "P6M2_T4_Content_Identity_Manifest.json"
+    },
+    {
+      "kind": "talent",
+      "id": "talent.shadow.death_blade",
+      "name": "Death Blade",
+      "tree_id": "tree.shadow",
+      "scope": "full_library",
+      "existing_asset": null,
+      "assignment_status": "unassigned",
+      "source": "P6M2_T4_Content_Identity_Manifest.json"
+    },
+    {
+      "kind": "skill",
+      "id": "skill.toxic_flurry",
+      "name": "Beguiling Strike",
+      "tree_id": "tree.shadow",
+      "scope": "full_library",
+      "existing_asset": "res://assets/skill_icons/rogue/beguiling_strike.png",
+      "assignment_status": "existing_skill_resource_reference_requires_review",
+      "source": "P6M2_T4_Content_Identity_Manifest.json"
+    },
+    {
+      "kind": "skill",
+      "id": "skill.killers_mark",
+      "name": "Death Strike",
+      "tree_id": "tree.shadow",
+      "scope": "full_library",
+      "existing_asset": "res://assets/skill_icons/rogue/death_strike.png",
+      "assignment_status": "existing_skill_resource_reference_requires_review",
+      "source": "P6M2_T4_Content_Identity_Manifest.json"
+    },
+    {
+      "kind": "skill",
+      "id": "skill.distilled_corruption",
+      "name": "Distilled Corruption",
+      "tree_id": "tree.shadow",
+      "scope": "full_library",
+      "existing_asset": null,
+      "assignment_status": "unassigned",
+      "source": "P6M2_T4_Content_Identity_Manifest.json"
+    },
+    {
+      "kind": "skill",
+      "id": "skill.touch_of_darkness",
+      "name": "Touch of Darkness",
+      "tree_id": "tree.shadow",
+      "scope": "full_library",
+      "existing_asset": null,
+      "assignment_status": "unassigned",
+      "source": "P6M2_T4_Content_Identity_Manifest.json"
+    },
+    {
+      "kind": "skill",
+      "id": "skill.beguiling_presence",
+      "name": "Beguiling Presence ",
+      "tree_id": "tree.shadow",
+      "scope": "full_library",
+      "existing_asset": null,
+      "assignment_status": "unassigned",
+      "source": "P6M2_T4_Content_Identity_Manifest.json"
+    },
+    {
+      "kind": "talent",
+      "id": "talent.gilded_blade",
+      "name": "Gilded Blade",
+      "tree_id": "tree.thief",
+      "scope": "full_library",
+      "existing_asset": null,
+      "assignment_status": "unassigned",
+      "source": "P6M2_T4_Content_Identity_Manifest.json"
+    },
+    {
+      "kind": "talent",
+      "id": "talent.keen_eye",
+      "name": "Keen Eye",
+      "tree_id": "tree.thief",
+      "scope": "m4_mixed_addition",
+      "existing_asset": null,
+      "assignment_status": "unassigned",
+      "source": "P6M2_T4_Content_Identity_Manifest.json"
+    },
+    {
+      "kind": "talent",
+      "id": "talent.sticky_fingers",
+      "name": "Sticky Fingers",
+      "tree_id": "tree.thief",
+      "scope": "full_library",
+      "existing_asset": null,
+      "assignment_status": "unassigned",
+      "source": "P6M2_T4_Content_Identity_Manifest.json"
+    },
+    {
+      "kind": "talent",
+      "id": "talent.thief.silvered_edge",
+      "name": "Silvered Edge",
+      "tree_id": "tree.thief",
+      "scope": "full_library",
+      "existing_asset": null,
+      "assignment_status": "unassigned",
+      "source": "P6M2_T4_Content_Identity_Manifest.json"
+    },
+    {
+      "kind": "talent",
+      "id": "talent.thief.fast_hands",
+      "name": "Fast Hands",
+      "tree_id": "tree.thief",
+      "scope": "full_library",
+      "existing_asset": null,
+      "assignment_status": "unassigned",
+      "source": "P6M2_T4_Content_Identity_Manifest.json"
+    },
+    {
+      "kind": "talent",
+      "id": "talent.thief.fill_your_pockets",
+      "name": "Fill Your Pockets",
+      "tree_id": "tree.thief",
+      "scope": "full_library",
+      "existing_asset": null,
+      "assignment_status": "unassigned",
+      "source": "P6M2_T4_Content_Identity_Manifest.json"
+    },
+    {
+      "kind": "talent",
+      "id": "talent.thief.charisma",
+      "name": "Charisma",
+      "tree_id": "tree.thief",
+      "scope": "full_library",
+      "existing_asset": null,
+      "assignment_status": "unassigned",
+      "source": "P6M2_T4_Content_Identity_Manifest.json"
+    },
+    {
+      "kind": "talent",
+      "id": "talent.thief.load_dice",
+      "name": "Load Dice",
+      "tree_id": "tree.thief",
+      "scope": "full_library",
+      "existing_asset": null,
+      "assignment_status": "unassigned",
+      "source": "P6M2_T4_Content_Identity_Manifest.json"
+    },
+    {
+      "kind": "talent",
+      "id": "talent.thief.bribery",
+      "name": "Bribery",
+      "tree_id": "tree.thief",
+      "scope": "full_library",
+      "existing_asset": null,
+      "assignment_status": "unassigned",
+      "source": "P6M2_T4_Content_Identity_Manifest.json"
+    },
+    {
+      "kind": "talent",
+      "id": "talent.thief.finders_keepers",
+      "name": "Finders Keepers",
+      "tree_id": "tree.thief",
+      "scope": "full_library",
+      "existing_asset": null,
+      "assignment_status": "unassigned",
+      "source": "P6M2_T4_Content_Identity_Manifest.json"
+    },
+    {
+      "kind": "skill",
+      "id": "skill.steal",
+      "name": "Steal",
+      "tree_id": "tree.thief",
+      "scope": "m4_mixed_addition",
+      "existing_asset": "res://assets/skill_icons/rogue/steal.png",
+      "assignment_status": "existing_skill_resource_reference_requires_review",
+      "source": "P6M2_T4_Content_Identity_Manifest.json"
+    },
+    {
+      "kind": "skill",
+      "id": "skill.mug",
+      "name": "Mug",
+      "tree_id": "tree.thief",
+      "scope": "m4_mixed_addition",
+      "existing_asset": null,
+      "assignment_status": "unassigned",
+      "source": "P6M2_T4_Content_Identity_Manifest.json"
+    },
+    {
+      "kind": "skill",
+      "id": "skill.pick_pocket",
+      "name": "Pick pocket",
+      "tree_id": "tree.thief",
+      "scope": "full_library",
+      "existing_asset": null,
+      "assignment_status": "unassigned",
+      "source": "P6M2_T4_Content_Identity_Manifest.json"
+    },
+    {
+      "kind": "skill",
+      "id": "skill.big_score",
+      "name": "Big Score",
+      "tree_id": "tree.thief",
+      "scope": "full_library",
+      "existing_asset": null,
+      "assignment_status": "unassigned",
+      "source": "P6M2_T4_Content_Identity_Manifest.json"
+    },
+    {
+      "kind": "skill",
+      "id": "skill.hold",
+      "name": "Hold",
+      "tree_id": null,
+      "scope": "m4_core",
+      "existing_asset": "res://assets/skill_icons/rogue/hold.png",
+      "assignment_status": "existing_skill_resource_reference_requires_review",
+      "source": "project/data/skills (base Rogue skill; outside tree manifest)"
+    },
+    {
+      "kind": "skill",
+      "id": "skill.stab",
+      "name": "Stab",
+      "tree_id": null,
+      "scope": "m4_core",
+      "existing_asset": "res://assets/skill_icons/rogue/stab.png",
+      "assignment_status": "existing_skill_resource_reference_requires_review",
+      "source": "project/data/skills (base Rogue skill; outside tree manifest)"
+    },
+    {
+      "kind": "skill",
+      "id": "skill.heavy_slash",
+      "name": "Heavy Slash",
+      "tree_id": null,
+      "scope": "m4_core",
+      "existing_asset": "res://assets/skill_icons/rogue/heavy_slash.png",
+      "assignment_status": "existing_skill_resource_reference_requires_review",
+      "source": "project/data/skills (base Rogue skill; outside tree manifest)"
+    }
+  ]
+}

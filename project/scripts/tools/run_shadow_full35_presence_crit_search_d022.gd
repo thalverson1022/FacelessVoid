@@ -1,0 +1,183 @@
+extends SceneTree
+const Lab = preload("res://scripts/tools/balance_lab.gd")
+const OUT = "res://reports/balance/shadow_full35_presence_crit_search_d022"
+const CASES := [
+ {"tree":"shadow","ranks":{"talent.shadow.snake_oil":1,"talent.shadow.coated_weapons":1,"talent.shadow.blind_spot":5,"talent.shadow.deception":1,"talent.shadow.death_from_the_shadows":4,"talent.shadow.death_touch":3,"talent.shadow.death_pact":2,"talent.shadow.shadow_mastery":2,"talent.shadow.dusk_strike":1},"rotation":["toxic_flurry","distilled_corruption","touch_of_darkness","distilled_corruption","killers_mark"],"principal":["stab","killers_mark","touch_of_darkness","beguiling_presence","toxic_flurry","distilled_corruption"]}
+]
+const Trial = preload("res://scripts/tools/shadow_presence_crit_trial_resolver.gd")
+const TrialBuffs = preload("res://scripts/tools/shadow_presence_crit_trial_self_buffs.gd")
+var engine = CombatResolver
+var stats: PlayerStats
+var skills := {}
+var enemy: Monster
+var candidates := {}
+var rng := RandomNumberGenerator.new()
+func _initialize() -> void:
+ SaveSystem.save_path=OUT+"/isolated_save.json"
+ PracticeSaveSystem.save_path=OUT+"/isolated_practice.json"
+ PracticeSaveSystem.core_save_path=OUT+"/isolated_core.json"
+ call_deferred("run")
+func score(ids: Array, start: int, count: int) -> Dictionary:
+ var rotation: Array[Skill] = []
+ for id in ids:
+  assert(skills.has(id))
+  rotation.append(skills[id])
+ var values := []
+ for seed in range(start,start+count):
+  var result := engine.resolve(rotation,stats,enemy,30000,seed)
+  assert(result.is_valid and result.duration_ms==30000)
+  values.append(result.dps)
+ return {"rotation":ids.duplicate(),"dps":Lab._distribution(values),"seed_start":start}
+func add(ids: Array) -> void:
+ # Repeated copies of an identical cycle are the same macro.
+ for period in range(1,ids.size()):
+  if ids.size()%period!=0: continue
+  var repeats := true
+  for n in range(ids.size()):
+   if ids[n]!=ids[n%period]: repeats=false
+  if repeats: return
+ var key := JSON.stringify(ids)
+ if not candidates.has(key): candidates[key]=score(ids,1,5)
+func run() -> void:
+ DirAccess.make_dir_recursive_absolute(OUT)
+ var registry := BuildContentRegistry.test_mode()
+ var rows := []
+ for entry in CASES.duplicate(true):
+  var model := RankedBuild.new()
+  var full_ranks := {}
+  var total_points := 0
+  for talent in registry.trees["tree.shadow"].talents:
+   full_ranks[talent.id]=talent.max_ranks
+   total_points+=talent.max_ranks
+  assert(total_points==35)
+  assert(model.configure(registry.trees["tree.shadow"],null,35,full_ranks))
+  var gear: Array[GearItem] = [load("res://data/gear/crude_dagger.tres")]
+  var content := BuildResolver.resolve_ranked_build(registry.classes["class.rogue"],model,gear,0)
+  assert(content.error=="")
+  stats=content.stats
+  skills={}
+  for skill in content.skills: skills[skill.id.trim_prefix("skill.")]=skill
+  enemy=load("res://data/monsters/training_dummy.tres").duplicate(true)
+  enemy.hp=100000000
+  assert(stats.shred_value == 20)
+  assert(skills["touch_of_darkness"].cooldown_ms == 30000 and skills["beguiling_presence"].cooldown_ms == 30000)
+  var old: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://reports/balance/shadow_full35_rotation_search_d021/shadow.json"))
+  entry.rotation = old.finalists[0].rotation
+  var live_control := score(entry.rotation,1,200)
+  assert(is_equal_approx(live_control.dps.mean,354.073))
+  engine = Trial
+  TrialBuffs.presence_crit_per_stack = 0.0
+  var engine_control := score(entry.rotation,1,200)
+  assert(is_equal_approx(engine_control.dps.mean,live_control.dps.mean))
+  TrialBuffs.presence_crit_per_stack = 0.01
+  rng.seed=220035
+  candidates={}
+  var opening_baseline := score(entry.rotation,1,200)
+  print("Prior 35-point optimized macro / current live DPS: ",opening_baseline.dps.mean)
+  add(entry.rotation)
+  for row in old.finalists: add(row.rotation)
+  for position in range(entry.rotation.size()):
+   var ids: Array = entry.rotation.duplicate()
+   ids[position] = "beguiling_presence"
+   add(ids)
+  for core in [
+   ["toxic_flurry","distilled_corruption","touch_of_darkness","distilled_corruption","killers_mark"],
+   ["toxic_flurry","distilled_corruption","distilled_corruption","touch_of_darkness","distilled_corruption","killers_mark","killers_mark"],
+   ["toxic_flurry","toxic_flurry","touch_of_darkness","distilled_corruption","killers_mark","killers_mark"]
+  ]:
+   for position in range(core.size()+1):
+    var ids: Array = core.duplicate()
+    ids.insert(position,"beguiling_presence")
+    add(ids)
+  for ids in [
+   ["toxic_flurry","distilled_corruption","killers_mark","toxic_flurry","distilled_corruption","killers_mark","touch_of_darkness","beguiling_presence"],
+   ["toxic_flurry","distilled_corruption","touch_of_darkness","distilled_corruption","killers_mark","killers_mark","killers_mark"],
+   ["toxic_flurry","distilled_corruption","touch_of_darkness","killers_mark","distilled_corruption","killers_mark"],
+   ["toxic_flurry","distilled_corruption","distilled_corruption","toxic_flurry","killers_mark","distilled_corruption","killers_mark","killers_mark","touch_of_darkness","distilled_corruption"]
+  ]: add(ids)
+  for setup_count in range(1,4):
+   for death_count in range(1,5):
+    var ids: Array = []
+    for n in range(setup_count): ids.append_array(["toxic_flurry","distilled_corruption"])
+    ids.append("touch_of_darkness")
+    ids.append("distilled_corruption")
+    for n in range(death_count): ids.append("killers_mark")
+    if ids.size()<=10: add(ids)
+
+  var pool: Array=skills.keys()
+  print("Unlocked Shadow skills: ",pool)
+  for n in range(1,9):
+   var cycle: Array=[]
+   for repeat in range(n): cycle.append("stab")
+   add(cycle+["touch_of_darkness"])
+   add(cycle+["killers_mark"])
+   if cycle.size()+2<=10: add(cycle+["killers_mark","touch_of_darkness"])
+  var principal: Array=[]
+  for id in entry.principal:
+   if skills.has(id): principal.append(id)
+  # Exhaust principal sequences through four/five slots and every legal skill through three.
+  for config in [[principal,4],[pool,3]]:
+   var frontier: Array=[[]]
+   for length in range(1,int(config[1])+1):
+    var next: Array=[]
+    for parent in frontier:
+     for id in config[0]:
+      var ids: Array=parent.duplicate()
+      ids.append(id)
+      add(ids)
+      next.append(ids)
+    frontier=next
+  for trial in range(400):
+   var ids := []
+   for n in range(rng.randi_range(4,10)): ids.append(pool[rng.randi_range(0,pool.size()-1)])
+   add(ids)
+  for generation in range(3):
+   var ranked: Array=candidates.values()
+   ranked.sort_custom(func(a,b):return a.dps.mean>b.dps.mean)
+   for parent in ranked.slice(0,8):
+    for trial in range(25):
+     var ids: Array=parent.rotation.duplicate()
+     var pos:=rng.randi_range(0,ids.size()-1)
+     var op:=rng.randi_range(0,2)
+     var chosen=pool[rng.randi_range(0,pool.size()-1)]
+     if op==0: ids[pos]=chosen
+     elif op==1 and ids.size()<10: ids.insert(pos,chosen)
+     elif ids.size()>1: ids.remove_at(pos)
+     add(ids)
+  print(entry.tree," candidates: ",candidates.size())
+  var ranked: Array=candidates.values()
+  ranked.sort_custom(func(a,b):return a.dps.mean>b.dps.mean)
+  var screened := []
+  for row in ranked.slice(0,50): screened.append(score(row.rotation,1,30))
+  screened.sort_custom(func(a,b):return a.dps.mean>b.dps.mean)
+  var finalists := []
+  for row in screened.slice(0,15): finalists.append(score(row.rotation,1,200))
+  finalists.sort_custom(func(a,b):return a.dps.mean>b.dps.mean)
+  var baseline:=opening_baseline
+  var heldout:=[]
+  for row in finalists.slice(0,5): heldout.append(score(row.rotation,201,200))
+  heldout.append(score(entry.rotation,201,200))
+  var winner: Array[Skill] = []
+  for id in finalists[0].rotation: winner.append(skills[id])
+  var direct := engine.resolve(winner,stats,enemy,30000,1,true)
+  var grants := []
+  for record in direct.trace.records:
+   if record.kind == "effect_lifecycle" and record.lifecycle_reason == "granted" and record.payload.effect_id == "beguiling_presence":
+    grants.append({"time_ms":record.time_ms,"consumed_decay":record.payload.after.units,"crit_chance_bonus":0.01*record.payload.after.units,"elemental_base_bonus":record.payload.after.magnitude,"expires_at_ms":record.payload.after.expires_at_ms})
+  engine = CombatResolver
+  var winner_live := score(finalists[0].rotation,1,200)
+  engine = Trial
+  var poison_values := []
+  var physical_values := []
+  for seed in range(1,201):
+   var sample := engine.resolve(winner,stats,enemy,30000,seed)
+   var poison := 0.0
+   for tick in sample.tick_events: poison += tick.damage
+   poison_values.append(poison/30.0)
+   physical_values.append((sample.total_damage-poison)/30.0)
+  var report: Dictionary={"tree":entry.tree,"ranks":full_ranks,"unlocked_skills":pool,"candidates":candidates.size(),"baseline":baseline,"finalists":finalists,"heldout":heldout,"winner_poison_dps":Lab._distribution(poison_values),"winner_direct_dps":Lab._distribution(physical_values),"live_control":live_control,"engine_control":engine_control,"winner_without_crit_change":winner_live,"presence_grants_seed1":grants,"presence_crit_per_consumed":0.01,"live_content_changed":false}
+  SaveSystem.write_json(OUT+"/"+entry.tree+".json",report)
+  rows.append(report)
+  print(JSON.stringify({"tree":entry.tree,"baseline":baseline,"top":finalists.slice(0,5),"heldout":heldout}))
+ SaveSystem.write_json(OUT+"/summary.json",{"rows":rows,"scope":"Full 35-point Shadow allocation, live D022 + simulated Presence crit chance, 30s zero-defense dummy, Crude Dagger only, zero stash. Heuristic rotation search, not proof of global optimum."})
+ quit()

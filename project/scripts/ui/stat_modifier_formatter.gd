@@ -27,6 +27,12 @@ static func format(modifier: StatModifier) -> String:
 		return ""
 	var stat_id := StatCatalog.canonical_id_for_modifier(modifier)
 	var stat_name: String = _display_name_for(modifier, stat_id, modifier.stat_id.strip_edges() != "")
+	if stat_id in ["crit_applies_penetration", "crit_applies_potency"]:
+		return "%+.4f%% chance per critical direct contribution: %s (base 1 stack)" % [modifier.value * 100.0, "Penetration" if stat_id == "crit_applies_penetration" else "Potency"]
+	if stat_id == "cooldown_reduction":
+		return "%+.4f%% cooldown reduction (per-affix factor %.6f)" % [modifier.value * 100.0, 1.0 - clampf(modifier.value, 0.0, 1.0)]
+	if stat_id == "increased_buff_duration":
+		return "%+.4f%% timed buff/debuff duration (additive)" % (modifier.value * 100.0)
 	if stat_id != "" and StatCatalog.is_binary(stat_id):
 		return stat_name
 	if stat_id != "" and modifier.stat_id.strip_edges() != "":
@@ -71,6 +77,15 @@ static func _format_catalog_value(value: float, value_kind: String, stat_name: S
 
 
 static func _display_name_for(modifier: StatModifier, stat_id: String, has_explicit_stat_id: bool) -> String:
+	var presentation_names := {
+		"base_damage": "base physical damage",
+		"percent_physical_damage": "physical damage",
+		"base_elemental_damage": "base elemental damage",
+		"percent_elemental_damage": "elemental damage",
+		"increased_all_stacks": "increased stacks",
+	}
+	if has_explicit_stat_id and presentation_names.has(stat_id):
+		return presentation_names[stat_id]
 	if has_explicit_stat_id and stat_id == StatCatalog.SHRED_VALUE:
 		return "Bonus Armor Shred"
 	if modifier.display_label.strip_edges() != "":

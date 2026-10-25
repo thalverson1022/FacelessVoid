@@ -1,0 +1,31 @@
+{
+  "status": "User approved 2026-10-09",
+  "decision": "P6M7-D018",
+  "background": "#28282b",
+  "border": "#5e5d61",
+  "size": 32,
+  "border_px": 1,
+  "padding_px": 1,
+  "overrides": {
+    "talent.shadow.shadow_mastery": {
+      "file": "tools/icon-lab/approved/m7-t4/art/shadow_mastery.png",
+      "sha256": "8ca3089476cb6b90d2a8b2b8edc13d7d107857411b086874b51b01774ebdfd98"
+    },
+    "talent.shadow.dusk_strike": {
+      "file": "tools/icon-lab/approved/m7-t4/art/dusk_strike.png",
+      "sha256": "9f0d7afbecec78fb040e586f311b9fc298b31f3b8dbe26eeed98ab4d4bee2d93"
+    },
+    "status.potency": {
+      "file": "tools/icon-lab/approved/m7-t4/art/potency.png",
+      "sha256": "a80767bbb9070eb549c9870d0cd387ef1d657799e2a760db727fc269c1321837"
+    },
+    "talent.assassin.toxic_tradeoff": {
+      "file": "tools/icon-lab/approved/m7-t4/art/toxic_tradeoff.png",
+      "sha256": "07000623b331c7f7f7efb6f6935be3517db98bd110945430c620464662ad73c5"
+    },
+    "talent.bladedancer.sharpened_edge": {
+      "file": "tools/icon-lab/approved/m7-t4/art/sharpened_edge.png",
+      "sha256": "697cca5968b007fcd0422c591626b5a82deb5397a1b64558770ecdde8b5ce185"
+    }
+  }
+}

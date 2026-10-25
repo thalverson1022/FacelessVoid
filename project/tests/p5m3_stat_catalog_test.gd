@@ -60,8 +60,8 @@ func _check_required_stat_ids() -> void:
 		_require(StatCatalog.label_for(stat_id) != "", "Expected label for stat id: %s." % stat_id)
 
 	_require(StatCatalog.ids_for_category(StatCatalog.CATEGORY_BASIC).size() == 13, "Expected 13 Basic stat ids.")
-	_require(StatCatalog.ids_for_category(StatCatalog.CATEGORY_RARE).size() == 7, "Expected 7 Rare stat ids.")
-	_require(StatCatalog.ids_for_category(StatCatalog.CATEGORY_SPECIAL).size() == 16, "Expected 16 Special stat ids.")
+	_require(StatCatalog.ids_for_category(StatCatalog.CATEGORY_RARE).size() == 11, "Expected 11 Rare stat ids.")
+	_require(StatCatalog.ids_for_category(StatCatalog.CATEGORY_SPECIAL).size() == 17, "Expected 17 Special stat ids.")
 
 
 func _check_metadata_rules() -> void:

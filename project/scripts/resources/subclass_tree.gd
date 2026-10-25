@@ -13,3 +13,9 @@ extends Resource
 ## Data-driven skill changes granted by selecting this tree, e.g. Shadow's
 ## innate poison on Stab and Heavy Slash.
 @export var skill_augments: Array[SkillAugment] = []
+
+## Enabled only when T7 has converted and reviewed the executable content.
+@export var ranked_content_ready: bool = false
+## Additive per-point contributions, applied only for the primary role.
+@export var primary_point_modifiers: Array[StatModifier] = []
+@export var automatic_unlocks: Array[TreeSkillUnlock] = []

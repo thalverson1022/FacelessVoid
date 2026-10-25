@@ -1,7 +1,7 @@
 class_name GearIcons
 extends RefCounted
 ## Maps a GearItem to its icon texture for display in the shop, inventory,
-## and equipment slots. Named items (the 5 Rogue Legendaries, Lucky Coin) get
+## and equipment slots. Named items (the 16 Rogue Legendaries, Lucky Coin) get
 ## their own hand-authored icon; generated Rogue gear resolves by slot+tier;
 ## unexpected future gear falls back to a generic rarity icon. All are
 ## transparent-background PNGs meant to sit on top of the existing tier-colored
@@ -78,6 +78,17 @@ const SLOT_EMPTY_BACKGROUND := preload("res://assets/ui/equipment_slots/slot_emp
 ## generated gear never matches one of these (its id is generated per-roll),
 ## so it falls through to the Rogue slot-and-rarity map below.
 const NAMED_ICONS := {
+	"gear.legendary.decrepit_blade": preload("res://assets/ui/assigned_flat/gear/decrepit_blade.png"),
+	"gear.legendary.nightkiss_kitana": preload("res://assets/ui/assigned_flat/gear/nightkiss_kitana.png"),
+	"gear.legendary.crown_of_concertation": preload("res://assets/ui/assigned_flat/gear/crown_of_concertation.png"),
+	"gear.legendary.helm_of_the_samurai": preload("res://assets/ui/assigned_flat/gear/helm_of_the_samurai.png"),
+	"gear.legendary.cloak_of_speed": preload("res://assets/ui/assigned_flat/gear/cloak_of_speed.png"),
+	"gear.legendary.deaths_door": preload("res://assets/ui/assigned_flat/gear/deaths_door.png"),
+	"gear.legendary.signet_of_the_old_kings": preload("res://assets/ui/assigned_flat/gear/signet_of_the_old_kings.png"),
+	"gear.legendary.lolzorzs_locket": preload("res://assets/ui/assigned_flat/gear/lolzorzs_locket.png"),
+	"gear.legendary.serpents_coil": preload("res://assets/ui/assigned_flat/gear/serpents_coil.png"),
+	"gear.legendary.wingjammer": preload("res://assets/ui/assigned_flat/gear/wingjammer.png"),
+	"gear.legendary.mysterious_lucky_coin": preload("res://assets/ui/assigned_flat/gear/mysterious_lucky_coin.png"),
 	"gear.legendary.bandit_blade": BANDIT_BLADE_ICON,
 	"gear.legendary.bejeweled_push_dagger": BEJEWELED_PUSH_DAGGER_ICON,
 	"gear.legendary.mithril_karambit": MITHRIL_KARAMBIT_ICON,

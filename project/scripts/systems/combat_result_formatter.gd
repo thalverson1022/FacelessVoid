@@ -8,6 +8,8 @@ extends RefCounted
 
 
 static func format(result: CombatResolver.CombatResult, monster: Monster) -> String:
+	if not result.is_valid:
+		return invalid_simulation_message(result)
 	var lines: PackedStringArray = []
 	lines.append("Target:")
 	lines.append("  %s -- %d HP, %d Armor, %.0f%% Resist" % [
@@ -29,15 +31,17 @@ static func format(result: CombatResolver.CombatResult, monster: Monster) -> Str
 	lines.append("  Damage: %.1f in %.0fs -- %.1f DPS." % [
 		result.total_damage, result.duration_ms / 1000.0, result.dps
 	])
+	if result.total_health_removed > 0:
+		lines.append("  Health removed: %.1f." % result.total_health_removed)
 	if result.gold_stolen > 0:
 		lines.append("  Gold stolen: %dg." % result.gold_stolen)
 	if result.is_win and result.overkill_damage > 0.0:
-		lines.append("  Overkill: %.1f damage." % result.overkill_damage)
+		lines.append("  Overkill: %.1f health loss." % result.overkill_damage)
 	if result.is_win:
-		lines.append("  Result: VICTORY! %s is defeated (needed %d damage)." % [monster.display_name, monster.hp])
+		lines.append("  Result: VICTORY! %s is defeated (needed %d health loss)." % [monster.display_name, monster.hp])
 	else:
-		lines.append("  Result: DEFEAT -- fell %.1f damage short of the %d needed." % [
-			float(monster.hp) - result.total_damage, monster.hp
+		lines.append("  Result: DEFEAT -- fell %.1f health loss short of the %d needed." % [
+			float(monster.hp) - result.total_health_loss(), monster.hp
 		])
 	return "\n".join(lines)
 
@@ -48,6 +52,8 @@ static func format(result: CombatResolver.CombatResult, monster: Monster) -> Str
 ## window, it never checks whether the target is "defeated" (post-R10
 ## UI-feedback pass removed the HP concept from Practice Room entirely).
 static func format_practice(result: CombatResolver.CombatResult, monster: Monster) -> String:
+	if not result.is_valid:
+		return invalid_simulation_message(result)
 	var lines: PackedStringArray = []
 	lines.append("Practice Target:")
 	lines.append("  %s -- %d Armor, %.0f%% Resist" % [
@@ -69,37 +75,59 @@ static func format_practice(result: CombatResolver.CombatResult, monster: Monste
 	lines.append("  Damage: %.1f in %.0fs -- %.1f DPS." % [
 		result.total_damage, result.duration_ms / 1000.0, result.dps
 	])
+	if result.total_health_removed > 0:
+		lines.append("  Health removed: %.1f." % result.total_health_removed)
 	if result.gold_stolen > 0:
 		lines.append("  Gold stolen: %dg." % result.gold_stolen)
 	return "\n".join(lines)
 
 
+static func invalid_simulation_message(result: CombatResolver.CombatResult) -> String:
+	if result.failure.get("code") in ["invalid_stat_derivation", "invalid_effect_lifecycle", "invalid_macro_schedule", "invalid_poison_ranks"]:
+		return "Simulation stopped: %s. No fight outcome or rewards were applied." % result.failure.get("message", "Invalid stat derivation")
+	return "Simulation stopped: %s at %.3fs (root cast %d, limit %d). No fight outcome or rewards were applied." % [
+		result.failure.get("code", "unknown"), float(result.failure.get("time_ms", 0)) / 1000.0,
+		int(result.failure.get("root_cast_id", 0)), int(result.failure.get("limit", 0))]
+
+
 ## Merges cast and tick events into one time-ordered list of prose lines.
-## Both source arrays are already time-sorted (the resolver appends
-## chronologically); ties go to the tick, matching how the resolver processes
-## cadence beats already due before a cast lands at the same timestamp.
+## Both source arrays are already time-sorted; ties go to the tick, matching
+## how the resolver processes cadence beats before same-time casts.
 static func _timeline(result: CombatResolver.CombatResult) -> PackedStringArray:
 	var lines: PackedStringArray = []
-	var cast_index := 0
-	var tick_index := 0
-	while cast_index < result.cast_events.size() or tick_index < result.tick_events.size():
-		var next_cast_time := result.cast_events[cast_index].time_ms if cast_index < result.cast_events.size() else -1
-		var next_tick_time := result.tick_events[tick_index].time_ms if tick_index < result.tick_events.size() else -1
-		if next_cast_time >= 0 and (next_tick_time < 0 or next_cast_time < next_tick_time):
-			lines.append(_cast_line(result.cast_events[cast_index]))
-			cast_index += 1
+	var observations := {}
+	for record in result.trace.presentation_records:
+		observations[int(record.get("sequence", 0))] = record.get("payload", {})
+	for entry in CombatPlayback._merge_events(result):
+		if entry.is_tick:
+			if entry.tick.had_active_stack:
+				lines.append(_tick_line(entry.tick, observations.get(entry.sequence, {})))
 		else:
-			var tick := result.tick_events[tick_index]
-			tick_index += 1
-			if tick.damage > 0.0 or tick.absorbed_amount > 0.0:
-				lines.append(_tick_line(tick))
+			lines.append(_cast_line(entry.cast))
 	return lines
+
+
+## Group by authoritative milliseconds, never by rounded display strings.
+static func _append_timeline_entry(lines: PackedStringArray, time_ms: int, previous_time: int, text: String) -> int:
+	if time_ms != previous_time:
+		if previous_time >= 0: lines.append("")
+		lines.append("[%.3fs]" % (time_ms / 1000.0))
+	# Existing event formatters retain their standalone timestamp contract.
+	var start := text.find("[")
+	var end := text.find("] ", start)
+	var detail := text.substr(0, start) + text.substr(end + 2) if start >= 0 and end >= 0 else text
+	lines.append("    " + detail.replace("\n", "\n    "))
+	return time_ms
 
 
 ## `>>> ` prefixes any line where a proc-like effect actually fired, so
 ## retriggers, Opportunity Strikes, and Legendary minimum-cast procs are easy
 ## to spot while scanning the log instead of reading like ordinary hits.
 static func _cast_line(event: CombatResolver.CastEvent) -> String:
+	if event.cooldown_blocked:
+		return "[%.1fs] %s on cooldown; spent 0.1s with no effect" % [event.time_ms / 1000.0, event.skill.display_name]
+	if event.resource_unavailable:
+		return "[%.1fs] %s had no Readiness at cast start; no effect" % [event.time_ms / 1000.0, event.skill.display_name]
 	if event.was_interrupted:
 		var interrupt_note := "skipped" if event.interrupt_skipped else "interrupted"
 		var skill_name := event.skill.display_name if event.skill != null else "Attack"
@@ -120,6 +148,8 @@ static func _cast_line(event: CombatResolver.CastEvent) -> String:
 			event.skill.display_name,
 		]
 	var clauses: PackedStringArray = []
+	if preload("res://scripts/ui/combat_effect_text.gd").is_health_removal(event):
+		clauses.append("removes %.1f health" % event.health_removed)
 	var source_kind := "proc" if event.cast_kind == "proc" else "cast"
 	var source_damage := _contribution_damage(event, source_kind)
 	var source_crit := _contribution_crit(event, source_kind)
@@ -220,7 +250,18 @@ static func _join_clauses(clauses: PackedStringArray) -> String:
 	return "%s and %s" % [head, clauses[clauses.size() - 1]]
 
 
-static func _tick_line(tick: CombatResolver.TickEvent) -> String:
+static func _tick_line(tick: CombatResolver.TickEvent, record: Dictionary = {}) -> String:
 	var stacks_note := "1 stack remains" if tick.stacks_remaining == 1 else "%d stacks remain" % tick.stacks_remaining
 	var absorb_note := " (absorbed %.1f)" % tick.absorbed_amount if tick.absorbed_amount > 0.0 else ""
-	return "[%.1fs] DOT       Poison ticks for %.1f%s -- %s" % [tick.time_ms / 1000.0, tick.damage, absorb_note, stacks_note]
+	var detail := ""
+	if tick.is_crit:
+		detail += " CRIT"
+	if tick.origin_kind == "forced_tick":
+		detail += " (forced)"
+	if tick.origin_kind == "poison_repeat":
+		detail += " (Retrigger; free, current buffs; no Consume)"
+	elif bool(record.get("keyword_consume", false)):
+		detail += " (Consume %d stacks)" % tick.stacks_consumed
+	else:
+		detail += " (%d stacks depleted; not Consume)" % tick.stacks_consumed
+	return "[%.1fs] DOT       Poison ticks for %.1f%s%s -- %s" % [tick.time_ms / 1000.0, tick.damage, absorb_note, detail, stacks_note]

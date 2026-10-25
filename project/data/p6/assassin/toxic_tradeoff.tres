@@ -1,0 +1,62 @@
+[gd_resource type="Resource" script_class="Talent" format=3]
+[ext_resource type="Script" path="res://scripts/resources/talent.gd" id="talent"]
+[ext_resource type="Script" path="res://scripts/resources/talent_rank.gd" id="rank"]
+[ext_resource type="Script" path="res://scripts/resources/stat_modifier.gd" id="modifier"]
+
+[sub_resource type="Resource" id="mod1"]
+script = ExtResource("modifier")
+stat_id = "percent_physical_damage"
+value = -0.10000000
+
+[sub_resource type="Resource" id="rank1"]
+script = ExtResource("rank")
+stat_modifiers = Array[StatModifier]([SubResource("mod1")])
+toxic_tradeoff_rank = 1
+
+[sub_resource type="Resource" id="mod2"]
+script = ExtResource("modifier")
+stat_id = "percent_physical_damage"
+value = -0.20000000
+
+[sub_resource type="Resource" id="rank2"]
+script = ExtResource("rank")
+stat_modifiers = Array[StatModifier]([SubResource("mod2")])
+toxic_tradeoff_rank = 2
+
+[sub_resource type="Resource" id="mod3"]
+script = ExtResource("modifier")
+stat_id = "percent_physical_damage"
+value = -0.30000000
+
+[sub_resource type="Resource" id="rank3"]
+script = ExtResource("rank")
+stat_modifiers = Array[StatModifier]([SubResource("mod3")])
+toxic_tradeoff_rank = 3
+
+[sub_resource type="Resource" id="mod4"]
+script = ExtResource("modifier")
+stat_id = "percent_physical_damage"
+value = -0.40000000
+
+[sub_resource type="Resource" id="rank4"]
+script = ExtResource("rank")
+stat_modifiers = Array[StatModifier]([SubResource("mod4")])
+toxic_tradeoff_rank = 4
+
+[sub_resource type="Resource" id="mod5"]
+script = ExtResource("modifier")
+stat_id = "percent_physical_damage"
+value = -0.50000000
+
+[sub_resource type="Resource" id="rank5"]
+script = ExtResource("rank")
+stat_modifiers = Array[StatModifier]([SubResource("mod5")])
+toxic_tradeoff_rank = 5
+
+[resource]
+script = ExtResource("talent")
+id = "talent.assassin.toxic_tradeoff"
+display_name = "Toxic Tradeoff"
+max_ranks = 5
+required_tree_points = 10
+ranks = Array[ExtResource("rank")]([SubResource("rank1"), SubResource("rank2"), SubResource("rank3"), SubResource("rank4"), SubResource("rank5")])

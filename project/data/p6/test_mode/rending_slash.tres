@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="Talent" format=3 uid="uid://bmivy7pyt8mqk"]
+
+[ext_resource type="Script" uid="uid://bpusgj7hvipbl" path="res://scripts/resources/prerequisite_group.gd" id="1_scrj4"]
+[ext_resource type="Script" uid="uid://cbkin0ub6teak" path="res://scripts/resources/skill_augment.gd" id="3_y668i"]
+[ext_resource type="Script" uid="uid://m13uapmegxo2" path="res://scripts/resources/stat_modifier.gd" id="4_jug7j"]
+[ext_resource type="Script" uid="uid://c7fj7apjjsn5" path="res://scripts/resources/triggered_skill_effect.gd" id="5_thxni"]
+[ext_resource type="Script" uid="uid://d3apprhhvrqum" path="res://scripts/resources/skill.gd" id="7_c0xwj"]
+[ext_resource type="Script" uid="uid://evdact12hmik" path="res://scripts/resources/talent_rank.gd" id="rank"]
+[ext_resource type="Resource" uid="uid://doy45moc6qf0" path="res://data/skills/rending_slash.tres" id="skill"]
+[ext_resource type="Script" uid="uid://bq2fx6c5wnwsg" path="res://scripts/resources/talent.gd" id="talent"]
+
+[sub_resource type="Resource" id="rank"]
+script = ExtResource("rank")
+
+[resource]
+script = ExtResource("talent")
+id = "talent.bladedancer.rending_slash"
+display_name = "Rending Slash"
+unlocked_skills = Array[ExtResource("7_c0xwj")]([ExtResource("skill")])
+ranks = Array[ExtResource("rank")]([SubResource("rank")])

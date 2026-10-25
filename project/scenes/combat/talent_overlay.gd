@@ -8,8 +8,8 @@ extends Control
 signal secondary_tree_chosen(tree: SubclassTree)
 
 const TALENT_SCENE := preload("res://scenes/combat/talent_panel.tscn")
-const CONTENT_BASE_SIZE := Vector2(900, 660)
-const SCROLL_BASE_SIZE := Vector2(860, 580)
+const CONTENT_BASE_SIZE := Vector2(940, 740)
+const SCROLL_BASE_SIZE := Vector2(900, 660)
 const VIEWPORT_PADDING := Vector2(96, 96)
 const CONTENT_MIN_SIZE := Vector2(560, 360)
 const SCROLL_CHROME_SIZE := Vector2(40, 80)
@@ -52,15 +52,20 @@ func _ready() -> void:
 	_scroll.name = "TalentTreeScroll"
 	_scroll.custom_minimum_size = SCROLL_BASE_SIZE
 	_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
 	_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_content.add_child(_scroll)
 
 	_talent_panel = TALENT_SCENE.instantiate()
 	_talent_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_talent_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_talent_panel.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	_talent_panel.secondary_tree_chosen.connect(func(tree): secondary_tree_chosen.emit(tree))
 	_scroll.add_child(_talent_panel)
+	var navigation := preload("res://scripts/ui/talent_modal_navigation.gd").new()
+	navigation.name = "TalentKeyboardNavigation"
+	self.add_child(navigation)
+	_talent_panel.minimum_size_changed.connect(_resize_to_viewport.call_deferred)
 	if get_viewport() != null:
 		get_viewport().size_changed.connect(_resize_to_viewport)
 	_resize_to_viewport()
@@ -77,12 +82,6 @@ func _resize_to_viewport() -> void:
 	if _content == null or _scroll == null:
 		return
 	var available := get_viewport_rect().size - VIEWPORT_PADDING
-	var content_size := Vector2(
-		minf(CONTENT_BASE_SIZE.x, maxf(CONTENT_MIN_SIZE.x, available.x)),
-		minf(CONTENT_BASE_SIZE.y, maxf(CONTENT_MIN_SIZE.y, available.y))
-	)
-	_content.custom_minimum_size = content_size
-	_scroll.custom_minimum_size = Vector2(
-		minf(SCROLL_BASE_SIZE.x, maxf(CONTENT_MIN_SIZE.x - SCROLL_CHROME_SIZE.x, content_size.x - SCROLL_CHROME_SIZE.x)),
-		minf(SCROLL_BASE_SIZE.y, maxf(180.0, content_size.y - SCROLL_CHROME_SIZE.y))
-	)
+	_content.custom_minimum_size = Vector2(minf(CONTENT_BASE_SIZE.x, available.x), 0)
+	var chrome: float = _content.get_child(0).get_combined_minimum_size().y + 10
+	_scroll.custom_minimum_size = Vector2(0, minf(_talent_panel.get_combined_minimum_size().y, maxf(180, available.y - chrome)))

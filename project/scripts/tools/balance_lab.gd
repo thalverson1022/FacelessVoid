@@ -2,7 +2,7 @@ class_name BalanceLab
 extends RefCounted
 
 const VERSION := "0.1.0"
-const PROJECT_NAME := "Project Enigma"
+const PROJECT_NAME := "FacelessVoid"
 const TOOL_NAME := "Balance Lab"
 const DEFAULT_SEED_COUNT := 200
 const GENERATED_SAMPLE_SEED_COUNT := 40
@@ -75,6 +75,8 @@ static func _finalize_report_metadata(report: Dictionary) -> void:
 	var overall_status := "pass"
 	if int(counts.get("fail", 0)) > 0:
 		overall_status = "fail"
+	elif int(counts.get("not_ready", 0)) > 0:
+		overall_status = "not_ready"
 	elif int(counts.get("warn", 0)) > 0:
 		overall_status = "warn"
 	report["status"] = overall_status
@@ -118,8 +120,8 @@ static func status_counts(report: Dictionary) -> Dictionary:
 	return counts
 
 
-static func run_scenario_spec(spec: Dictionary) -> Dictionary:
-	return _run_scenario(spec)
+static func run_scenario_spec(spec: Dictionary, registry: BuildContentRegistry = null) -> Dictionary:
+	return _run_scenario(spec, registry)
 
 
 ## Each Legendary's checks are gated behind their own resource-load guard, so
@@ -1342,8 +1344,19 @@ static func _generated_monster_metadata(draft: GeneratedMonsterDraft, case: Dict
 	}
 
 
-static func _run_scenario(spec: Dictionary) -> Dictionary:
-	var class_def: ClassDef = load(spec["class"])
+static func _run_scenario(spec: Dictionary, registry: BuildContentRegistry = null) -> Dictionary:
+	var decoded := {}
+	if spec.has("ranked_build"):
+		if registry == null:
+			registry = BuildContentRegistry.current()
+		if registry.mode != "ranked" or registry.validate_ranked() != "":
+			var unavailable := _failed_scenario_result(spec, "Ranked content is not ready; no simulation was run.")
+			unavailable["status"] = "not_ready"
+			return unavailable
+		decoded = BuildSaveCodec.decode(spec.ranked_build, registry)
+		if decoded.error != "" or decoded.get("model") == null:
+			return _failed_scenario_result(spec, "Invalid ranked build: " + decoded.get("error", "Missing primary tree."))
+	var class_def: ClassDef = decoded["class"] if not decoded.is_empty() else load(spec["class"])
 	var monster: Monster = null
 	if spec.has("generated_monster"):
 		var draft := GeneratedMonsterDraft.from_dictionary(_dictionary_value(spec["generated_monster"]))
@@ -1362,6 +1375,31 @@ static func _run_scenario(spec: Dictionary) -> Dictionary:
 	var stats := BuildResolver.resolve_stats(class_def, trees, talents, gear, int(spec.get("gold", 0)))
 	var unlocked := BuildResolver.resolve_unlocked_skills(class_def, trees, talents, gear)
 	var rotation := BuildResolver.resolve_rotation(requested_skills, unlocked)
+	var snapshot := {}
+	if not decoded.is_empty():
+		var resolved := BuildResolver.resolve_ranked_build(class_def, decoded.model, gear, int(spec.get("gold", 0)))
+		if resolved.error != "":
+			return _failed_scenario_result(spec, resolved.error)
+		stats = resolved.stats
+		unlocked = resolved.skills
+		requested_skills.clear()
+		for id in decoded.rotation_ids:
+			var requested := Skill.new()
+			requested.id = id
+			requested_skills.append(requested)
+		var normalized := BuildResolver.normalize_rotation(requested_skills, unlocked)
+		if not normalized.removed.is_empty() or not normalized.overflow.is_empty() or normalized.rotation.is_empty():
+			return _failed_scenario_result(spec, "Ranked scenario requires an available, nonempty rotation of at most ten slots.")
+		rotation = normalized.rotation
+		snapshot = {"build": spec.ranked_build.duplicate(true), "content_revision": registry.revision,
+			"class": _resource_snapshot(class_def), "trees": [], "gear": [],
+			"monster": _resource_snapshot(monster), "skills": []}
+		for tree in decoded.trees:
+			snapshot.trees.append(_resource_snapshot(tree))
+		for item in gear:
+			snapshot.gear.append(_resource_snapshot(item))
+		for skill in rotation:
+			snapshot.skills.append(_resource_snapshot(skill))
 
 	var outcomes := []
 	var dps_values := []
@@ -1384,6 +1422,8 @@ static func _run_scenario(spec: Dictionary) -> Dictionary:
 	for offset in range(seed_count):
 		var seed := seed_start + offset
 		var result := CombatResolver.resolve(rotation, stats, monster, int(spec["duration_ms"]), seed)
+		if not result.is_valid:
+			return _failed_scenario_result(spec, "Seed %d: %s" % [seed, CombatResultFormatter.invalid_simulation_message(result)])
 		var summary := _combat_summary(seed, result)
 		outcomes.append(summary)
 		dps_values.append(summary["dps"])
@@ -1444,6 +1484,7 @@ static func _run_scenario(spec: Dictionary) -> Dictionary:
 		"thresholds": spec.get("thresholds", {}),
 		"aggregate": aggregate,
 		"samples": outcomes.slice(0, mini(outcomes.size(), 24)),
+		"foundation_snapshot": snapshot,
 	}
 
 
@@ -1631,7 +1672,7 @@ static func _failed_scenario_result(spec: Dictionary, message: String) -> Dictio
 		"matchup_preview": spec.get("matchup_preview", {}),
 		"balance_model": spec.get("balance_model", {}),
 		"generated_monster_metadata": spec.get("generated_monster_metadata", {}),
-		"monster": spec["monster"],
+		"monster": spec.get("monster", "generated"),
 		"monster_overrides": spec.get("monster_overrides", {}),
 		"rotation": [],
 		"gear": [],
@@ -1844,14 +1885,14 @@ static func _dashboard_html(report: Dictionary) -> String:
 		"<head>",
 		"<meta charset=\"utf-8\">",
 		"<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">",
-		"<title>Project Enigma Balance Lab</title>",
+		"<title>FacelessVoid Balance Lab</title>",
 		"<style>",
 		":root{color-scheme:dark;--bg:#161514;--panel:#24211d;--ink:#f0e0c2;--muted:#b9aa8e;--line:#6f6047;--good:#72c05b;--warn:#d2a23e;--bad:#d85f4c;--accent:#e0a34f;}",
 		"*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 system-ui,Segoe UI,sans-serif;}header{padding:22px 28px;border-bottom:1px solid var(--line);background:#1d1b18;}h1{margin:0 0 4px;font-size:26px;}h2{margin:0 0 12px;font-size:18px;}main{padding:22px 28px;display:grid;gap:18px;}section{border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:16px;}table{width:100%;border-collapse:collapse;}th,td{text-align:left;padding:8px 9px;border-bottom:1px solid rgba(255,255,255,.08);vertical-align:top;}th{color:var(--muted);font-weight:600}.status{font-weight:700;text-transform:uppercase}.pass{color:var(--good)}.warn{color:var(--warn)}.fail{color:var(--bad)}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}.card{border:1px solid rgba(255,255,255,.10);border-radius:8px;padding:12px;background:#1b1916}.metric{font-size:24px;font-weight:750}.muted{color:var(--muted)}.bars{display:grid;gap:10px}.bar-row{display:grid;grid-template-columns:260px 1fr 90px;gap:12px;align-items:center}.bar-track{height:14px;background:#111;border:1px solid rgba(255,255,255,.1);border-radius:3px;overflow:hidden}.bar-fill{height:100%;background:linear-gradient(90deg,var(--accent),#73bd6b)}code{color:#f5c16c}",
 		"</style>",
 		"</head>",
 		"<body>",
-		"<header><h1>Project Enigma Balance Lab</h1><div class=\"muted\">Generated <code id=\"generated\"></code> | Version <code id=\"version\"></code></div></header>",
+		"<header><h1>FacelessVoid Balance Lab</h1><div class=\"muted\">Generated <code id=\"generated\"></code> | Version <code id=\"version\"></code></div></header>",
 		"<main>",
 		"<section><h2>Suite Health</h2><div class=\"cards\" id=\"health\"></div></section>",
 		"<section><h2>Status Semantics</h2><table><thead><tr><th>Status</th><th>Meaning</th></tr></thead><tbody id=\"status-semantics\"></tbody></table></section>",
@@ -1877,3 +1918,26 @@ static func _dashboard_html(report: Dictionary) -> String:
 		"</body></html>",
 	]
 	return "\n".join(lines)
+
+
+## Data-only snapshot of the actual resources used; no live Resource references.
+static func _resource_snapshot(value: Variant, depth: int = 0) -> Variant:
+	if depth > 32:
+		return "<reference-depth-limit>"
+	if value is Resource:
+		var result := {"resource_path": value.resource_path, "script": value.get_script().resource_path if value.get_script() != null else ""}
+		for property in value.get_property_list():
+			if property.usage & PROPERTY_USAGE_SCRIPT_VARIABLE and property.usage & PROPERTY_USAGE_STORAGE:
+				result[property.name] = _resource_snapshot(value.get(property.name), depth + 1)
+		return result
+	if value is Array or typeof(value) in [TYPE_PACKED_STRING_ARRAY, TYPE_PACKED_INT32_ARRAY, TYPE_PACKED_INT64_ARRAY, TYPE_PACKED_FLOAT32_ARRAY, TYPE_PACKED_FLOAT64_ARRAY]:
+		var result := []
+		for item in value:
+			result.append(_resource_snapshot(item, depth + 1))
+		return result
+	if value is Dictionary:
+		var result := {}
+		for key in value:
+			result[key] = _resource_snapshot(value[key], depth + 1)
+		return result
+	return value

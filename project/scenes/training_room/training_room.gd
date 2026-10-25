@@ -18,10 +18,8 @@ extends Control
 ## and clicking a slot opens its focused Rarity/stat popup. Each slot's
 ## non-Legendary Rarity dropdown follows the active generated Phase 5 tiers;
 ## each affix then gets a stat-choice dropdown that auto-fills a real tier
-## value while staying editable. Choosing Legendary swaps the weapon's rows for a
-## Legendary-name dropdown instead (TrainingRoomState.equip_legendary()/
-## use_custom_weapon()); non-weapon slots have no Legendary items today, so
-## they're always the rarity-driven editor.
+## value while staying editable. Every slot offers its fixed Legendary roster
+## through a slot-filtered selector. Fixed affixes remain read-only.
 ##
 ## P2:R10:T5 scope: fight-setup controls -- a target stats card
 ## (TrainingTargetPanel, styled like Adventure's enemy_panel.gd), a direct
@@ -109,11 +107,18 @@ var _helm_slot_button: Button
 var _armor_slot_button: Button
 var _trinket_slot_button: Button
 var _charm_slot_button: Button
+var _carried_button: Button
+var _carried_overlay: Control
+var _carried_rows: VBoxContainer
+var _carried_slot_row: HBoxContainer
+var _carried_slot_option: OptionButton
+var _gear_validation_label: Label
 var _gear_slot_buttons: Dictionary = {}
 var _gear_editor_overlay: Control
 var _gear_editor_title: Label
 var _gear_rarity_option: OptionButton
 var _gear_legendary_option: OptionButton
+var _legendary_details: VBoxContainer
 var _gear_affix_column: VBoxContainer
 var _editing_gear_item: GearItem = null
 var _editing_gear_slot_name := ""
@@ -122,6 +127,7 @@ var _target_panel: TrainingTargetPanel
 var _duration_spin: SpinBox
 var _seed_spin: SpinBox
 var _random_seed_toggle: CheckBox
+var _missing_attempts_spin: SpinBox
 var _gold_spin: SpinBox
 var _combat_view: TrainingRoomCombatView
 var _skill_build_panel
@@ -136,9 +142,18 @@ var _talent_overlay_scroll: ScrollContainer
 var _talent_panel
 
 
+var _setup_save_queued := false
+var _setup_autosave := true
+var _persistence_notice: Label
+
 func _ready() -> void:
 	_state = TrainingRoomState.new()
-	_state.set_class(load(ROGUE_CLASS_PATH))
+	_state.content_registry = BuildContentRegistry.test_mode()
+	_state.practice_save_path = PracticeSaveSystem.core_save_path
+	_state.set_class(_state.content_registry.classes["class.rogue"])
+	_state.configure_ranked_build(_state.content_registry.trees["tree.bladedancer"])
+	var restored := PracticeSaveSystem.load_setup(_state)
+	_setup_autosave = restored.status != "failed"
 
 	var canvas := ColorRect.new()
 	canvas.name = "ScreenCanvas"
@@ -177,11 +192,27 @@ func _ready() -> void:
 
 	var settings_reserved_space := Control.new()
 	settings_reserved_space.custom_minimum_size = Vector2(SETTINGS_BUTTON_RESERVED_WIDTH, 0)
-	header.add_child(settings_reserved_space)
 
 	var subtitle := Label.new()
 	subtitle.text = "Where questionable builds go to become slightly less questionable."
 	vbox.add_child(subtitle)
+	_persistence_notice = Label.new()
+	_persistence_notice.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_persistence_notice.text = restored.message
+	if not _state.rotation_changes.get("removed", []).is_empty() or not _state.rotation_changes.get("overflow", []).is_empty():
+		_persistence_notice.text += " Rotation entries removed: %s; beyond ten slots: %s." % [str(_state.rotation_changes.get("removed", [])), str(_state.rotation_changes.get("overflow", []))]
+	vbox.add_child(_persistence_notice)
+	var save_setup_button := Button.new()
+	save_setup_button.text = "Save Setup"
+	save_setup_button.pressed.connect(func():
+		_setup_autosave = true
+		_commit_setup_save()
+	)
+	header.add_child(save_setup_button)
+	# Reserve the far-right space for global Settings after all header actions.
+	header.add_child(settings_reserved_space)
+	_state.build_changed.connect(_queue_setup_save)
+	_state.fight_setup_changed.connect(_queue_setup_save)
 
 	# Three-column layout mirroring Adventure's real combat_screen.gd column
 	# structure (Left: character stats + talents, Center: combat view +
@@ -227,6 +258,9 @@ func _ready() -> void:
 	_combat_view.gold_stolen_callback = Callable(_state, "add_practice_combat_gold")
 	_combat_view.set_fight_window_ms(_state.duration_ms)
 	center_column.add_child(_combat_view)
+	# Reserve room for all ten rotation slots and explicit editing actions.
+	_combat_view.custom_minimum_size.y = 280
+	_combat_view.size_flags_vertical = Control.SIZE_EXPAND_FILL
 
 	# Fight + Combat Log live inside the combat view's lower band, matching
 	# Adventure's M5 combat-window treatment.
@@ -350,7 +384,7 @@ func _build_talent_overlay() -> void:
 
 	var content := VBoxContainer.new()
 	_talent_overlay_content = content
-	content.custom_minimum_size = Vector2(900, 700)
+	content.custom_minimum_size = Vector2(940, 740)
 	content.add_theme_constant_override("separation", 10)
 	panel.add_child(content)
 
@@ -372,8 +406,9 @@ func _build_talent_overlay() -> void:
 	var scroll := ScrollContainer.new()
 	_talent_overlay_scroll = scroll
 	scroll.name = "TalentTreeScroll"
-	scroll.custom_minimum_size = Vector2(860, 590)
+	scroll.custom_minimum_size = Vector2(900, 660)
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
 	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	content.add_child(scroll)
@@ -382,8 +417,12 @@ func _build_talent_overlay() -> void:
 	_talent_panel.name = "TalentPanel"
 	_talent_panel.state = _state
 	_talent_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_talent_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_talent_panel.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	scroll.add_child(_talent_panel)
+	var navigation := preload("res://scripts/ui/talent_modal_navigation.gd").new()
+	navigation.name = "TalentKeyboardNavigation"
+	_talent_overlay.add_child(navigation)
+	_talent_panel.minimum_size_changed.connect(_resize_talent_overlay_to_viewport.call_deferred)
 	if get_viewport() != null:
 		get_viewport().size_changed.connect(_resize_talent_overlay_to_viewport)
 	_resize_talent_overlay_to_viewport()
@@ -393,15 +432,9 @@ func _resize_talent_overlay_to_viewport() -> void:
 	if _talent_overlay_content == null or _talent_overlay_scroll == null:
 		return
 	var available := get_viewport_rect().size - Vector2(96, 96)
-	var content_size := Vector2(
-		minf(900.0, maxf(560.0, available.x)),
-		minf(700.0, maxf(360.0, available.y))
-	)
-	_talent_overlay_content.custom_minimum_size = content_size
-	_talent_overlay_scroll.custom_minimum_size = Vector2(
-		minf(860.0, maxf(520.0, content_size.x - 40.0)),
-		minf(590.0, maxf(180.0, content_size.y - 80.0))
-	)
+	_talent_overlay_content.custom_minimum_size = Vector2(minf(940, available.x), 0)
+	var chrome: float = _talent_overlay_content.get_child(0).get_combined_minimum_size().y + 10
+	_talent_overlay_scroll.custom_minimum_size = Vector2(0, minf(_talent_panel.get_combined_minimum_size().y, maxf(180, available.y - chrome)))
 
 
 func _build_gear_paper_doll(parent: Container) -> void:
@@ -476,6 +509,65 @@ func _build_gear_paper_doll(parent: Container) -> void:
 		_state.practice_trinket: _trinket_slot_button,
 		_state.practice_charm: _charm_slot_button,
 	}
+
+	_carried_button = Button.new()
+	_carried_button.name = "CarriedGearButton"
+	_carried_button.text = "Carried Gear (0/3)"
+	_carried_button.pressed.connect(_show_carried_editor)
+	content.add_child(_carried_button)
+
+
+func _show_carried_editor() -> void:
+	if _carried_overlay == null:
+		_carried_overlay = Control.new()
+		_carried_overlay.name = "CarriedGearOverlay"
+		_carried_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		add_child(_carried_overlay)
+		var panel := CardStyle.build_modal_panel(_carried_overlay, true)
+		var column := VBoxContainer.new()
+		column.custom_minimum_size = Vector2(360, 0)
+		column.add_theme_constant_override("separation", 8)
+		panel.add_child(column)
+		var title := Label.new()
+		title.text = "Carried Gear  -  Practice Only"
+		column.add_child(title)
+		_carried_rows = VBoxContainer.new()
+		column.add_child(_carried_rows)
+		var done := Button.new()
+		done.text = "Done"
+		done.pressed.connect(func(): _carried_overlay.hide())
+		column.add_child(done)
+	_refresh_carried_editor()
+	_carried_overlay.show()
+
+
+func _refresh_carried_editor() -> void:
+	if _carried_button != null:
+		_carried_button.text = "Carried Gear (%d/3)" % _state.carried_items.size()
+	if _carried_rows == null:
+		return
+	for child in _carried_rows.get_children():
+		_carried_rows.remove_child(child)
+		child.queue_free()
+	for i in _state.carried_items.size():
+		var item: GearItem = _state.carried_items[i]
+		var row := HBoxContainer.new()
+		_carried_rows.add_child(row)
+		var edit := Button.new()
+		edit.text = "%d. %s" % [i + 1, item.display_name]
+		edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		edit.tooltip_text = _gear_tooltip(item)
+		edit.pressed.connect(func(): _show_gear_slot_editor("Carried %d" % (i + 1), item, false))
+		row.add_child(edit)
+		var remove := Button.new()
+		remove.text = "Remove"
+		remove.pressed.connect(func(): _state.remove_carried_item(i))
+		row.add_child(remove)
+	var add := Button.new()
+	add.text = "Add Carried Item"
+	add.disabled = _state.carried_items.size() >= TrainingRoomState.MAX_CARRIED_ITEMS
+	add.pressed.connect(func(): _state.add_carried_item())
+	_carried_rows.add_child(add)
 
 
 func _build_practice_logo(parent: Container) -> void:
@@ -593,6 +685,12 @@ func _build_gear_editor_overlay() -> void:
 	header.add_child(close_button)
 	content.add_child(header)
 
+	_carried_slot_row = _build_labeled_row(content, "Slot")
+	_carried_slot_option = OptionButton.new()
+	for slot in GearItem.SlotType.values():
+		_carried_slot_option.add_item(GearGenerator.universal_slot_label(slot), slot)
+	_carried_slot_option.item_selected.connect(func(index): _state.set_carried_slot(_editing_gear_item, _carried_slot_option.get_item_id(index)))
+	_carried_slot_row.add_child(_carried_slot_option)
 	var rarity_row := _build_labeled_row(content, "Rarity")
 	_gear_rarity_option = OptionButton.new()
 	_gear_rarity_option.name = "RarityOption"
@@ -609,10 +707,19 @@ func _build_gear_editor_overlay() -> void:
 	var separator := HSeparator.new()
 	content.add_child(separator)
 
+	_legendary_details = VBoxContainer.new()
+	_legendary_details.name = "LegendaryDetails"
+	_legendary_details.add_theme_constant_override("separation", 5)
+	content.add_child(_legendary_details)
+
 	_gear_affix_column = VBoxContainer.new()
 	_gear_affix_column.name = "AffixRows"
 	_gear_affix_column.add_theme_constant_override("separation", 4)
 	content.add_child(_gear_affix_column)
+	_gear_validation_label = Label.new()
+	_gear_validation_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_gear_validation_label.custom_minimum_size.x = GEAR_EDITOR_POPUP_SIZE.x
+	content.add_child(_gear_validation_label)
 
 
 func _show_gear_slot_editor(slot_name: String, item: GearItem, is_weapon: bool) -> void:
@@ -621,7 +728,16 @@ func _show_gear_slot_editor(slot_name: String, item: GearItem, is_weapon: bool) 
 	_editing_gear_is_weapon = is_weapon
 	_gear_editor_title.text = "%s Gear" % slot_name
 	_populate_rarity_option(is_weapon)
+	if _state.carried_items.has(item):
+		_gear_rarity_option.remove_item(_gear_rarity_option.get_item_index(NONE_RARITY_ID))
+		if item.tier == GearItem.Tier.LEGENDARY:
+			_gear_rarity_option.add_item("Legendary (fixed)", GearItem.Tier.LEGENDARY)
+	var fixed_carried := _state.carried_items.has(item) and item.tier == GearItem.Tier.LEGENDARY
+	_gear_rarity_option.disabled = fixed_carried
+	_carried_slot_option.disabled = fixed_carried
 	_refresh_gear_editor()
+	if _carried_overlay != null: _carried_overlay.hide()
+	move_child(_gear_editor_overlay, get_child_count() - 1)
 	_gear_editor_overlay.visible = true
 
 
@@ -632,8 +748,7 @@ func _populate_rarity_option(is_weapon: bool) -> void:
 		_gear_rarity_option.add_item(RARITY_NAMES[GearItem.Tier.CRUDE], GearItem.Tier.CRUDE)
 	for tier in PRACTICE_CUSTOM_TIERS:
 		_gear_rarity_option.add_item(RARITY_NAMES[tier], tier)
-	if is_weapon:
-		_gear_rarity_option.add_item("Legendary", GearItem.Tier.LEGENDARY)
+	_gear_rarity_option.add_item("Legendary", GearItem.Tier.LEGENDARY)
 
 
 func _on_editor_rarity_selected(index: int) -> void:
@@ -644,9 +759,9 @@ func _on_editor_rarity_selected(index: int) -> void:
 
 func _on_rarity_selected(index: int, option: OptionButton, item: GearItem, is_weapon: bool) -> void:
 	var tier: int = option.get_item_id(index)
-	if is_weapon and tier == GearItem.Tier.LEGENDARY:
-		var items := LegendaryCatalog.all_items()
-		var current_index := items.find(_state.equipped_weapon)
+	if tier == GearItem.Tier.LEGENDARY:
+		var items := _legendary_items_for_editor()
+		var current_index := items.find(_equipped_editor_item())
 		_state.equip_legendary(items[current_index] if current_index >= 0 else items[0])
 		return
 	if is_weapon and _state.is_weapon_legendary():
@@ -658,14 +773,20 @@ func _on_rarity_selected(index: int, option: OptionButton, item: GearItem, is_we
 
 
 func _on_weapon_legendary_selected(index: int) -> void:
-	_state.equip_legendary(LegendaryCatalog.all_items()[index])
+	var items := _legendary_items_for_editor()
+	if index >= 0 and index < items.size():
+		_state.equip_legendary(items[index])
 
 
 func _refresh_gear_editor() -> void:
+	_refresh_carried_editor()
 	_refresh_paper_doll_slots()
 	if _editing_gear_item == null or _gear_affix_column == null:
 		return
-	_refresh_popup_slot(_editing_gear_item, _editing_gear_is_weapon and _state.is_weapon_legendary())
+	_carried_slot_row.visible = _state.carried_items.has(_editing_gear_item)
+	_carried_slot_option.select(_carried_slot_option.get_item_index(_editing_gear_item.slot))
+	_refresh_gear_validation()
+	_refresh_popup_slot(_editing_gear_item, _editing_gear_item.tier == GearItem.Tier.LEGENDARY or (_equipped_editor_item() != null and _equipped_editor_item().tier == GearItem.Tier.LEGENDARY))
 
 
 func _refresh_paper_doll_slots() -> void:
@@ -703,16 +824,20 @@ func _refresh_popup_slot(item: GearItem, showing_legendary: bool) -> void:
 		_populate_rarity_option(_editing_gear_is_weapon)
 	if showing_legendary:
 		_gear_rarity_option.select(_gear_rarity_option.get_item_index(GearItem.Tier.LEGENDARY))
-	elif item.affixes.is_empty():
+	elif item.affixes.is_empty() and not _state.carried_items.has(item):
 		_gear_rarity_option.select(_gear_rarity_option.get_item_index(NONE_RARITY_ID))
 	else:
 		_gear_rarity_option.select(_gear_rarity_option.get_item_index(item.tier))
 
-	_gear_legendary_option.visible = showing_legendary
-	_gear_affix_column.visible = not showing_legendary
+	var fixed_carried := _state.carried_items.has(item) and item.tier == GearItem.Tier.LEGENDARY
+	_refresh_legendary_details(item if fixed_carried else _equipped_editor_item(), showing_legendary)
+	_gear_legendary_option.visible = showing_legendary and not fixed_carried
+	_gear_affix_column.visible = not showing_legendary or fixed_carried
 	for child in _gear_affix_column.get_children():
 		child.queue_free()
 
+	if fixed_carried:
+		return
 	if showing_legendary:
 		_refresh_legendary_option()
 		return
@@ -727,12 +852,31 @@ func _refresh_popup_slot(item: GearItem, showing_legendary: bool) -> void:
 
 func _refresh_legendary_option() -> void:
 	_gear_legendary_option.clear()
-	var items := LegendaryCatalog.all_items()
+	var items := _legendary_items_for_editor()
 	for legendary_item in items:
 		_gear_legendary_option.add_item(legendary_item.display_name)
-	var current_index := items.find(_state.equipped_weapon)
+	var current_index := items.find(_equipped_editor_item())
 	_gear_legendary_option.select(maxi(current_index, 0))
-	_gear_legendary_option.tooltip_text = _gear_tooltip(_state.equipped_weapon)
+	_gear_legendary_option.tooltip_text = _gear_tooltip(_equipped_editor_item())
+
+
+func _legendary_items_for_editor() -> Array[GearItem]:
+	var items: Array[GearItem] = []
+	for item in LegendaryCatalog.all_items():
+		if _editing_gear_item != null and item.slot == _editing_gear_item.slot:
+			items.append(item)
+	return items
+
+
+func _equipped_editor_item() -> GearItem:
+	if _editing_gear_item == null: return null
+	match _editing_gear_item.slot:
+		GearItem.SlotType.WEAPON: return _state.equipped_weapon
+		GearItem.SlotType.HELM: return _state.equipped_helm
+		GearItem.SlotType.ARMOR: return _state.equipped_armor
+		GearItem.SlotType.CHARM: return _state.equipped_charm
+		GearItem.SlotType.TRINKET: return _state.equipped_trinket
+	return null
 
 
 func _gear_tooltip(gear: GearItem) -> String:
@@ -749,16 +893,27 @@ func _build_affix_row(item: GearItem, index: int) -> HBoxContainer:
 	row.add_theme_constant_override("separation", 4)
 
 	var stat_option := OptionButton.new()
+	stat_option.fit_to_longest_item = false
+	stat_option.clip_text = true
+	stat_option.custom_minimum_size.x = 230
+	stat_option.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	for stat_id in pool:
 		stat_option.add_item(StatCatalog.label_for(stat_id))
 		stat_option.set_item_metadata(stat_option.item_count - 1, stat_id)
-	stat_option.select(_stat_option_index(stat_option, StatCatalog.canonical_id_for_modifier(modifier)))
+	var current_id := StatCatalog.canonical_id_for_modifier(modifier)
+	if not pool.has(current_id):
+		stat_option.add_item("Legacy: " + StatCatalog.label_for(current_id))
+		stat_option.set_item_metadata(stat_option.item_count - 1, current_id)
+	stat_option.select(_stat_option_index(stat_option, current_id))
 	stat_option.item_selected.connect(_on_affix_stat_selected.bind(item, index, stat_option))
 	row.add_child(stat_option)
 
 	var value_spin := SpinBox.new()
+	value_spin.custom_minimum_size.x = 110
 	value_spin.min_value = -1000.0
 	value_spin.max_value = 1000.0
+	value_spin.allow_greater = true
+	value_spin.allow_lesser = true
 	value_spin.step = _editor_step_for_modifier(modifier)
 	value_spin.rounded = _editor_uses_integer_steps(modifier)
 	value_spin.value = _editor_value_for_modifier(modifier)
@@ -781,11 +936,22 @@ func _on_affix_value_changed(new_value: float, modifier: StatModifier) -> void:
 	_state.notify_gear_edited()
 
 
+func _refresh_gear_validation() -> void:
+	if _gear_validation_label == null or _editing_gear_item == null:
+		return
+	var errors: PackedStringArray = []
+	for modifier in _editing_gear_item.affixes:
+		var error := "Non-finite affix value." if not is_finite(modifier.value) else StatCatalog.modifier_validation_error(modifier)
+		if error != "": errors.append(error)
+	_gear_validation_label.text = "\n".join(errors)
+	_gear_validation_label.visible = not errors.is_empty()
+
+
 func _editor_value_for_modifier(modifier: StatModifier) -> float:
 	var kind := _value_kind_for_modifier(modifier)
 	match kind:
 		StatCatalog.VALUE_PERCENT, StatCatalog.VALUE_CHANCE:
-			return round(modifier.value * 100.0)
+			return modifier.value * 100.0
 		StatCatalog.VALUE_FLAT, StatCatalog.VALUE_STACKS:
 			return round(modifier.value)
 	return modifier.value
@@ -795,22 +961,20 @@ func _modifier_value_from_editor(modifier: StatModifier, editor_value: float) ->
 	var kind := _value_kind_for_modifier(modifier)
 	match kind:
 		StatCatalog.VALUE_PERCENT, StatCatalog.VALUE_CHANCE:
-			return round(editor_value) / 100.0
+			return editor_value / 100.0
 		StatCatalog.VALUE_FLAT, StatCatalog.VALUE_STACKS:
 			return round(editor_value)
 	return editor_value
 
 
 func _editor_step_for_modifier(modifier: StatModifier) -> float:
-	return 1.0 if _editor_uses_integer_steps(modifier) else 0.1
+	return 1.0 if _editor_uses_integer_steps(modifier) else 0.0001
 
 
 func _editor_uses_integer_steps(modifier: StatModifier) -> bool:
 	var kind := _value_kind_for_modifier(modifier)
 	return (
-		kind == StatCatalog.VALUE_PERCENT
-		or kind == StatCatalog.VALUE_CHANCE
-		or kind == StatCatalog.VALUE_FLAT
+		kind == StatCatalog.VALUE_FLAT
 		or kind == StatCatalog.VALUE_STACKS
 	)
 
@@ -824,7 +988,7 @@ func _value_kind_for_modifier(modifier: StatModifier) -> String:
 func _stat_ids_for_affix_slot(item: GearItem, index: int) -> Array[String]:
 	if item == null or index < 0 or index >= item.affixes.size():
 		return []
-	if item.tier == GearItem.Tier.CHAOS:
+	if item.tier == GearItem.Tier.CHAOS and item.affixes[index].category != StatModifier.StatCategory.DRAWBACK:
 		return _chaos_stat_ids_for_slot(item.slot)
 	var modifier: StatModifier = item.affixes[index]
 	if modifier.category == StatModifier.StatCategory.DRAWBACK:
@@ -939,6 +1103,18 @@ func _build_fight_setup_controls(parent: VBoxContainer) -> void:
 	_gold_spin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_gold_spin.value_changed.connect(_on_practice_gold_changed)
 	gold_row.add_child(_gold_spin)
+	var attempts_row := _build_labeled_row(parent, "Missing attempts")
+	_missing_attempts_spin = SpinBox.new()
+	_missing_attempts_spin.name = "MissingAttemptsSpin"
+	_missing_attempts_spin.min_value = 0
+	_missing_attempts_spin.max_value = 99
+	_missing_attempts_spin.step = 1
+	_missing_attempts_spin.value = _state.legendary_missing_attempts
+	_missing_attempts_spin.tooltip_text = "Death’s Door test input: 0 gives x1, 1 gives x2, 2 gives x4. Adventure lives are unchanged."
+	_missing_attempts_spin.value_changed.connect(func(value):
+		if not _state.set_legendary_missing_attempts(int(value)):
+			_refresh_fight_setup_controls())
+	attempts_row.add_child(_missing_attempts_spin)
 
 
 ## One label + control row, stacked in the narrow right column rather than
@@ -985,6 +1161,10 @@ func _refresh_target_panel() -> void:
 
 
 func _refresh_fight_setup_controls() -> void:
+	if _missing_attempts_spin != null:
+		_missing_attempts_spin.set_block_signals(true)
+		_missing_attempts_spin.value = _state.legendary_missing_attempts
+		_missing_attempts_spin.set_block_signals(false)
 	if _duration_spin != null:
 		_duration_spin.set_block_signals(true)
 		_duration_spin.value = _state.duration_ms / 1000.0
@@ -1033,6 +1213,9 @@ func _on_practice_gold_changed(value: float) -> void:
 ## An empty macro is a guaranteed zero-damage loss -- same guard
 ## `skill_build_panel.gd`'s Lock button already uses for the same reason.
 func _refresh_fight_button() -> void:
+	if _missing_attempts_spin != null:
+		_missing_attempts_spin.editable = not _state.allocation_locked
+		_missing_attempts_spin.set_value_no_signal(_state.legendary_missing_attempts)
 	_fight_button.disabled = not _state.can_run_fight()
 	if _state.rotation.is_empty():
 		_fight_button.tooltip_text = "Slot at least one skill before fighting"
@@ -1056,13 +1239,12 @@ func _on_fight_button_pressed() -> void:
 ## animation (or its headless instant-skip) finishes, via _combat_view's
 ## `finished` signal -> _on_combat_view_finished().
 func _on_state_fight_finished() -> void:
-	var stats := BuildResolver.resolve_stats(
-		_state.selected_class,
-		_state.selected_trees,
-		_state.selected_talents,
-		_state.equipped_gear(),
-		_state.gold
-	)
+	if not _state.last_result.is_valid:
+		_on_combat_view_finished()
+		return
+	_state.allocation_locked = true
+	_state.lock_changed.emit()
+	var stats := _state.current_player_stats()
 	_combat_view.play(
 		_state.last_result,
 		_state.selected_target,
@@ -1086,6 +1268,8 @@ func _base_poison_damage_for_stats(stats: PlayerStats) -> float:
 ## _view_log_button/_log_overlay pattern (disabled until the first fight
 ## resolves, dismissible via Close or clicking the backdrop).
 func _on_combat_view_finished() -> void:
+	_state.allocation_locked = false
+	_state.lock_changed.emit()
 	_log_inspector.set_result(_state.last_result, _state.selected_target, true)
 	_result_log.text = CombatResultFormatter.format_practice(_state.last_result, _state.selected_target)
 	_view_log_button.disabled = false
@@ -1150,3 +1334,44 @@ func _build_log_overlay() -> void:
 	_result_log.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_result_log.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	content.add_child(_result_log)
+
+
+func _queue_setup_save() -> void:
+	if not _setup_autosave or _setup_save_queued:
+		return
+	_setup_save_queued = true
+	call_deferred("_commit_setup_save")
+
+func _commit_setup_save() -> void:
+	_setup_save_queued = false
+	if not PracticeSaveSystem.save_setup(_state):
+		_persistence_notice.text = PracticeSaveSystem.last_error
+	else:
+		_persistence_notice.text = ""
+	var changes: Dictionary = _state.rotation_changes
+	if not changes.get("removed", []).is_empty() or not changes.get("overflow", []).is_empty():
+		_persistence_notice.text += " Rotation entries removed: %s; beyond ten slots: %s." % [str(changes.get("removed", [])), str(changes.get("overflow", []))]
+
+
+func _refresh_legendary_details(item: GearItem, showing: bool) -> void:
+	for child in _legendary_details.get_children():
+		_legendary_details.remove_child(child)
+		child.queue_free()
+	_legendary_details.visible = showing and item != null
+	if not _legendary_details.visible: return
+	var header := HBoxContainer.new()
+	header.add_theme_constant_override("separation", 8)
+	header.add_child(CardStyle.make_pixel_icon(GearIcons.icon_for(item), Vector2(36, 36)))
+	var name_label := Label.new()
+	name_label.text = "Fixed Legendary stats"
+	name_label.add_theme_color_override("font_color", UIColors.TEXT_GOLD)
+	header.add_child(name_label)
+	_legendary_details.add_child(header)
+	var text := Label.new()
+	text.custom_minimum_size.x = GEAR_EDITOR_POPUP_SIZE.x
+	text.add_theme_font_size_override("font_size", 17)
+	text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	var lines := CardStyle.gear_tooltip_lines(item)
+	if lines.size() > 2: lines = lines.slice(2)
+	text.text = "\n".join(lines)
+	_legendary_details.add_child(text)

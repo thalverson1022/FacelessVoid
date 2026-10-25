@@ -8,7 +8,7 @@
 [sub_resource type="Resource" id="Resource_patrolling_guard_reward"]
 script = ExtResource("3_reward_script")
 gold_amount = 30
-talent_points = 1
+talent_points = 0
 generated_gear_choice_count = 2
 generated_gear_tier = 1
 generated_gear_slots = Array[int]([0, 2])
@@ -25,6 +25,6 @@ next_nodes = Array[ContractRouteNode]([ExtResource("4_knives")])
 difficulty_label = "Reward Opportunity"
 reward_quality_label = "Master Weapon or Necklace"
 summary_text = "A guarded route with better loot from the easier opener branch."
-reward_summary = "30g, 1 talent point, and a Master weapon or necklace choice."
+reward_summary = "30g,, and a Master weapon or necklace choice."
 selected_text = "Selected Route: Patrolling Guard
 The bigger they are..."

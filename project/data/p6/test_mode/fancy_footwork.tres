@@ -1,0 +1,37 @@
+[gd_resource type="Resource" script_class="Talent" format=3 uid="uid://bkjopx83ollxa"]
+
+[ext_resource type="Script" uid="uid://bpusgj7hvipbl" path="res://scripts/resources/prerequisite_group.gd" id="1_cnkgd"]
+[ext_resource type="Script" uid="uid://cbkin0ub6teak" path="res://scripts/resources/skill_augment.gd" id="3_tmqo0"]
+[ext_resource type="Script" uid="uid://m13uapmegxo2" path="res://scripts/resources/stat_modifier.gd" id="4_s4ej4"]
+[ext_resource type="Script" uid="uid://c7fj7apjjsn5" path="res://scripts/resources/triggered_skill_effect.gd" id="5_01tgk"]
+[ext_resource type="Script" uid="uid://d3apprhhvrqum" path="res://scripts/resources/skill.gd" id="7_i62bu"]
+[ext_resource type="Script" uid="uid://evdact12hmik" path="res://scripts/resources/talent_rank.gd" id="rank"]
+[ext_resource type="Script" uid="uid://bq2fx6c5wnwsg" path="res://scripts/resources/talent.gd" id="talent"]
+
+[sub_resource type="Resource" id="rank1"]
+script = ExtResource("rank")
+footwork_rank = 1
+
+[sub_resource type="Resource" id="rank2"]
+script = ExtResource("rank")
+footwork_rank = 2
+
+[sub_resource type="Resource" id="rank3"]
+script = ExtResource("rank")
+footwork_rank = 3
+
+[sub_resource type="Resource" id="rank4"]
+script = ExtResource("rank")
+footwork_rank = 4
+
+[sub_resource type="Resource" id="rank5"]
+script = ExtResource("rank")
+footwork_rank = 5
+
+[resource]
+script = ExtResource("talent")
+id = "talent.bladedancer.fancy_footwork"
+display_name = "Fancy Footwork"
+max_ranks = 5
+required_tree_points = 5
+ranks = Array[ExtResource("rank")]([SubResource("rank1"), SubResource("rank2"), SubResource("rank3"), SubResource("rank4"), SubResource("rank5")])

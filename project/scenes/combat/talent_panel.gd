@@ -41,6 +41,7 @@ const DEPENDENCY_PULSE_COLOR := UIColors.TALENT_DEPENDENCY_PULSE
 ## `class_name`, and this must accept either object interchangeably.
 var state = BuildState
 
+var _ranked_view: Control
 var _talent_box: VBoxContainer
 var _talent_buttons: Dictionary = {}
 var _talent_pulse_tweens: Dictionary = {}
@@ -100,6 +101,16 @@ func refresh_panel() -> void:
 
 
 func _refresh() -> void:
+	if state.ranked_build != null:
+		if not is_instance_valid(_ranked_view):
+			for child in _talent_box.get_children():
+				_talent_box.remove_child(child)
+				child.queue_free()
+			_ranked_view = preload("res://scripts/ui/ranked_talent_view.gd").new()
+			_ranked_view.state = state
+			_talent_box.add_child(_ranked_view)
+		return
+
 	_talent_buttons.clear()
 	_last_dependency_blocked_talent = null
 	_last_dependency_pulse_talents.clear()
@@ -220,6 +231,10 @@ func _populate_tree_column_content(tree: SubclassTree, section: VBoxContainer) -
 	intrinsic.add_theme_font_size_override("font_size", INTRINSIC_LABEL_FONT_SIZE)
 	section.add_child(intrinsic)
 
+	if state.ranked_build != null:
+		_populate_ranked_tree(tree, section)
+		return
+
 	var memo := {}
 	var tiers := {}
 	var max_tier := 0
@@ -334,21 +349,7 @@ func _build_secondary_tree_choices(parent: Container) -> void:
 
 
 func _secondary_tree_choices() -> Array[SubclassTree]:
-	var options: Array[SubclassTree] = []
-	if state.selected_class == null:
-		return options
-	for tree in state.selected_class.trees:
-		if state.selected_trees.has(tree):
-			continue
-		options.append(tree)
-	if options.size() <= SECONDARY_TREE_CHOICE_COUNT:
-		return options
-	var sampled: Array[SubclassTree] = []
-	var pool: Array[SubclassTree] = options.duplicate()
-	var rng := RunRng.rng_for_context(_secondary_tree_choice_seed(), SECONDARY_TREE_RNG_CONTEXT, _secondary_tree_choice_parts())
-	while sampled.size() < SECONDARY_TREE_CHOICE_COUNT and not pool.is_empty():
-		sampled.append(pool.pop_at(rng.randi_range(0, pool.size() - 1)))
-	return sampled
+	return state.secondary_subclass_choices()
 
 
 func _secondary_tree_choice_seed() -> int:
@@ -435,6 +436,8 @@ func _build_node(talent: Talent) -> Button:
 	node_row.add_theme_constant_override("separation", 8)
 
 	node_row.add_child(TalentCircles.new(talent.cost, selected))
+	if talent.icon != null:
+		node_row.add_child(CardStyle.make_pixel_icon(talent.icon, Vector2(32, 32)))
 
 	var name_label := Label.new()
 	name_label.text = talent.display_name
@@ -451,7 +454,8 @@ func _build_node(talent: Talent) -> Button:
 	detail_label.add_theme_font_size_override("font_size", NODE_DETAIL_FONT_SIZE)
 	node_col.add_child(detail_label)
 
-	var button := Button.new()
+	var button := IconTooltipButton.new()
+	button.tooltip_icon = talent.icon
 	button.set_meta("talent_id", talent.id)
 	button.set_meta("dependency_protected", dependency_protected)
 	button.tooltip_text = _talent_tooltip(talent, lock_reason)
@@ -708,3 +712,55 @@ func _trigger_description(trigger: TriggeredSkillEffect) -> String:
 	for source_id in trigger.source_skill_ids:
 		source_names.append(_skill_name_for_id(source_id))
 	return "%s: %s" % [" & ".join(source_names), chance_text]
+
+
+func _populate_ranked_tree(tree: SubclassTree, section: VBoxContainer) -> void:
+	var explanation := Label.new()
+	explanation.text = "Invested: %d — each rank costs one point" % state.ranked_build.tree_points(tree)
+	section.add_child(explanation)
+	var feedback := Label.new()
+	feedback.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	feedback.text = state.last_build_error
+	feedback.hide()
+	section.add_child(feedback)
+	for talent in tree.talents:
+		var row := HBoxContainer.new()
+		section.add_child(row)
+		var rank: int = state.ranked_build.rank_of(talent.id)
+		if talent.icon != null:
+			row.add_child(CardStyle.make_pixel_icon(talent.icon, Vector2(32, 32)))
+		var label := Label.new()
+		label.text = "%s  %d/%d (requires %d tree points)" % [talent.display_name, rank, talent.max_ranks, talent.required_tree_points]
+		label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		row.add_child(label)
+		var add := Button.new()
+		add.text = "+"
+		add.disabled = rank >= talent.max_ranks
+		add.pressed.connect(func():
+			if not state.select_talent(talent):
+				feedback.text = state.last_build_error
+		)
+		row.add_child(add)
+		var refund := Button.new()
+		refund.text = "−"
+		refund.disabled = rank == 0
+		refund.pressed.connect(func():
+			if not state.deselect_talent(talent):
+				feedback.text = state.last_build_error
+		)
+		row.add_child(refund)
+		var detail := Label.new()
+		detail.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		var lines: PackedStringArray = []
+		if rank > 0:
+			for modifier in talent.ranks[rank - 1].stat_modifiers:
+				lines.append(StatModifierFormatter.format(modifier))
+		detail.text = ", ".join(lines)
+		section.add_child(detail)
+	var reset := Button.new()
+	reset.text = "Refund all talent ranks"
+	reset.pressed.connect(func():
+		if not state.refund_all_talents():
+			feedback.text = state.last_build_error
+	)
+	section.add_child(reset)

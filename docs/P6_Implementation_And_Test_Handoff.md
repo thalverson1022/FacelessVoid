@@ -1,7 +1,34 @@
 # P6 Implementation And Test Handoff
 
+**2026-10-17 — M7 Complete; T1–T11 Complete under D053, final presentation accepted D052.** [Final M7 closeout and M8 handoff](P6M7_T11_Closeout_And_M8_Handoff.md) records 27 passing current suites, three inherited legacy test exceptions, final integrated/footer/icon renders, current real-Fight autosave proof, one optional-footer guard and the source/repository checkpoint. M8 integrated playtest/refinement is next; M8/M9 Not started. Accepted capability/human-coverage limits, intentional counters and separate Legendary-remake ownership remain. Current navigation: [onboarding](P6_Project_Onboarding_Context.md), [M7 tracker](P6M7_Icons_And_Player_Feedback_Completion_Tracker.md). Earlier dated handoffs below remain historical.
+
+**2026-10-08 — M6 Complete (T1–T11).** Final retained-baseline verification passes 95 distinct suites, four rendered executions and ten current static checks. Gameplay code, scenes and data are unchanged. T10 acceptance remains D015: hands-on balance review accompanies M7 icon/UI feedback; Legendary refinement belongs to the separate next-phase remake. No experimental Bandit curve or rejected T6 nerf is adopted. See [T11 closeout and M7 handoff](P6M6_T11_Closeout_And_M7_Handoff.md). Earlier dated entries describe historical states.
+
+Current release: Adventure `p6.adventure.1`; Practice/Test Mode `p6.playable.shadow.1`. Use the T11 handoff for reproduction commands and accepted values. The M2–M5 status sections below are historical.
+
+Current combat rules: [Combat Mechanics Reference](Combat_Mechanics_Reference.md). This living reference consolidates accepted rules and interaction exceptions; task handoffs retain historical decisions and validation evidence. Update the reference alongside every accepted mechanics change.
+
+M3 closeout: [M3 closeout and M4 handoff](P6M3_T11_Closeout_And_M4_Handoff.md). All 66 regression scripts pass; protected files unchanged. M4 playable integration and UI validation is next.
 Date: 2026-09-16
 Source baseline: Project Enigma audited Phase 5, commit `d0e025ae9ff6b86aa389582443be6382547cb4cc` on `main` (integrated 2026-09-21; original closeout `91c1f2fdfaae7b48aa1e193adfb910956b1d6574`). See `docs/P6_Audited_Baseline_Integration.md`.
+
+## Historical status addendum (2026-09-24)
+
+M2 T1–T9 are Complete for foundation scope. Start with the
+[T9 closeout and M3 handoff](P6M2_T9_Closeout_And_M3_Handoff.md) and its repository checkpoint for current
+APIs and foundation validation. For subsequent progress, use the
+[M3 tracker](P6M3_Shared_Combat_Mechanics_Tracker.md): T1–T11 are Complete for shared-mechanics scope. T4 closed under D023
+with 26 passing regression scripts and final boundary coverage. T8 core Bladedancer
+validation and M4 handoff is complete, with 35 passing regression scripts and
+final gear coverage. T9 Poison timing and consumption, T10 gold/mixed validation and T11 closeout are Complete. M4 is next.
+The sections below describe the inherited
+Phase 5 baseline, not the current completion status.
+
+Version-2 persistence and full incompatible-save resets supersede earlier migration
+assumptions. The ranked model and Balance Lab adapter are implemented; the playable
+registry remains p6.compat.1. Full redesigned p6.1 content is gated on M3/M5
+mechanics and M4 playable validation. Use the isolated foundation runner documented
+in T8/T9 for current checks; preserve Enigma and its saves.
 
 ## Purpose
 
@@ -90,6 +117,11 @@ Tools and reports:
 - `tools/p5m12/run_regression.ps1`
 
 ## Recommended Work Order
+
+Use the [Phase 6 milestone tracker](P6_Milestone_Tracker.md) for the current
+nine-milestone sequence, status, and decision log. The guidance below supports
+that roadmap; it does not replace its milestone boundaries. Required enemy
+rebalance and expanded UI/icon work are part of the agreed Phase 6 scope.
 
 1. Design first.
 

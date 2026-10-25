@@ -1,5 +1,6 @@
 class_name CombatPopupLayer
 extends Control
+const PopupLayout = preload("res://scripts/ui/combat_popup_layout.gd")
 ## Comic-book skill-popup subsystem: spawns, tweens, and retires the floating
 ## damage/crit/poison-tick/proc text over the combat stage. Extracted from
 ## combat_screen.gd's inline playback/VFX layer
@@ -24,6 +25,10 @@ extends Control
 
 enum Kind { NORMAL, CRIT, POISON_TICK, PROC }
 
+const RETRIGGER_OPACITY := 0.65
+const RETRIGGER_LIFETIME_SEC := 0.24
+const RETRIGGER_RISE_PX := 18.0
+
 
 class CritCrossOutOverlay:
 	extends Control
@@ -47,7 +52,7 @@ const POPUP_DURATION_SEC := 1.35
 ## MedievalSharp-Regular.ttf here if it lands better in real play).
 const POPUP_FONT := preload("res://assets/fonts/PirataOne-Regular.ttf")
 ## How far a popup floats upward over its lifetime.
-const POPUP_RISE_PX := 68.0
+const POPUP_RISE_PX := 24.0
 ## Gentle lift duration; avoids damage text feeling launched from the target.
 const POPUP_RISE_SEC := 1.05
 ## Poison ticks drift more slowly so they read as damage-over-time.
@@ -104,6 +109,7 @@ var _active_tick_count := 0
 
 
 func _ready() -> void:
+	z_index = 35 # Above stage actors/ghosts; bounded lanes stay below HUD values.
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 
@@ -115,6 +121,7 @@ func set_combat_stage(stage) -> void:
 
 ## Resets popup bookkeeping for a fresh fight.
 func reset_for_new_fight() -> void:
+	clear_retrigger_popups()
 	_active_count = 0
 	_active_tick_count = 0
 	_generation += 1
@@ -138,13 +145,23 @@ func skip_generation() -> void:
 	_generation += 1
 
 
-func spawn(text: String, kind: int) -> void:
+## Clear visible and delayed feedback when reduced motion is enabled.
+func clear_transient_effects() -> void:
+	skip_generation()
+	_active_count = 0
+	_active_tick_count = 0
+	for popup in get_children():
+		popup.hide()
+		popup.queue_free()
+
+
+func spawn(text: String, kind: int, color_override: Color = Color.TRANSPARENT, static_motion: bool = false, size_override: int = 0) -> Label:
 	if skip_active:
-		return
-	if _active_count >= POPUP_MAX_ACTIVE:
-		return
-	if kind == Kind.POISON_TICK and _active_tick_count >= POPUP_MAX_TICK_ACTIVE:
-		return
+		return null
+	if _visible_popup_count() >= POPUP_MAX_ACTIVE:
+		return null
+	if kind == Kind.POISON_TICK and _visible_popup_count(true) >= POPUP_MAX_TICK_ACTIVE:
+		return null
 	var label := Label.new()
 	label.text = text
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -161,12 +178,17 @@ func spawn(text: String, kind: int) -> void:
 		Kind.PROC:
 			font_size = POPUP_PROC_FONT_SIZE
 			color = POPUP_PROC_COLOR
+	if color_override.a > 0:
+		color = color_override
+		label.name = "CategoryFloatingText"
+	if size_override > 0: font_size = size_override
 	label.add_theme_font_size_override("font_size", font_size)
 	label.add_theme_color_override("font_color", color)
 	add_child(label)
 	label.reset_size()
 	label.pivot_offset = label.size * 0.5
-	var spawn_position := _spawn_position(kind, label.size)
+	var fit := PopupLayout.place(label, self, _combat_stage, kind == Kind.POISON_TICK)
+	var spawn_position := label.position
 	var spawn_x := spawn_position.x
 	var spawn_y := spawn_position.y
 	label.position = Vector2(spawn_x, spawn_y)
@@ -175,22 +197,92 @@ func spawn(text: String, kind: int) -> void:
 		_active_tick_count += 1
 	var tween := label.create_tween()
 	tween.set_parallel(true)
-	if kind == Kind.CRIT:
-		label.scale = Vector2.ONE * POPUP_CRIT_PUNCH_SCALE
-		tween.tween_property(label, "scale", Vector2.ONE, POPUP_CRIT_PUNCH_SEC)
+	if static_motion:
+		label.scale = Vector2.ONE * fit
+	elif kind == Kind.CRIT:
+		label.scale = Vector2.ONE * POPUP_CRIT_PUNCH_SCALE * fit
+		tween.tween_property(label, "scale", Vector2.ONE * fit, POPUP_CRIT_PUNCH_SEC)
 	else:
-		label.scale = Vector2.ONE * 0.92
-		tween.tween_property(label, "scale", Vector2.ONE, 0.14).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		label.scale = Vector2.ONE * 0.92 * fit
+		tween.tween_property(label, "scale", Vector2.ONE * fit, 0.14).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	var rise_sec := POPUP_TICK_RISE_SEC if kind == Kind.POISON_TICK else POPUP_RISE_SEC
-	tween.tween_property(label, "position:y", spawn_y - POPUP_RISE_PX, rise_sec).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	if not static_motion:
+		tween.tween_property(label, "position:y", spawn_y - POPUP_RISE_PX, rise_sec).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	tween.tween_property(label, "modulate:a", 0.0, POPUP_DURATION_SEC - POPUP_FADE_DELAY_SEC).set_delay(POPUP_FADE_DELAY_SEC)
 	tween.finished.connect(_on_popup_finished.bind(label, kind))
+	return label
+
+
+## One subordinate label per visible echo; never expands triggered proc names.
+## The actual resolved damage is shown even when a critical bonus was negated.
+func clear_retrigger_popups() -> void:
+	for popup in get_children():
+		if popup.has_meta("retrigger_hit"):
+			popup.hide()
+			popup.queue_free()
+
+
+func spawn_retrigger(cast: CombatResolver.CastEvent, chain_index: int, color_override: Color = Color.TRANSPARENT) -> Label:
+	if skip_active or cast.cooldown_blocked or cast.resource_unavailable:
+		return null
+	var skill_name := cast.skill.display_name if cast.skill != null else "Attack"
+	var text := "%s -%.0f" % [skill_name, cast.physical_damage]
+	if preload("res://scripts/ui/combat_effect_text.gd").is_health_removal(cast):
+		text = "%s removes %.0f health" % [skill_name, cast.health_removed]
+	var font_size := POPUP_FONT_SIZE
+	var color := POPUP_NORMAL_COLOR
+	if cast.was_interrupted:
+		text = "%s %s" % [skill_name, "skipped" if cast.interrupt_skipped else "interrupted"]
+	elif cast.was_dodged:
+		text = "%s 0.0 dodged" % skill_name
+	elif cast.is_crit:
+		text += "!"
+		font_size = POPUP_CRIT_FONT_SIZE
+		color = POPUP_CRIT_COLOR
+	elif cast.min_cast_time_proc_applied:
+		text += " PROC!"
+		font_size = POPUP_PROC_FONT_SIZE
+		color = POPUP_PROC_COLOR
+	if cast.gold_stolen > 0: text += " +%d gold" % cast.gold_stolen
+	if color_override.a > 0 and cast.crit_negation_damage_prevented <= 0 and cast.gold_stolen <= 0:
+		color = color_override
+	var label := _make_popup_label(text, roundi(font_size * 0.75), color)
+	label.name = "RetriggerHitText"
+	label.set_meta("retrigger_hit", true)
+	var live_echoes: Array[Node] = []
+	for popup in self.get_children():
+		if popup.has_meta("retrigger_hit") and not popup.is_queued_for_deletion(): live_echoes.append(popup)
+	# Long health-removal labels occupy one centered lane.
+	for popup in get_children():
+		if popup.has_meta("health_removal_initial") and preload("res://scripts/ui/combat_effect_text.gd").is_health_removal(cast): popup.hide()
+	var wide := preload("res://scripts/ui/combat_effect_text.gd").is_health_removal(cast) and label.get_combined_minimum_size().x > self.size.x * 0.45
+	while live_echoes.size() >= (1 if wide else 2):
+		var oldest = live_echoes.pop_front()
+		oldest.hide()
+		oldest.queue_free()
+	label.add_theme_constant_override("outline_size", 2)
+	add_child(label)
+	label.reset_size()
+	var fit := minf(1.0, maxf(1.0, self.size.x - 16.0) / maxf(1.0, label.size.x))
+	fit = fit if preload("res://scripts/ui/combat_effect_text.gd").is_health_removal(cast) else 1.0
+	label.scale = Vector2.ONE * fit
+	var anchor := _popup_area_size() * Vector2(0.65, 0.5)
+	if _combat_stage != null:
+		anchor = get_global_transform().affine_inverse() * _combat_stage.enemy_popup_global_position()
+	# Two fixed heights keep adjacent high-speed contacts distinct, without jitter.
+	label.position = Vector2(clampf(anchor.x - label.size.x * fit * 0.5, 8.0, maxf(8.0, size.x - label.size.x * fit - 8.0)), maxf(POPUP_TOP_MARGIN_PX, anchor.y - label.size.y - 60.0 - (chain_index % 2) * 36.0))
+	label.modulate.a = RETRIGGER_OPACITY
+	var tween := label.create_tween().set_parallel(true)
+	tween.tween_property(label, "position:y", label.position.y - RETRIGGER_RISE_PX, RETRIGGER_LIFETIME_SEC)
+	tween.tween_property(label, "modulate:a", 0.0, 0.17).set_delay(0.07)
+	tween.finished.connect(label.queue_free)
+	return label
 
 
 func spawn_gold_hit(skill_name: String, damage: float, gold_amount: int, is_crit: bool = true) -> void:
 	if skip_active:
 		return
-	if _active_count >= POPUP_MAX_ACTIVE:
+	if _visible_popup_count() >= POPUP_MAX_ACTIVE:
 		return
 	var font_size := POPUP_CRIT_FONT_SIZE if is_crit else POPUP_FONT_SIZE
 	var text_color := POPUP_CRIT_COLOR if is_crit else POPUP_NORMAL_COLOR
@@ -218,16 +310,16 @@ func spawn_gold_hit(skill_name: String, damage: float, gold_amount: int, is_crit
 
 	root.reset_size()
 	root.pivot_offset = root.size * 0.5
-	root.position = _spawn_position(Kind.CRIT if is_crit else Kind.NORMAL, root.size)
+	var fit := PopupLayout.place(root, self, _combat_stage, false)
 	_active_count += 1
-	root.scale = Vector2.ONE * (POPUP_CRIT_PUNCH_SCALE if is_crit else 0.92)
+	root.scale = Vector2.ONE * (POPUP_CRIT_PUNCH_SCALE if is_crit else 0.92) * fit
 
 	var tween := root.create_tween()
 	tween.set_parallel(true)
 	if is_crit:
-		tween.tween_property(root, "scale", Vector2.ONE, POPUP_CRIT_PUNCH_SEC)
+		tween.tween_property(root, "scale", Vector2.ONE * fit, POPUP_CRIT_PUNCH_SEC)
 	else:
-		tween.tween_property(root, "scale", Vector2.ONE, 0.14).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		tween.tween_property(root, "scale", Vector2.ONE * fit, 0.14).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	tween.tween_property(root, "position:y", root.position.y - POPUP_RISE_PX, POPUP_RISE_SEC).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	tween.tween_property(root, "modulate:a", 0.0, POPUP_DURATION_SEC - POPUP_FADE_DELAY_SEC).set_delay(POPUP_FADE_DELAY_SEC)
 	tween.finished.connect(_on_gold_hit_popup_finished.bind(root))
@@ -236,7 +328,7 @@ func spawn_gold_hit(skill_name: String, damage: float, gold_amount: int, is_crit
 func spawn_crit_negated(skill_name: String, reduced_damage: float, prevented_damage: float) -> void:
 	if skip_active:
 		return
-	if _active_count >= POPUP_MAX_ACTIVE:
+	if _visible_popup_count() >= POPUP_MAX_ACTIVE:
 		return
 	var original_damage := reduced_damage + maxf(prevented_damage, 0.0)
 	var root := Control.new()
@@ -268,13 +360,13 @@ func spawn_crit_negated(skill_name: String, reduced_damage: float, prevented_dam
 
 	root.size = Vector2(skill_label.size.x + 8.0 + original.size.x + POPUP_NEGATED_GAP_PX + actual.size.x, maxf(original.size.y, actual.size.y))
 	root.pivot_offset = root.size * 0.5
-	root.position = _spawn_position(Kind.CRIT, root.size)
-	root.scale = Vector2.ONE * POPUP_CRIT_PUNCH_SCALE
+	var fit := PopupLayout.place(root, self, _combat_stage, false)
+	root.scale = Vector2.ONE * POPUP_CRIT_PUNCH_SCALE * fit
 	_active_count += 1
 
 	var tween := root.create_tween()
 	tween.set_parallel(true)
-	tween.tween_property(root, "scale", Vector2.ONE, POPUP_CRIT_PUNCH_SEC)
+	tween.tween_property(root, "scale", Vector2.ONE * fit, POPUP_CRIT_PUNCH_SEC)
 	tween.tween_property(root, "position:y", root.position.y - POPUP_RISE_PX, POPUP_RISE_SEC).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	tween.tween_property(root, "modulate:a", 0.0, POPUP_DURATION_SEC - POPUP_FADE_DELAY_SEC).set_delay(POPUP_FADE_DELAY_SEC)
 	tween.finished.connect(_on_crit_negation_popup_finished.bind(root))
@@ -330,3 +422,11 @@ func _on_gold_hit_popup_finished(root: Control) -> void:
 
 func _poison_tick_font_size() -> int:
 	return POPUP_WYVERN_TICK_FONT_SIZE if wyvern_tick_font_active else POPUP_TICK_FONT_SIZE
+
+
+func _visible_popup_count(ticks_only: bool = false) -> int:
+	var count := 0
+	for popup in get_children():
+		if popup is Control and popup.visible and not popup.is_queued_for_deletion() and not popup.has_meta("retrigger_hit"):
+			if not ticks_only or popup.get_meta("cue_lane",-1) == 2: count += 1
+	return count

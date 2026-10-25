@@ -36,6 +36,11 @@ static func from_dictionary(source: Dictionary, supported_override: Variant = nu
 	def.short_name = String(data.get("short_name", def.name))
 	def.description = String(data.get("description", ""))
 	def.icon_path = String(data.get("icon_path", data.get("icon", "")))
+	var icon_key: String = {"dodge_chance": "dodge", "cleanse_threshold": "cleanse",
+		"stun_duration_ms": "stun", "interrupt_skip_count": "interrupt"}.get(def.id, def.id)
+	var assigned_icon := GameIcons.icon_for("defense." + icon_key)
+	if assigned_icon != null:
+		def.icon_path = assigned_icon.resource_path
 	def.tags = RuntimeMonsterDataNormalizer.string_array(data.get("tags", []))
 	def.matchup = RuntimeMonsterDataNormalizer.preserve_dictionary(data.get("matchup", {}))
 	def.value_label = String(data.get("value_label", ""))

@@ -1,26 +1,15 @@
 class_name SaveSystem
 extends RefCounted
-## Converts BuildState run state to/from a JSON save file, per
-## docs/Phase_2_R6_Save_Load_Persistence.md's P2:R6:T1/T2 scope and format
-## decisions.
-##
-## Authored resources (class/trees/talents/contract/route node, and any
-## GearItem loaded from a .tres file) are saved as resource_path and
-## restored via load(). Rotation skills are runtime clones with no
-## resource_path, so they're saved by stable Skill.id and restored by
-## matching against BuildState.unlocked_skills() after class/trees/talents
-## are committed. Runtime-generated GearItem instances (empty resource_path,
-## produced by GearGenerator) are saved as plain value data.
-##
-## load_run() resolves every field into locals first and only writes them to
-## `state` if the whole save is structurally valid, so a corrupt/incompatible
-## save file leaves the live state untouched. Individual unresolved gear
-## references (e.g. a deleted authored .tres) degrade gracefully by being
-## dropped/cleared rather than failing the whole load, since they only cost
-## the player one item, not the ability to resume at all.
+## Version-4 Adventure envelope; versions 2/3/4 share the build codec.
+## Current Adventure rejects old saves without mutation; explicit compatibility
+## registries retain their version-1 reset policy. Current saves
+## decode on a detached candidate; malformed/future data is never overwritten.
+## Gear and generated-contract value encodings retain their inherited policies.
 
-const SAVE_PATH := "user://save.json"
-const SAVE_VERSION := 1
+const LEGACY_SAVE_PATH := "user://save.json"
+const SAVE_PATH := "user://adventure_p6_m6.json"
+const SAVE_VERSION := 4
+const T3_STAT_IDS := ["cooldown_reduction", "increased_buff_duration", "crit_applies_penetration", "crit_applies_potency", "inventory_economy_stats"]
 const GENERATED_CONTRACT_SAVE_SCHEMA_VERSION := 1
 const ContractRouteGeneratorScript := preload("res://scripts/systems/contract_route_generator/contract_route_generator.gd")
 const RuntimeMonsterGeneratorScript := preload("res://scripts/systems/runtime_monster_generator/runtime_monster_generator.gd")
@@ -28,6 +17,8 @@ const RuntimeArchetypeLibraryLoaderScript := preload("res://scripts/systems/runt
 const StatCatalog := preload("res://scripts/systems/stat_catalog.gd")
 
 static var save_path := SAVE_PATH
+## Test Mode is memory-only. Guard every Adventure persistence entry point.
+static var session_only := false
 static var last_generated_load_notices := PackedStringArray()
 static var last_gear_load_notices := PackedStringArray()
 
@@ -37,6 +28,8 @@ static func has_save() -> bool:
 
 
 static func delete_save() -> void:
+	if session_only:
+		return
 	if has_save():
 		if save_path.begins_with("user://"):
 			var user_dir := DirAccess.open("user://")
@@ -46,52 +39,259 @@ static func delete_save() -> void:
 			DirAccess.remove_absolute(ProjectSettings.globalize_path(save_path))
 
 
-## Writes to a temp file first and swaps it into place afterward, so a
-## crash/power-loss mid-write leaves the previous good save intact instead of
-## truncating it in place (a direct WRITE-mode open truncates immediately).
-static func save_run(state) -> bool:
-	var tmp_path := save_path + ".tmp"
-	var file := FileAccess.open(tmp_path, FileAccess.WRITE)
+## Normal temp-file replacement. This does not claim power-loss durability.
+static var registry_override: BuildContentRegistry = null
+static var last_load_result: Dictionary = {}
+static var last_error := ""
+
+static func registry() -> BuildContentRegistry:
+	return registry_override if registry_override != null else BuildContentRegistry.adventure()
+
+static func write_json(path: String, data: Dictionary) -> bool:
+	var file := FileAccess.open(path + ".tmp", FileAccess.WRITE)
 	if file == null:
 		return false
-	file.store_string(JSON.stringify(_serialize(state), "\t"))
+	file.store_string(JSON.stringify(data, "\t", true, true))
+	file.flush()
+	var result := file.get_error()
 	file.close()
-	var dir := DirAccess.open(tmp_path.get_base_dir())
+	if result != OK:
+		return false
+	var dir := DirAccess.open(path.get_base_dir())
 	if dir == null:
 		return false
-	var tmp_name := tmp_path.get_file()
-	var target_name := save_path.get_file()
-	if dir.file_exists(target_name):
-		dir.remove(target_name)
-	return dir.rename(tmp_name, target_name) == OK
-
-
-## Returns true on a successful load, having written every field to `state`.
-## Returns false and leaves `state` untouched on any missing/corrupt/
-## incompatible save -- callers should treat that as "start a new run".
-static func load_run(state) -> bool:
-	if not has_save():
+	if dir.file_exists(path.get_file()) and dir.remove(path.get_file()) != OK:
 		return false
+	return dir.rename(path.get_file() + ".tmp", path.get_file()) == OK
+
+static func save_run(state) -> bool:
+	last_error = ""
+	if session_only:
+		return true
+	var build := BuildSaveCodec.encode(state, registry())
+	var decoded := BuildSaveCodec.decode(build, registry())
+	if decoded.error != "":
+		last_error = decoded.error
+		return false
+	var data := _serialize(state)
+	if not _valid_run_shapes(data):
+		last_error = "Invalid Adventure run data."
+		return false
+	last_error = gear_payload_error(data, true)
+	if last_error != "":
+		return false
+	var stats: PlayerStats = state.current_player_stats()
+	if stats.derivation_error != "":
+		last_error = stats.derivation_error
+		return false
+	if not write_json(save_path, data):
+		last_error = "Could not write Adventure save."
+		return false
+	return true
+
+## Compatibility boolean; UI uses the detailed outcome to distinguish reset/failure.
+static func load_run(state) -> bool:
+	return load_run_result(state).status == "loaded"
+
+static func _outcome(status: String, message: String = "", persisted: bool = false) -> Dictionary:
+	last_load_result = {"status": status, "message": message, "persisted": persisted}
+	return last_load_result
+
+static func load_run_result(state) -> Dictionary:
+	if session_only:
+		return _outcome("failed", "Test Mode does not load Adventure saves.")
+	if not has_save():
+		return _outcome("missing")
 	var file := FileAccess.open(save_path, FileAccess.READ)
 	if file == null:
-		return false
-	var text := file.get_as_text()
+		return _outcome("failed", "Could not read Adventure save.")
+	var parsed := StrictSaveJson.read(file.get_as_text())
 	file.close()
-	var parsed = JSON.parse_string(text)
-	if typeof(parsed) != TYPE_DICTIONARY:
-		return false
-	if int(parsed.get("save_version", -1)) != SAVE_VERSION:
-		return false
-	return _deserialize(parsed, state)
+	if parsed.error != "" or typeof(parsed.data) != TYPE_DICTIONARY:
+		return _outcome("failed", "Invalid save JSON: " + parsed.error)
+	var data: Dictionary = parsed.data
+	if typeof(data.get("save_version")) != TYPE_INT:
+		return _outcome("failed", "Invalid save version.")
+	var old_revision := ""
+	if typeof(data.get("build")) == TYPE_DICTIONARY and typeof(data.build.get("content_revision")) == TYPE_STRING:
+		old_revision = data.build.content_revision
+	if data.save_version == 1 and registry().revision == BuildContentRegistry.ADVENTURE_REVISION:
+		return _outcome("failed", "This save uses the previous Adventure rules. It has been preserved; start a new Adventure to use the redesigned trees.")
+	# Primitive validation also precedes the historical incompatible-reset path:
+	# malformed supported envelopes must never cause a reset or overwrite. Old
+	# build identities are deliberately not resolved during this preflight.
+	if data.save_version in [2, 3, SAVE_VERSION]:
+		if not _valid_run_shapes(data) or not _valid_build_shape(data.get("build")):
+			return _outcome("failed", "Invalid Adventure run data.")
+		var preflight_error := gear_payload_error(data, data.save_version >= 3)
+		if preflight_error != "":
+			return _outcome("failed", preflight_error)
+	if data.save_version == 1 or (data.save_version in [2, 3, SAVE_VERSION] and registry().incompatible.has(old_revision)):
+		state.reset()
+		state.set_adventure_seed(state.DEFAULT_ADVENTURE_SEED)
+		var written := save_run(state)
+		return _outcome("reset-incompatible", "The skill-tree redesign invalidated the old save. A fresh run has started." + ("" if written else " The new save could not be written."), written)
+	if data.save_version not in [2, 3, SAVE_VERSION]:
+		return _outcome("failed", "Unsupported future save version.")
+	for obsolete_field in ["selected_class", "selected_trees", "selected_talents", "rotation_skill_ids", "earned_talent_points"]:
+		if data.has(obsolete_field):
+			return _outcome("failed", "Duplicate legacy build fields in version-2 save.")
+	var decoded := BuildSaveCodec.decode(data.get("build"), registry())
+	if decoded.error != "":
+		return _outcome("failed", decoded.error)
+	# Decode all inherited gear/route data on a detached candidate. No failed load
+	# can partially change live state, its signals or disk data.
+	var candidate = state.get_script().new()
+	var legacy := data.duplicate(true)
+	legacy["selected_class"] = null
+	legacy["selected_trees"] = []
+	legacy["selected_talents"] = []
+	legacy["rotation_skill_ids"] = []
+	legacy["earned_talent_points"] = decoded.budget
+	if not _valid_run_shapes(legacy) or not _deserialize(legacy, candidate):
+		candidate.free()
+		return _outcome("failed", "Invalid Adventure run data.")
+	if decoded.trees.size() > 1 and candidate.active_contract == null and candidate.completed_contract_count == 0:
+		candidate.free()
+		return _outcome("failed", "Secondary tree is unavailable at this Adventure checkpoint.")
+	BuildSaveCodec.apply(decoded, candidate)
+	var candidate_stats: PlayerStats = candidate.current_player_stats()
+	if candidate_stats.derivation_error != "":
+		candidate.free()
+		return _outcome("failed", candidate_stats.derivation_error)
+	if not candidate.secondary_subclass_offer_ids.is_empty():
+		var seen: Array[String] = []
+		for id in candidate.secondary_subclass_offer_ids:
+			if decoded.trees.is_empty() or seen.has(id) or not registry().trees.has(id) or id == decoded.trees[0].id:
+				candidate.free()
+				return _outcome("failed", "Invalid secondary subclass offers.")
+			seen.append(id)
+		if seen.size() != 2:
+			candidate.free()
+			return _outcome("failed", "Invalid secondary subclass offers.")
+	copy_state(candidate, state)
+	candidate.free()
+	state.build_changed.emit()
+	state.run_state_changed.emit()
+	state.lock_changed.emit()
+	return _outcome("loaded")
 
+static func copy_state(candidate, state) -> void:
+	for property in candidate.get_script().get_script_property_list():
+		if property.usage & PROPERTY_USAGE_SCRIPT_VARIABLE:
+			state.set(property.name, candidate.get(property.name))
+
+## The reset branch cannot resolve old IDs against today's registry. It can
+## still reject malformed codec primitives before replacing an old file.
+static func _valid_build_shape(value: Variant) -> bool:
+	if typeof(value) != TYPE_DICTIONARY:
+		return false
+	for field in ["build_schema_version", "content_revision", "allocation_mode", "class_id", "primary_tree_id", "secondary_tree_id", "earned_talent_points", "talent_ranks", "rotation_skill_ids"]:
+		if not value.has(field):
+			return false
+	for field in ["build_schema_version", "earned_talent_points"]:
+		if typeof(value[field]) != TYPE_INT:
+			return false
+	if value.build_schema_version != 1:
+		return false
+	for field in ["content_revision", "allocation_mode"]:
+		if typeof(value[field]) != TYPE_STRING:
+			return false
+	for field in ["class_id", "primary_tree_id", "secondary_tree_id"]:
+		if value[field] != null and typeof(value[field]) != TYPE_STRING:
+			return false
+	if typeof(value.talent_ranks) != TYPE_DICTIONARY or typeof(value.rotation_skill_ids) != TYPE_ARRAY:
+		return false
+	for id in value.talent_ranks:
+		if typeof(id) != TYPE_STRING or typeof(value.talent_ranks[id]) != TYPE_INT:
+			return false
+	for id in value.rotation_skill_ids:
+		if typeof(id) != TYPE_STRING:
+			return false
+	return true
+
+static func _valid_run_shapes(data: Dictionary) -> bool:
+	if data.has("mysterious_coin_unlocked") and typeof(data.mysterious_coin_unlocked) != TYPE_BOOL:
+		return false
+	if data.get("run_phase", 0) not in [0, 1, 2, 3, 4, 5] or data.get("run_outcome", 0) not in [0, 1, 2, 3, 4, 5, 6]:
+		return false
+	for field in ["inventory", "claimed_reward_encounter_indices", "shop_offers", "pending_reward_choices", "pending_contract_offers", "claimed_route_reward_ids", "run_encounter_history", "defeated_generated_boss_ids", "secondary_subclass_offer_ids"]:
+		if typeof(data.get(field, [])) != TYPE_ARRAY:
+			return false
+	# These are gear contexts even when an entry contains only a stable ID or
+	# resource path. Canonical fixed-resource lookup must not skip shape checks.
+	for field in ["inventory", "shop_offers", "pending_reward_choices"]:
+		for entry in data.get(field, []):
+			if typeof(entry) == TYPE_DICTIONARY and _gear_shape_error(entry) != "":
+				return false
+	for field in ["equipped_weapon", "equipped_helm", "equipped_armor", "equipped_trinket", "equipped_charm"]:
+		var entry: Variant = data.get(field)
+		if typeof(entry) == TYPE_DICTIONARY and _gear_shape_error(entry) != "":
+			return false
+	for id in data.get("secondary_subclass_offer_ids", []):
+		if typeof(id) != TYPE_STRING:
+			return false
+	for field in ["claimed_route_reward_ids", "defeated_generated_boss_ids"]:
+		for id in data.get(field, []):
+			if typeof(id) != TYPE_STRING:
+				return false
+	for index in data.get("claimed_reward_encounter_indices", []):
+		if typeof(index) != TYPE_INT or index < 0:
+			return false
+	for field in ["encounter_failure_counts", "encounter_retry_counts"]:
+		if typeof(data.get(field, {})) != TYPE_DICTIONARY:
+			return false
+		for count in data.get(field, {}).values():
+			if typeof(count) != TYPE_INT or count < 0:
+				return false
+	if typeof(data.get("highest_run_dps", 0.0)) not in [TYPE_INT, TYPE_FLOAT] or not is_finite(float(data.get("highest_run_dps", 0.0))):
+		return false
+	for field in ["active_contract", "current_route_node"]:
+		if data.get(field) != null and typeof(data[field]) != TYPE_STRING:
+			return false
+	for offer in data.get("pending_contract_offers", []):
+		if typeof(offer) != TYPE_DICTIONARY or typeof(offer.get("kind", "")) != TYPE_STRING:
+			return false
+		if offer.get("kind") == "authored" and typeof(offer.get("resource_path")) != TYPE_STRING:
+			return false
+	for row in data.get("run_encounter_history", []):
+		if typeof(row) != TYPE_DICTIONARY:
+			return false
+		for key in ["fight_number", "contract_count", "enemy_hp", "duration_ms"]:
+			if row.has(key) and typeof(row[key]) != TYPE_INT:
+				return false
+		for key in ["contract_name", "enemy_name", "enemy_role", "enemy_color"]:
+			if row.has(key) and typeof(row[key]) != TYPE_STRING:
+				return false
+		for key in ["total_damage", "player_dps", "required_dps", "dps_difference"]:
+			if row.has(key) and (typeof(row[key]) not in [TYPE_INT, TYPE_FLOAT] or not is_finite(float(row[key]))):
+				return false
+		if row.has("is_win") and typeof(row.is_win) != TYPE_BOOL:
+			return false
+	for field in ["adventure_seed", "gold", "completed_contract_count", "current_encounter_index", "run_phase", "run_outcome", "shop_round_index", "contract_offer_index", "shop_reroll_count", "shop_reroll_cost"]:
+		if typeof(data.get(field, 0)) != TYPE_INT or data.get(field, 0) < 0:
+			return false
+	for field in ["shop_unlocked", "shop_round_pending", "shop_reroll_used", "last_fight_won", "tavern_map_choice_made"]:
+		if typeof(data.get(field, false)) != TYPE_BOOL:
+			return false
+	return true
 
 static func _serialize(state) -> Dictionary:
+	var data := _serialize_run_fields(state)
+	for field in ["selected_class", "selected_trees", "selected_talents", "rotation_skill_ids", "earned_talent_points"]:
+		data.erase(field)
+	data["build"] = BuildSaveCodec.encode(state, registry())
+	return data
+
+static func _serialize_run_fields(state) -> Dictionary:
+	state.secondary_subclass_choices()
 	var active_generated_contract: bool = (
 		state.active_contract != null
 		and state.active_contract.has_generated_route_state()
 	)
 	return {
 		"save_version": SAVE_VERSION,
+		"mysterious_coin_unlocked": state.mysterious_coin_unlocked,
 		"selected_class": _resource_path_or_null(state.selected_class),
 		"selected_trees": _resource_paths(state.selected_trees),
 		"selected_talents": _resource_paths(state.selected_talents),
@@ -124,6 +324,7 @@ static func _serialize(state) -> Dictionary:
 		),
 		"claimed_route_reward_ids": state.claimed_route_reward_ids.duplicate(),
 		"completed_contract_count": state.completed_contract_count,
+		"secondary_subclass_offer_ids": state.secondary_subclass_offer_ids.duplicate(),
 		"highest_run_dps": state.highest_run_dps,
 		"run_encounter_history": _run_encounter_history_to_data(state.run_encounter_history),
 		"contract_offer_index": state.contract_offer_index,
@@ -148,6 +349,7 @@ static func _serialize(state) -> Dictionary:
 
 
 static func _deserialize(data: Dictionary, state) -> bool:
+	state.mysterious_coin_unlocked = data.get("mysterious_coin_unlocked", false)
 	last_generated_load_notices = PackedStringArray()
 	last_gear_load_notices = PackedStringArray()
 	var resolved_class: ClassDef = null
@@ -182,12 +384,12 @@ static func _deserialize(data: Dictionary, state) -> bool:
 	elif data.get("generated_active_contract") != null:
 		return false
 	elif data.get("active_contract") != null:
-		resolved_active_contract = _load_or_null(data.get("active_contract"))
+		resolved_active_contract = _load_or_null(data.get("active_contract")) as ContractDef
 		if resolved_active_contract == null:
 			return false
 
 	if resolved_route_node == null and data.get("current_route_node") != null:
-		resolved_route_node = _load_or_null(data.get("current_route_node"))
+		resolved_route_node = _load_or_null(data.get("current_route_node")) as ContractRouteNode
 		if resolved_route_node == null:
 			return false
 
@@ -195,7 +397,7 @@ static func _deserialize(data: Dictionary, state) -> bool:
 	if not bool(pending_contract_result.get("ok", false)):
 		return false
 	var resolved_pending_contract_offers: Array[ContractDef] = pending_contract_result.get("offers", [])
-	if resolved_active_contract != null and resolved_active_contract.has_generated_route_state():
+	if resolved_active_contract != null and resolved_active_contract.has_generated_route_state() and not resolved_pending_contract_offers.is_empty():
 		resolved_pending_contract_offers = _pending_contracts_with_active_instance(
 			resolved_pending_contract_offers,
 			resolved_active_contract
@@ -235,6 +437,7 @@ static func _deserialize(data: Dictionary, state) -> bool:
 		else _string_array(data.get("claimed_route_reward_ids", []))
 	)
 	state.completed_contract_count = int(data.get("completed_contract_count", 0))
+	state.secondary_subclass_offer_ids.assign(data.get("secondary_subclass_offer_ids", []))
 	state.highest_run_dps = maxf(0.0, float(data.get("highest_run_dps", 0.0)))
 	state.run_encounter_history = _run_encounter_history_from_data(data.get("run_encounter_history", []))
 	state.contract_offer_index = int(data.get("contract_offer_index", 0))
@@ -275,7 +478,7 @@ static func _gear_entry_to_data(item: GearItem) -> Variant:
 	var affixes := []
 	for modifier in item.affixes:
 		affixes.append({
-			"stat_id": StatCatalog.canonical_id_for_modifier(modifier),
+			"stat_id": StatCatalog.canonicalize_stat_id(modifier.stat_id) if modifier.stat_id.strip_edges() != "" else StatCatalog.canonical_id_for_modifier(modifier),
 			"stat": modifier.stat,
 			"category": modifier.category,
 			"operation": modifier.operation,
@@ -311,11 +514,103 @@ static func _gear_list_to_data(items: Array[GearItem]) -> Array:
 	return out
 
 
+## Envelope validation happens before decoding a detached candidate. Generation
+## eligibility is deliberately not a load filter: old rolls keep their values.
+static func gear_payload_error(payload: Variant, new_envelope: bool) -> String:
+	if typeof(payload) == TYPE_ARRAY:
+		for value in payload:
+			var error := gear_payload_error(value, new_envelope)
+			if error != "":
+				return error
+	elif typeof(payload) == TYPE_DICTIONARY:
+		if payload.has("resource_path") and typeof(payload.resource_path) != TYPE_STRING:
+			return "Invalid saved resource path."
+		if payload.has("affixes") or payload.has("source_kind") or payload.has("slot") or payload.has("tier"):
+			var shape_error := _gear_shape_error(payload)
+			if shape_error != "":
+				return shape_error
+		if payload.has("affixes"):
+			if typeof(payload.affixes) != TYPE_ARRAY:
+				return "Invalid saved gear affix list."
+			for raw in payload.affixes:
+				if typeof(raw) != TYPE_DICTIONARY:
+					if new_envelope:
+						return "Invalid saved modifier."
+					continue
+				for field in ["stat", "category", "operation"]:
+					if raw.has(field) and typeof(raw[field]) != TYPE_INT:
+						return "Invalid saved modifier integer: " + field
+				if raw.has("value") and (typeof(raw.value) not in [TYPE_FLOAT, TYPE_INT] or not is_finite(float(raw.value))):
+					return "Invalid saved modifier value."
+				if raw.has("is_drawback") and typeof(raw.is_drawback) != TYPE_BOOL:
+					return "Invalid saved modifier sign."
+				var identity := StatCatalog.canonicalize_stat_id(str(raw.get("stat_id", "")))
+				if not new_envelope and identity in T3_STAT_IDS:
+					return "New gear stats require the current save version."
+				if not new_envelope:
+					continue
+				if typeof(raw.get("stat_id", "")) != TYPE_STRING:
+					return "Invalid saved canonical stat ID."
+				if identity != "" and not StatCatalog.has_stat(identity):
+					return "Unknown saved canonical stat ID: " + identity
+				var legacy: Variant = raw.get("stat", 0)
+				if typeof(legacy) != TYPE_INT or (identity == "" and StatCatalog.legacy_stat_id(legacy) == ""):
+					return "Invalid legacy stat identity."
+				if typeof(raw.get("value")) not in [TYPE_FLOAT, TYPE_INT] or not is_finite(float(raw.value)):
+					return "Invalid saved modifier value."
+				if typeof(raw.get("operation", 0)) != TYPE_INT or raw.get("operation", 0) not in [StatModifier.OperationType.ADD, StatModifier.OperationType.MULTIPLY]:
+					return "Invalid saved modifier operation."
+				if typeof(raw.get("is_drawback", false)) != TYPE_BOOL:
+					return "Invalid saved modifier sign."
+				if typeof(raw.get("category", StatModifier.StatCategory.COMPATIBILITY)) != TYPE_INT or raw.get("category", StatModifier.StatCategory.COMPATIBILITY) not in StatModifier.StatCategory.values():
+					return "Invalid saved modifier category."
+				var modifier := StatModifier.new()
+				modifier.stat_id = identity
+				modifier.stat = legacy
+				modifier.category = raw.get("category", StatModifier.StatCategory.COMPATIBILITY)
+				modifier.operation = raw.get("operation", 0)
+				modifier.value = float(raw.value)
+				modifier.is_drawback = raw.get("is_drawback", false)
+				var domain_error := StatCatalog.modifier_validation_error(modifier)
+				if domain_error != "":
+					return domain_error
+		for key in payload:
+			if key == "affixes":
+				continue
+			var error := gear_payload_error(payload[key], new_envelope)
+			if error != "":
+				return error
+	return ""
+
+
+## Preserve old enum/drop policies, but never coerce malformed JSON into a slot
+## or pass a container to an int/float/String constructor in the gear decoder.
+static func _gear_shape_error(entry: Dictionary) -> String:
+	for field in ["id", "display_name", "item_family", "source_context", "deterministic_key"]:
+		if entry.has(field) and typeof(entry[field]) != TYPE_STRING:
+			return "Invalid saved gear text: " + field
+	for field in ["slot", "tier", "class_family", "source_kind", "source_seed", "generation_contract_depth", "reward_base_tier"]:
+		if entry.has(field) and typeof(entry[field]) != TYPE_INT:
+			return "Invalid saved gear integer: " + field
+	for field in ["reward_magic_find_upgraded", "is_unidentified"]:
+		if entry.has(field) and typeof(entry[field]) != TYPE_BOOL:
+			return "Invalid saved gear flag: " + field
+	if entry.has("generation_value_scale") and (typeof(entry.generation_value_scale) not in [TYPE_INT, TYPE_FLOAT] or not is_finite(float(entry.generation_value_scale))):
+		return "Invalid saved gear generation scale."
+	if entry.has("reward_tier_steps"):
+		if typeof(entry.reward_tier_steps) != TYPE_ARRAY:
+			return "Invalid saved gear tier steps."
+		for tier in entry.reward_tier_steps:
+			if typeof(tier) != TYPE_INT:
+				return "Invalid saved gear tier step."
+	return ""
+
+
 static func _gear_from_entry(entry) -> GearItem:
 	if typeof(entry) != TYPE_DICTIONARY:
 		return null
 	if entry.has("resource_path"):
-		return _load_or_null(entry["resource_path"])
+		return _load_or_null(entry["resource_path"]) as GearItem
 	var item := GearItem.new()
 	item.id = str(entry.get("id", ""))
 	item.display_name = str(entry.get("display_name", ""))
@@ -415,9 +710,9 @@ static func _gear_from_save_entry(entry, context: String = "gear") -> GearItem:
 
 
 static func _canonical_authored_gear_from_entry(entry: Dictionary) -> GearItem:
-	var id := String(entry.get("id", ""))
+	var id := str(entry.get("id", ""))
 	if entry.has("resource_path"):
-		var loaded: GearItem = _load_or_null(entry.get("resource_path"))
+		var loaded := _load_or_null(entry.get("resource_path")) as GearItem
 		if loaded != null:
 			id = loaded.id
 	var path := _canonical_authored_gear_path_for_id(id)
@@ -516,7 +811,7 @@ static func _pending_contract_offers_from_data(list, notices: PackedStringArray)
 			return {"ok": false, "offers": out}
 		var kind := String(entry.get("kind", ""))
 		if kind == "authored":
-			var authored: ContractDef = _load_or_null(entry.get("resource_path"))
+			var authored: ContractDef = _load_or_null(entry.get("resource_path")) as ContractDef
 			if authored == null:
 				return {"ok": false, "offers": out}
 			out.append(authored)
@@ -968,6 +1263,8 @@ static func _run_encounter_history_from_data(list) -> Array[Dictionary]:
 
 static func _load_or_null(path):
 	if typeof(path) != TYPE_STRING or path == "":
+		return null
+	if not BuildContentRegistry.current().allowed_paths.has(path) and not LegendaryCatalog.all_paths().has(path):
 		return null
 	if not ResourceLoader.exists(path):
 		return null

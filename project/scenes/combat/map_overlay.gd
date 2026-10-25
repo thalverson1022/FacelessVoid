@@ -381,6 +381,13 @@ func _ready() -> void:
 	button_row.add_theme_constant_override("separation", 8)
 	content.add_child(button_row)
 
+	var guide_button := Button.new()
+	guide_button.name = "ArchetypeGuideButton"
+	guide_button.visible = false
+	guide_button.text = "Archetype guide"
+	guide_button.pressed.connect(_show_archetype_guide)
+	button_row.add_child(guide_button)
+
 	# Tavern and Contract Route both use select-then-Proceed: node clicks
 	# preview/select, while this button is the actual commit step.
 	_map_contract_back_button = Button.new()
@@ -2676,3 +2683,28 @@ func _sync_pending_contract_route_node() -> void:
 		return
 	if not _route_node_is_selectable(_pending_contract_route_node):
 		_pending_contract_route_node = null
+
+
+## General tendencies only: do not reveal a generated enemy's hidden rolled values.
+func _show_archetype_guide() -> void:
+	var existing := get_node_or_null("ArchetypeGuide")
+	if existing != null:
+		existing.popup_centered_ratio(0.75)
+		return
+	var dialog := AcceptDialog.new()
+	dialog.name = "ArchetypeGuide"
+	dialog.title = "Read the matchup"
+	dialog.min_size = Vector2i(480, 320)
+	var text := RichTextLabel.new()
+	text.name = "GuideText"
+	text.custom_minimum_size = Vector2(440, 260)
+	text.bbcode_enabled = true
+	text.add_theme_font_size_override("normal_font_size", 20)
+	text.add_theme_font_size_override("bold_font_size", 20)
+	text.scroll_active = true
+	text.text = "[b]Choose your battles[/b]\nTags describe likely pressure, not exact defenses. Multiple tags can heavily counter your build. Inspect the full route and compare offers before committing.\n\nReturn to offers with Back before choosing your first fight. Talent refunds are available at contract offers; your main and secondary roles stay fixed. Once committed, you cannot switch contracts or refund talents. Adapt your equipped gear and skill sequence while planning. Each route ends at its boss.\n\n"
+	for entry in EncounterArchetypeVocabulary.ARCHETYPES.values():
+		text.text += "[b]%s[/b] — %s\n%s\n%s\n\n" % [entry.display_name, ", ".join(entry.likely_mechanics), entry.pressures, entry.rewards]
+	dialog.add_child(text)
+	add_child(dialog)
+	dialog.popup_centered_ratio(0.75)

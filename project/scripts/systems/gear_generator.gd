@@ -134,6 +134,29 @@ const SUFFIX_BY_STAT := {
 	StatModifier.StatType.GOLD_REWARDS: "of Avarice",
 }
 
+const PREFIX_BY_CANONICAL_STAT := {
+	StatCatalog.COOLDOWN_REDUCTION: "Hastened",
+	StatCatalog.INCREASED_BUFF_DURATION: "Enduring",
+	StatCatalog.CRIT_APPLIES_PENETRATION: "Piercing",
+	StatCatalog.CRIT_APPLIES_POTENCY: "Potent",
+	StatCatalog.INVENTORY_ECONOMY_STATS: "Prosperous",
+	StatCatalog.CHANCE_FOR_RETRIGGER: "Echoing",
+	StatCatalog.CHANCE_TO_SHRED: "Rending",
+	StatCatalog.CHANCE_TO_DECAY: "Decaying",
+	StatCatalog.CRIT_APPLIES_ELEMENT: "Venomous",
+}
+const SUFFIX_BY_CANONICAL_STAT := {
+	StatCatalog.COOLDOWN_REDUCTION: "of Readiness",
+	StatCatalog.INCREASED_BUFF_DURATION: "of Endurance",
+	StatCatalog.CRIT_APPLIES_PENETRATION: "of Penetration",
+	StatCatalog.CRIT_APPLIES_POTENCY: "of Potency",
+	StatCatalog.INVENTORY_ECONOMY_STATS: "of Prosperity",
+	StatCatalog.CHANCE_FOR_RETRIGGER: "of Echoes",
+	StatCatalog.CHANCE_TO_SHRED: "of Rending",
+	StatCatalog.CHANCE_TO_DECAY: "of Decay",
+	StatCatalog.CRIT_APPLIES_ELEMENT: "of Venom",
+}
+
 const ALL_SLOTS: Array[GearItem.SlotType] = [
 	GearItem.SlotType.WEAPON,
 	GearItem.SlotType.HELM,
@@ -346,7 +369,7 @@ static func _generation_request_errors(request: Dictionary) -> PackedStringArray
 		errors.append("procedural_source_kind_required")
 	if not request.get("rng") is RandomNumberGenerator:
 		errors.append("missing_rng")
-	if float(request.get("value_scale", 1.0)) <= 0.0:
+	if not is_finite(float(request.get("value_scale", 1.0))) or float(request.get("value_scale", 1.0)) <= 0.0:
 		errors.append("invalid_value_scale")
 	return errors
 
@@ -743,6 +766,8 @@ static func _roll_value_for_stat_id(
 	contract_depth: int = 0,
 	category: String = StatCatalog.CATEGORY_BASIC
 ) -> Dictionary:
+	if not is_finite(value_scale) or value_scale <= 0.0:
+		return {"ok": false, "error": "invalid_value_scale"}
 	if StatCatalog.is_binary(stat_id):
 		return {"ok": true, "value": PLACEHOLDER_BINARY_VALUE, "error": ""}
 	var range := StatCatalog.value_range_for_slot_category(slot, category, stat_id)
@@ -756,7 +781,12 @@ static func _roll_value_for_stat_id(
 	value *= _rarity_value_multiplier(tier, is_drawback)
 	value *= value_scale
 	value *= _contract_depth_value_scale(contract_depth)
-	return {"ok": true, "value": _round_value_for_stat_id(stat_id, value, is_drawback), "error": ""}
+	if not is_finite(value):
+		return {"ok": false, "error": "non_finite_modifier_value"}
+	var rounded := _round_value_for_stat_id(stat_id, value, is_drawback)
+	if not is_finite(rounded):
+		return {"ok": false, "error": "non_finite_modifier_value"}
+	return {"ok": true, "value": rounded, "error": ""}
 
 
 static func max_rolled_value_for_stat_id(
@@ -768,6 +798,8 @@ static func max_rolled_value_for_stat_id(
 	contract_depth: int = 0,
 	category: String = StatCatalog.CATEGORY_BASIC
 ) -> Dictionary:
+	if not is_finite(value_scale) or value_scale <= 0.0:
+		return {"ok": false, "value": 0.0, "error": "invalid_value_scale"}
 	var canonical_id := StatCatalog.canonicalize_stat_id(stat_id)
 	if StatCatalog.is_binary(canonical_id):
 		return {"ok": false, "value": 0.0}
@@ -779,7 +811,10 @@ static func max_rolled_value_for_stat_id(
 	magnitude *= value_scale
 	magnitude *= _contract_depth_value_scale(contract_depth)
 	var value := -magnitude if is_drawback else magnitude
-	return {"ok": true, "value": _round_value_for_stat_id(canonical_id, value, is_drawback)}
+	if not is_finite(value):
+		return {"ok": false, "value": 0.0, "error": "non_finite_modifier_value"}
+	var rounded := _round_value_for_stat_id(canonical_id, value, is_drawback)
+	return {"ok": is_finite(rounded), "value": rounded if is_finite(rounded) else 0.0, "error": "" if is_finite(rounded) else "non_finite_modifier_value"}
 
 
 static func _rarity_value_multiplier(tier: int, is_drawback: bool) -> float:
@@ -822,8 +857,10 @@ static func _display_name_for(item: GearItem) -> String:
 	var base_name := item_family_for(item)
 	if item.affixes.is_empty():
 		return "%s %s" % [tier_name(item.tier), base_name]
-	var prefix: String = PREFIX_BY_STAT.get(item.affixes[0].stat, tier_name(item.tier))
+	var first_id := StatCatalog.canonical_id_for_modifier(item.affixes[0])
+	var prefix: String = PREFIX_BY_CANONICAL_STAT.get(first_id, PREFIX_BY_STAT.get(item.affixes[0].stat, tier_name(item.tier)))
 	if item.affixes.size() == 1:
 		return "%s %s" % [prefix, base_name]
-	var suffix: String = SUFFIX_BY_STAT.get(item.affixes[1].stat, "")
+	var second_id := StatCatalog.canonical_id_for_modifier(item.affixes[1])
+	var suffix: String = SUFFIX_BY_CANONICAL_STAT.get(second_id, SUFFIX_BY_STAT.get(item.affixes[1].stat, ""))
 	return "%s %s %s" % [prefix, base_name, suffix]

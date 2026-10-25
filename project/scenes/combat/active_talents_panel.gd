@@ -44,6 +44,7 @@ func _ready() -> void:
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	title.theme_type_variation = &"PanelHeader"
 	title.add_theme_font_size_override("font_size", CARD_TITLE_FONT_SIZE)
 	header.add_child(title)
@@ -100,7 +101,7 @@ func _ready() -> void:
 
 
 func _refresh() -> void:
-	var spent: int = PassiveAllocator.points_spent(state.selected_talents)
+	var spent: int = state.ranked_build.points_spent() if state.ranked_build != null else PassiveAllocator.points_spent(state.selected_talents)
 	var earned: int = state.earned_talent_points
 	var remaining: int = earned - spent
 	_points_label.text = ": %d/%d" % [spent, earned]
@@ -157,8 +158,9 @@ func _build_tree_section(tree: SubclassTree) -> VBoxContainer:
 	section.add_child(talents_label)
 
 	var selected_for_tree: Array[Talent] = []
-	for talent in state.selected_talents:
-		if tree.talents.has(talent):
+	var candidates: Array[Talent] = tree.talents if state.ranked_build != null else state.selected_talents
+	for talent in candidates:
+		if tree.talents.has(talent) and (state.ranked_build == null or state.ranked_build.rank_of(talent.id) > 0):
 			selected_for_tree.append(talent)
 	if selected_for_tree.is_empty():
 		var empty_label := Label.new()
@@ -179,21 +181,29 @@ func _build_talent_row(talent: Talent) -> VBoxContainer:
 	row.add_theme_constant_override("separation", 1)
 
 	var name_label := Label.new()
-	name_label.text = talent.display_name
+	name_label.text = talent.display_name + (" %d/%d" % [state.ranked_build.rank_of(talent.id), talent.max_ranks] if state.ranked_build != null else "")
 	name_label.add_theme_color_override("font_color", CardStyle.ACCENT_COLOR)
+	name_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	row.add_child(name_label)
 
-	var detail_label := Label.new()
-	detail_label.text = _talent_summary(talent)
-	detail_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	detail_label.add_theme_font_size_override("font_size", 13)
-	row.add_child(detail_label)
+	if state.ranked_build != null:
+		var formatter=preload("res://scripts/ui/talent_hover_formatter.gd")
+		var rank: int=state.ranked_build.rank_of(talent.id)
+		preload("res://scripts/ui/talent_effect_rows.gd").add_to(row,formatter.rank_rows(talent,rank),13,0,0,1.0,"ActiveTalentEffect")
+	else:
+		var detail_label:=Label.new()
+		detail_label.text=_talent_summary(talent)
+		detail_label.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
+		detail_label.add_theme_font_size_override("font_size",13)
+		row.add_child(detail_label)
 	return row
 
 
 func _intrinsic_description(tree: SubclassTree) -> String:
+	var override_text:=preload("res://scripts/ui/talent_hover_formatter.gd").intrinsic_override(tree)
+	if override_text!="": return preload("res://scripts/ui/presentation_keywords.gd").normalize(override_text)
 	if tree.intrinsic_text != "":
-		return tree.intrinsic_text
+		return preload("res://scripts/ui/presentation_keywords.gd").normalize(tree.intrinsic_text)
 	var lines: PackedStringArray = []
 	for skill in tree.unlocked_skills:
 		lines.append("Unlocks %s" % skill.display_name)
@@ -203,7 +213,7 @@ func _intrinsic_description(tree: SubclassTree) -> String:
 		lines.append(_skill_augment_description(augment))
 	if lines.is_empty():
 		return "None"
-	return ", ".join(lines)
+	return preload("res://scripts/ui/presentation_keywords.gd").normalize(", ".join(lines))
 
 
 func _set_open_button_attention(enabled: bool) -> void:

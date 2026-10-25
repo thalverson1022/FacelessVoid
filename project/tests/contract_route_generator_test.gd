@@ -232,13 +232,14 @@ func _check_generated_rewards_follow_table() -> void:
 				assert(node.reward_quality_label == "Captain")
 			ContractRouteNode.NodeType.ELITE:
 				elite_seen = true
+				assert(node.reward.talent_points == 0)
 				assert(node.reward.generated_gear_choice_count == 2)
 				assert(node.reward.gold_amount >= 11)
 				assert(node.reward_quality_label == "Elite")
 			ContractRouteNode.NodeType.BOSS:
 				boss_seen = true
 				assert(node.reward.generated_gear_choice_count == 2)
-				assert(node.reward.talent_points == 1)
+				assert(node.reward.talent_points == BuildProgression.CONTRACT_POINTS)
 				assert(node.reward.generated_gear_tier >= GearItem.Tier.MASTER)
 				assert(node.reward_quality_label == "Contract Victory")
 	assert(normal_seen)
@@ -251,7 +252,7 @@ func _check_generated_rewards_follow_table() -> void:
 	assert(hard_boss.reward.gold_amount > medium_boss.reward.gold_amount)
 	assert(hard_boss.reward.generated_gear_tier >= medium_boss.reward.generated_gear_tier)
 
-	var near_cap: ContractDef = ROUTE_GENERATOR.generate(9911, {"route_difficulty": "medium", "earned_talent_points": 9})
+	var near_cap: ContractDef = ROUTE_GENERATOR.generate(9911, {"route_difficulty": "medium", "earned_talent_points": BuildProgression.POINT_CAP - 1})
 	var capped: ContractDef = ROUTE_GENERATOR.generate(9911, {"route_difficulty": "medium", "earned_talent_points": ROUTE_GENERATOR.TALENT_POINT_REWARD_CAP})
 	var near_cap_boss := _first_node_of_type(near_cap.offer_node, ContractRouteNode.NodeType.BOSS)
 	var capped_boss := _first_node_of_type(capped.offer_node, ContractRouteNode.NodeType.BOSS)

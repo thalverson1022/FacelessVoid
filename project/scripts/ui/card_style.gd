@@ -265,7 +265,8 @@ static func _legendary_tooltip_lines(gear: GearItem) -> PackedStringArray:
 	visible_affixes.sort_custom(_sort_affixes_for_display)
 	if not visible_affixes.is_empty():
 		lines.append("Stats:")
-		lines.append_array(_formatted_affix_lines(visible_affixes))
+		for affix in visible_affixes:
+			lines.append(LegendaryCatalog.stat_text(affix))
 	var text := LegendaryCatalog.effect_text(gear)
 	if text != "":
 		lines.append("Legendary:")
@@ -455,10 +456,149 @@ static func build_modal_panel(root: Control, dismissable: bool) -> PanelContaine
 static func build_gear_compare_tooltip(theme_owner: Control, item_text: String, equipped: GearItem, item: GearItem = null) -> Control:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 6)
+	var preview := gear_comparison_lines(item, theme_owner)
+	if not preview.is_empty():
+		item_text += "\n" + "\n".join(preview)
 	row.add_child(_make_tooltip_box(theme_owner, "", item_text, item))
 	var equipped_text := "\n".join(gear_tooltip_lines(equipped)) if equipped != null else "Nothing equipped."
 	row.add_child(_make_tooltip_box(theme_owner, "Equipped", equipped_text, equipped))
 	return row
+
+
+## Resolve ownership after equip, traversing each carried occurrence once.
+static func gear_comparison_lines(item: GearItem, theme_owner: Control) -> PackedStringArray:
+	var lines: PackedStringArray = []
+	if item == null or is_unidentified_chaos(item):
+		return lines
+	var state = theme_owner.get_node_or_null("/root/BuildState")
+	for property in theme_owner.get_property_list():
+		if property.name in ["state", "_state"] and theme_owner.get(property.name) != null:
+			state = theme_owner.get(property.name)
+			break
+	if state == null or state.selected_class == null:
+		return lines
+	var equipped: Array[GearItem] = state.equipped_gear().duplicate()
+	if equipped.has(item):
+		lines.append("Already equipped; no equipment change.")
+		return lines
+	var carried: Array[GearItem] = []
+	var owned = state.get("carried_items") if state is TrainingRoomState else state.get("inventory")
+	if owned != null: carried.assign(owned)
+	var occurrence := carried.find(item)
+	if occurrence >= 0: carried.remove_at(occurrence)
+	var replaced: GearItem = null
+	for i in equipped.size():
+		if equipped[i].slot == item.slot:
+			replaced = equipped[i]
+			equipped.remove_at(i)
+			break
+	var preview_gold: int = state.gold
+	if replaced != null:
+		if carried.size() < 3: carried.append(replaced)
+		elif state.has_method("sell_value_for"): preview_gold += state.sell_value_for(replaced)
+	equipped.append(item)
+	var before: PlayerStats = state.current_player_stats()
+	var after: PlayerStats
+	var after_skills: Array[Skill] = []
+	if state.ranked_build != null:
+		var resolved := BuildResolver.resolve_ranked_build(state.selected_class, state.ranked_build, equipped, preview_gold, carried)
+		if resolved.get("stats") == null:
+			lines.append("Equip preview invalid: " + String(resolved.get("error", "Invalid build.")))
+			return lines
+		after = resolved.stats
+		after_skills.assign(resolved.skills)
+	else:
+		after = BuildResolver.resolve_stats(state.selected_class, state.selected_trees, state.selected_talents, equipped, preview_gold, carried)
+		after_skills = BuildResolver.resolve_unlocked_skills(state.selected_class, state.selected_trees, state.selected_talents, equipped)
+	if after.derivation_error != "":
+		lines.append("Equip preview invalid: " + after.derivation_error)
+		return lines
+	var before_context: Dictionary = before.special_effects.get("legendary", {})
+	var after_context: Dictionary = after.special_effects.get("legendary", {})
+	for key in ["missing_attempts", "unlimited_retries"]:
+		if before_context.has(key): after_context[key] = before_context[key]
+	after.special_effects["legendary"] = after_context
+	var stolen := int(state.get("combat_stolen_gold"))
+	before = preload("res://scripts/systems/legendary_live_stats.gd").resolve(before, state.gold, stolen)
+	after = preload("res://scripts/systems/legendary_live_stats.gd").resolve(after, preview_gold, stolen)
+	var legendary_preview := item.tier == GearItem.Tier.LEGENDARY or (replaced != null and replaced.tier == GearItem.Tier.LEGENDARY)
+	lines.append("Equip preview at current stash; owned carried gear included." if preview_gold == state.gold else "Equip preview after replacement resale (%d gold); owned carried gear included." % preview_gold)
+	for field in ["cooldown_reduction", "increased_buff_duration", "crit_applies_penetration", "crit_applies_potency", "shop_discount", "magic_find", "shred_chance", "decay_chance", "elemental_proc_chance", "retrigger_chance", "min_cast_time_proc_chance"]:
+		if not is_equal_approx(before.get(field), after.get(field)):
+			if legendary_preview:
+				var labels := {"increased_buff_duration": "Buff Duration", "crit_applies_penetration": "Crits Apply Penetration", "crit_applies_potency": "Crits Apply Potency", "elemental_proc_chance": "Crits Apply Poison", "min_cast_time_proc_chance": "Minimum Cast Time Chance"}
+				lines.append("%s: %s%% -> %s%%" % [labels.get(field, field.replace("_", " ").capitalize()), LegendaryCatalog.number_text(before.get(field) * 100.0), LegendaryCatalog.number_text(after.get(field) * 100.0)])
+			else:
+				lines.append("%s: %.4f%% -> %.4f%%" % [field.replace("_", " ").capitalize(), before.get(field) * 100.0, after.get(field) * 100.0])
+	for field in ["gold_reward_multiplier", "attack_speed", "bonus_physical_damage", "physical_damage_multiplier", "elemental_damage_multiplier", "bonus_poison_stacks", "bonus_shred_stacks", "bonus_decay_stacks", "shred_value", "poison_stack_cap", "poison_tick_interval_multiplier"]:
+		if not is_equal_approx(before.get(field), after.get(field)):
+			if legendary_preview:
+				if field == "attack_speed":
+					lines.append("Attack Speed: %s%% -> %s%%" % [LegendaryCatalog.number_text(before.attack_speed * 100.0), LegendaryCatalog.number_text(after.attack_speed * 100.0)])
+				elif field == "gold_reward_multiplier":
+					lines.append("Increased Gold: %s%% -> %s%%" % [LegendaryCatalog.number_text((before.gold_reward_multiplier - 1.0) * 100.0), LegendaryCatalog.number_text((after.gold_reward_multiplier - 1.0) * 100.0)])
+				elif field.ends_with("multiplier"):
+					lines.append("%s: x%s -> x%s" % [field.trim_suffix("_multiplier").replace("_", " ").capitalize(), LegendaryCatalog.number_text(before.get(field)), LegendaryCatalog.number_text(after.get(field))])
+				else:
+					lines.append("%s: %s -> %s" % [field.replace("_", " ").capitalize(), LegendaryCatalog.number_text(before.get(field)), LegendaryCatalog.number_text(after.get(field))])
+			else:
+				lines.append("%s: %.4f -> %.4f" % [field.replace("_", " ").capitalize(), before.get(field), after.get(field)])
+	var before_crit := effective_crit_text(before, state.gold, stolen)
+	var after_crit := effective_crit_text(after, preview_gold, stolen)
+	if before_crit != after_crit:
+		lines.append("Crit Chance / Damage: %s -> %s" % [before_crit, after_crit])
+	if before.weapon_damage_min != after.weapon_damage_min or before.weapon_damage_max != after.weapon_damage_max:
+		lines.append("Weapon Damage: %d-%d -> %d-%d" % [before.weapon_damage_min, before.weapon_damage_max, after.weapon_damage_min, after.weapon_damage_max])
+	var before_poison := before.base_poison_damage + before.bonus_base_elemental_damage
+	var after_poison := after.base_poison_damage + after.bonus_base_elemental_damage
+	if not is_equal_approx(before_poison, after_poison):
+		lines.append("Base Poison Damage: %.1f -> %.1f" % [before_poison, after_poison])
+	var before_skills: Array[Skill] = state.unlocked_skills()
+	for skill in after_skills:
+		if not _has_skill(before_skills, skill.id): lines.append("Skill gained: " + skill.display_name)
+	for skill in before_skills:
+		if not _has_skill(after_skills, skill.id): lines.append("Skill lost: " + skill.display_name)
+	if replaced != null and replaced.legendary_effect_id != "" and replaced.id != item.id:
+		lines.append("Signature lost: " + replaced.display_name)
+	if item.legendary_effect_id != "" and (replaced == null or replaced.id != item.id):
+		lines.append("Signature gained: " + item.display_name)
+		# Full conditions are on the adjacent item card; these are current outputs.
+		lines.append_array(legendary_stat_lines(after, before.special_effects.get("legendary", {})))
+	if lines.size() == 1: lines.clear()
+	return lines
+
+
+static func _has_skill(skills: Array[Skill], id: String) -> bool:
+	for skill in skills:
+		if skill.id == id: return true
+	return false
+
+
+static func effective_crit_text(stats: PlayerStats, stash: int, stolen: int = 0) -> String:
+	if stats.legendary_signet: return "Cannot crit"
+	var inputs: Dictionary = preload("res://scripts/systems/combat_gold.gd").crit_values(stats, stash, stolen)
+	return "%.0f%% / %.2fx" % [clampf(inputs.crit_chance, 0.0, 1.0) * 100.0, inputs.crit_multiplier]
+
+
+## Conditional outputs belong beside resolved stats, never in static affix totals.
+static func legendary_stat_lines(stats: PlayerStats, unchanged: Dictionary = {}) -> PackedStringArray:
+	var lines: PackedStringArray = []
+	var flags: Dictionary = stats.special_effects.get("legendary", {})
+	if stats.legendary_bandit and not unchanged.get("bandit", false):
+		lines.append("Bandit: +%.0f Base Physical Damage from current stash (cap +100)" % stats.legendary_added_flat)
+	if stats.legendary_signet and not unchanged.get("signet", false):
+		lines.append("Signet conversion: +%s%% Attack Speed; +%s%% Physical Damage" % [LegendaryCatalog.number_text(stats.legendary_added_ias * 100.0), LegendaryCatalog.number_text(stats.legendary_added_physical * 100.0)])
+		for source in stats.stat_sources:
+			if source.get("source_id", "") == "legendary.signet":
+				lines.append("From uncapped %s%% Crit Chance and x%s Crit Damage" % [LegendaryCatalog.number_text(float(source.get("raw_crit_chance", 0.0)) * 100.0), LegendaryCatalog.number_text(float(source.get("raw_crit_multiplier", 1.0)))])
+	if flags.get("death_door", false) and not unchanged.get("death_door", false):
+		var multiplier := 1.0 if flags.get("unlimited_retries", false) else maxf(1.0, 2.0 * int(flags.get("missing_attempts", 0)))
+		lines.append("Death's Door: x%.0f damage; Exsanguinate excluded" % multiplier)
+	if flags.get("mithril", false) and not unchanged.get("mithril", false):
+		lines.append("Mithril: +50 points on Stab / Heavy Slash rolls only (cap 100%)")
+	if stats.legendary_crown and not unchanged.get("crown", false):
+		lines.append("Crown: self-buff bonuses x2; x2 becomes x3")
+	return lines
 
 
 static func build_gear_tooltip(theme_owner: Control, gear: GearItem) -> Control:
@@ -472,7 +612,12 @@ static func build_gear_tooltip(theme_owner: Control, gear: GearItem) -> Control:
 ## accent-colored first line ("Equipped").
 static func _make_tooltip_box(theme_owner: Control, header: String, body: String, gear: GearItem = null) -> Control:
 	var panel := PanelContainer.new()
-	panel.add_theme_stylebox_override("panel", theme_owner.get_theme_stylebox("panel", "TooltipPanel"))
+	var tooltip_style := theme_owner.get_theme_stylebox("panel", "TooltipPanel").duplicate() as StyleBox
+	if tooltip_style is StyleBoxFlat:
+		var fill: Color = tooltip_style.bg_color
+		fill.a = 1.0
+		tooltip_style.bg_color = fill
+	panel.add_theme_stylebox_override("panel", tooltip_style)
 	panel.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 
 	var row := HBoxContainer.new()
@@ -493,10 +638,8 @@ static func _make_tooltip_box(theme_owner: Control, header: String, body: String
 		vbox.add_child(header_label)
 
 	if gear == null:
-		var body_label := Label.new()
-		body_label.text = body
-		body_label.add_theme_color_override("font_color", theme_owner.get_theme_color("font_color", "TooltipLabel"))
-		vbox.add_child(body_label)
+		for line in body.split("\n"):
+			_add_plain_tooltip_label(vbox, line, theme_owner.get_theme_color("font_color", "TooltipLabel"))
 	else:
 		_add_gear_tooltip_line_labels(vbox, theme_owner, gear)
 		_add_extra_tooltip_body_lines(vbox, body, gear, theme_owner.get_theme_color("font_color", "TooltipLabel"))
@@ -562,7 +705,7 @@ static func _add_affix_group_labels(vbox: VBoxContainer, heading: String, affixe
 		return
 	_add_plain_tooltip_label(vbox, heading, default_color)
 	for affix: StatModifier in affixes:
-		var line := StatModifierFormatter.format(affix)
+		var line := LegendaryCatalog.stat_text(affix) if gear.tier == GearItem.Tier.LEGENDARY else StatModifierFormatter.format(affix)
 		if line == "":
 			continue
 		_add_rich_tooltip_label(vbox, _bbcode_for_affix_line(gear, affix, line), line, default_color, _font_size_for_affix_line(gear, affix))
@@ -571,6 +714,10 @@ static func _add_affix_group_labels(vbox: VBoxContainer, heading: String, affixe
 static func _add_plain_tooltip_label(vbox: VBoxContainer, text: String, color: Color) -> void:
 	var label := Label.new()
 	label.text = text
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	label.custom_minimum_size.x = _rich_tooltip_line_width(text)
+	label.add_theme_font_override("font", DATA_FONT)
+	label.add_theme_font_size_override("font_size", TOOLTIP_RICH_FONT_SIZE)
 	label.add_theme_color_override("font_color", color)
 	vbox.add_child(label)
 
@@ -582,9 +729,11 @@ static func _add_rich_tooltip_label(vbox: VBoxContainer, bbcode: String, visible
 	label.scroll_active = false
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	label.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-	label.autowrap_mode = TextServer.AUTOWRAP_OFF
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	label.custom_minimum_size = Vector2(_rich_tooltip_line_width(visible_text, font_size), 0)
 	label.text = bbcode
+	label.add_theme_font_override("normal_font", DATA_FONT)
+	label.add_theme_font_size_override("normal_font_size", font_size)
 	label.add_theme_color_override("default_color", color)
 	vbox.add_child(label)
 

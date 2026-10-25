@@ -1,10 +1,7 @@
-[gd_resource type="Resource" script_class="GearItem" load_steps=9 format=3]
+[gd_resource type="Resource" script_class="GearItem" load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/resources/gear_item.gd" id="1_gear"]
 [ext_resource type="Script" path="res://scripts/resources/stat_modifier.gd" id="2_affix"]
-[ext_resource type="Script" path="res://scripts/resources/triggered_skill_effect.gd" id="3_trigger"]
-[ext_resource type="Resource" path="res://data/skills/stab.tres" id="4_stab"]
-[ext_resource type="Resource" path="res://data/skills/heavy_slash.tres" id="5_heavy"]
 
 [sub_resource type="Resource" id="Resource_mithril_speed"]
 script = ExtResource("2_affix")
@@ -33,21 +30,10 @@ operation = 0
 value = 0.2
 display_label = "Chance to Shred"
 
-[sub_resource type="Resource" id="Resource_mithril_stab_trigger"]
-script = ExtResource("3_trigger")
-skill = ExtResource("4_stab")
-chance = 0.5
-source_skill_ids = PackedStringArray("skill.stab")
-
-[sub_resource type="Resource" id="Resource_mithril_heavy_trigger"]
-script = ExtResource("3_trigger")
-skill = ExtResource("5_heavy")
-chance = 0.5
-source_skill_ids = PackedStringArray("skill.heavy_slash")
-
 [resource]
 script = ExtResource("1_gear")
 id = "gear.legendary.mithril_karambit"
+legendary_effect_id = "mithril"
 display_name = "Mithril Karambit"
 slot = 0
 tier = 3
@@ -55,4 +41,3 @@ item_family = "Dagger"
 class_family = 1
 source_kind = 3
 affixes = Array[StatModifier]([SubResource("Resource_mithril_speed"), SubResource("Resource_mithril_crit"), SubResource("Resource_mithril_shred")])
-triggered_skill_effects = Array[TriggeredSkillEffect]([SubResource("Resource_mithril_stab_trigger"), SubResource("Resource_mithril_heavy_trigger")])

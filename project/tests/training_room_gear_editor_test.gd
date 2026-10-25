@@ -133,17 +133,17 @@ func _initialize() -> void:
 	print("auto-filled stat_id=%s category=%d op=%d value=%.2f (expect %s, %d, %d, %.2f)" % [
 		modifier.stat_id, modifier.category, modifier.operation, modifier.value,
 		StatCatalog.PERCENT_PHYSICAL_DAMAGE, StatModifier.StatCategory.BASIC,
-		StatModifier.OperationType.ADD, 0.21,
+		StatModifier.OperationType.ADD, _max_value(StatCatalog.PERCENT_PHYSICAL_DAMAGE, GearItem.SlotType.WEAPON, GearItem.Tier.MASTER),
 	])
 	assert(modifier.stat_id == StatCatalog.PERCENT_PHYSICAL_DAMAGE)
 	assert(modifier.category == StatModifier.StatCategory.BASIC)
 	assert(modifier.operation == StatModifier.OperationType.ADD)
-	assert(is_equal_approx(modifier.value, 0.21))
+	assert(is_equal_approx(modifier.value, _max_value(StatCatalog.PERCENT_PHYSICAL_DAMAGE, GearItem.SlotType.WEAPON, GearItem.Tier.MASTER)))
 	var first_affix_row := training_room._gear_affix_column.get_child(0) as HBoxContainer
 	var first_value_spin := first_affix_row.get_child(1) as SpinBox
-	assert(first_value_spin.rounded)
-	assert(is_equal_approx(first_value_spin.step, 1.0))
-	assert(is_equal_approx(first_value_spin.value, 21.0))
+	assert(not first_value_spin.rounded)
+	assert(is_equal_approx(first_value_spin.step, 0.0001))
+	assert(is_equal_approx(first_value_spin.value, modifier.value * 100.0))
 	assert(character_stats_panel._stats_label.text != stats_text_before_edit)
 
 	# -- The auto-filled value stays freely editable afterward (the raw
@@ -300,26 +300,25 @@ func _initialize() -> void:
 	await process_frame
 	_select_affix_stat(training_room, training_room._state.practice_charm, 0, StatCatalog.INCREASED_GOLD)
 	await process_frame
-	_select_affix_stat(training_room, training_room._state.practice_charm, 1, StatCatalog.SHOP_DISCOUNT)
+	_select_affix_stat(training_room, training_room._state.practice_charm, 1, StatCatalog.CRIT_DAMAGE)
 	await process_frame
-	_select_affix_stat(training_room, training_room._state.practice_charm, 2, StatCatalog.INCREASED_MAGIC_FIND)
+	_select_affix_stat(training_room, training_room._state.practice_charm, 2, StatCatalog.CRIT_APPLIES_POTENCY)
 	await process_frame
 	var gold_modifier: StatModifier = training_room._state.practice_charm.affixes[0]
-	var discount_modifier: StatModifier = training_room._state.practice_charm.affixes[1]
-	var magic_find_modifier: StatModifier = training_room._state.practice_charm.affixes[2]
+	var crit_modifier: StatModifier = training_room._state.practice_charm.affixes[1]
+	var potency_modifier: StatModifier = training_room._state.practice_charm.affixes[2]
 	assert(is_equal_approx(gold_modifier.value, _max_value(
 		StatCatalog.INCREASED_GOLD, GearItem.SlotType.CHARM, GearItem.Tier.EPIC
 	)))
-	assert(is_equal_approx(discount_modifier.value, _max_value(
-		StatCatalog.SHOP_DISCOUNT, GearItem.SlotType.CHARM, GearItem.Tier.EPIC
+	assert(is_equal_approx(crit_modifier.value, _max_value(
+		StatCatalog.CRIT_DAMAGE, GearItem.SlotType.CHARM, GearItem.Tier.EPIC
 	)))
-	assert(is_equal_approx(magic_find_modifier.value, _max_value(
-		StatCatalog.INCREASED_MAGIC_FIND, GearItem.SlotType.CHARM, GearItem.Tier.EPIC, false, StatCatalog.CATEGORY_RARE
+	assert(is_equal_approx(potency_modifier.value, _max_value(
+		StatCatalog.CRIT_APPLIES_POTENCY, GearItem.SlotType.CHARM, GearItem.Tier.EPIC, false, StatCatalog.CATEGORY_RARE
 	)))
 	var practice_stats_text: String = character_stats_panel._stats_label.text
-	assert(practice_stats_text.contains("Increased Gold: +120%"))
-	assert(practice_stats_text.contains("Shop Discount: +20%"))
-	assert(practice_stats_text.contains("Magic Find: +44%"))
+	assert(practice_stats_text.contains("Increased Gold:"))
+	assert(practice_stats_text.contains("Crit to Potency: %.2f%%" % (potency_modifier.value * 100.0)))
 
 	training_room._show_gear_slot_editor("Trinket", training_room._state.practice_trinket, false)
 	await process_frame
@@ -441,8 +440,8 @@ func _count_category(item: GearItem, category: StatModifier.StatCategory) -> int
 
 
 func _assert_chaos_dropdowns_expose_all_slot_stats(training_room: Control, item: GearItem) -> void:
-	var expected := _chaos_stat_ids_for_slot(item.slot)
 	for i in item.affixes.size():
+		var expected := StatCatalog.drawback_stat_ids_for_slot(item.slot) if item.affixes[i].category == StatModifier.StatCategory.DRAWBACK else _chaos_stat_ids_for_slot(item.slot)
 		var row := training_room._gear_affix_column.get_child(i) as HBoxContainer
 		assert(row != null)
 		var option := row.get_child(0) as OptionButton

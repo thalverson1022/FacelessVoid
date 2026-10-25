@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "content_revision": "p6.test.scalars.1",
+  "scope": "test-only",
+  "release_ready": false,
+  "identity_revision": "p6m2-t4-2",
+  "sources": [
+    {
+      "file": "docs/talent_tree_drafts/Assassin.json",
+      "sha256": "7c70b4c80ccf089e9b0f8069db7827ffa8c703b52a4fbf1ce48111e80b8081bd",
+      "tree_id": "tree.assassin"
+    },
+    {
+      "file": "docs/talent_tree_drafts/Bladedancer.json",
+      "sha256": "8c33a60060ad7e42c45f254b2c24515c217f22f94fe68dfec819ae183242cbc2",
+      "tree_id": "tree.bladedancer"
+    },
+    {
+      "file": "docs/talent_tree_drafts/Shadow.json",
+      "sha256": "4475e00e6fa0a544143a956b646d88a8e4582f64fd785e7e04af9bff5fe68171",
+      "tree_id": "tree.shadow"
+    },
+    {
+      "file": "docs/talent_tree_drafts/Thief.json",
+      "sha256": "029ea87fd1c31f6251c7d9b8024de9a58134e3f6c5fe4cf28a8cbd1b00fdebaf",
+      "tree_id": "tree.thief"
+    }
+  ],
+  "specifications": [
+    "P6M2_T3_Progression_And_Allocation_Rules",
+    "P6M2_T4_Content_Workflow_And_Compatibility"
+  ],
+  "records": [
+    {
+      "id": "talent.bladedancer.wet_stone",
+      "source_file": "docs/talent_tree_drafts/Bladedancer.json",
+      "pointer": "/tree/talents/1",
+      "resource": "wet_stone.tres",
+      "rank_effects": [
+        [
+          "base_damage",
+          1.0
+        ]
+      ]
+    },
+    {
+      "id": "talent.keen_eye",
+      "source_file": "docs/talent_tree_drafts/Thief.json",
+      "pointer": "/tree/talents/1",
+      "resource": "keen_eye.tres",
+      "rank_effects": [
+        [
+          "percent_physical_damage",
+          0.02
+        ],
+        [
+          "percent_elemental_damage",
+          0.02
+        ]
+      ]
+    }
+  ],
+  "excluded": "All intrinsic, skill, trigger and temporary-effect behavior. M3/M5 review blocks whole-tree release."
+}

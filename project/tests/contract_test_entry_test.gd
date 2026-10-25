@@ -1,8 +1,6 @@
 extends SceneTree
-## Headless check for the hidden Contract Test diagnostic entry point. The
-## title menu should not show it, but the internal signal should still skip
-## class/subclass/Tavern setup and land in a generated-contract offer picker
-## with a Rogue Assassin + Bladedancer test baseline.
+## M4 playable Test Mode entry, generated offers and route selection.
+
 
 
 func _initialize() -> void:
@@ -17,8 +15,8 @@ func _initialize() -> void:
 	await process_frame
 
 	var title = game_root._current_screen
-	var contract_test_button := _find_button(title, "Contract Test")
-	_require(contract_test_button == null, "Expected Contract Test to be hidden from the title screen.")
+	var contract_test_button := _find_button(title, "Test Mode")
+	_require(contract_test_button != null and not contract_test_button.disabled, "Expected Test Mode to be available.")
 
 	title._random_seed_check_box.button_pressed = false
 	title._on_random_seed_toggled(false)
@@ -33,11 +31,10 @@ func _initialize() -> void:
 	_require(combat_screen.get_script().resource_path == "res://scenes/combat/combat_screen.gd", "Expected Contract Test to open the real combat screen.")
 	_require(build_state.adventure_seed == 424242, "Expected Contract Test to use the selected menu seed.")
 	_require(build_state.selected_class != null and build_state.selected_class.id == "class.rogue", "Expected Contract Test to choose Rogue.")
-	_require(build_state.selected_trees.size() == 2, "Expected Contract Test to start with two Rogue trees.")
-	_require(build_state.selected_trees[0].display_name == "Assassin", "Expected Assassin as the primary Contract Test tree.")
-	_require(build_state.selected_trees[1].display_name == "Bladedancer", "Expected Bladedancer as the secondary Contract Test tree.")
+	_require(build_state.selected_trees.size() == 1, "Expected Contract Test to start with one Rogue tree.")
+	_require(build_state.selected_trees[0].display_name == "Bladedancer", "Expected Bladedancer as the primary Contract Test tree.")
 	_require(build_state.selected_talents.is_empty(), "Expected Contract Test to start with no talents spent.")
-	_require(build_state.earned_talent_points == 7, "Expected Contract Test to start with seven unspent talent points.")
+	_require(build_state.earned_talent_points == 6, "Expected Contract Test to start with six unspent talent points.")
 	_require(build_state.gold == 100, "Expected Contract Test to start with 100 gold.")
 	_require(build_state.equipped_weapon != null, "Expected Contract Test to start with an equipped weapon.")
 	_require(build_state.equipped_weapon.id == "gear.legendary.bandit_blade", "Expected Contract Test to start with Bandit Blade equipped.")
@@ -56,7 +53,7 @@ func _initialize() -> void:
 	_require(combat_screen._contract_overlay.visible, "Expected Contract Test to show Ghit Gudd's Contract Window.")
 	_require(combat_screen._contract_overlay._contract_options_box.get_child_count() == 3, "Expected three generated contract options.")
 	_require(combat_screen._contract_overlay._contract_title_label.text == "Choose a Contract", "Expected Contract Test picker header to invite contract choice.")
-	_require(not combat_screen._contract_overlay._contract_body_label.visible, "Expected Contract Test picker subtext to be hidden.")
+	_require(combat_screen._contract_overlay._contract_body_label.visible and "core only" in combat_screen._contract_overlay._contract_body_label.text, "Expected Test Mode content boundary to be explained.")
 	var generated_card_count := 0
 	for index in range(0, combat_screen._contract_overlay._contract_options_box.get_child_count()):
 		var child: Node = combat_screen._contract_overlay._contract_options_box.get_child(index)
@@ -67,7 +64,7 @@ func _initialize() -> void:
 		_require(_card_label_text(button, "ContractLocationLabel").begins_with("Location: "), "Expected generated contract card to show biome location.")
 		var reward_amounts := _contract_reward_amount_texts(button)
 		_require(_reward_amounts_contain_suffix(reward_amounts, "g"), "Expected generated contract card to show gold reward as an icon row.")
-		_require(reward_amounts.has("x 1"), "Expected generated contract card to show the boss talent-point reward as an icon row.")
+		_require(reward_amounts.has("x %d" % BuildProgression.CONTRACT_POINTS), "Expected generated contract card to show the approved contract talent-point reward.")
 		_require(_contract_card_icon(button).custom_minimum_size == Vector2(64, 64), "Expected generated contract card icon to be larger.")
 		_require(_card_label_font_size(button, "ContractBossNameLabel") > _card_label_font_size(button, "ContractLocationLabel"), "Expected boss name to use a larger font than card details.")
 		generated_card_count += 1

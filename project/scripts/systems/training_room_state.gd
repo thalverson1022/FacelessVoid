@@ -24,7 +24,7 @@ const DEFAULT_FIGHT_SEED := 1
 const DEFAULT_CONTRACT_LEVEL := 1
 const DEFAULT_TARGET_ARMOR := 0
 const DEFAULT_TARGET_POISON_RESIST := 0.0
-const PRACTICE_TALENT_POINT_BUDGET := 10
+const PRACTICE_TALENT_POINT_BUDGET := BuildProgression.POINT_CAP
 const GENERATED_MONSTER_KIND := "normal"
 const GENERATED_MONSTER_TEMPO := "standard"
 const GENERATED_MONSTER_SEED_CONTEXT := "training_room_generated_monster"
@@ -86,6 +86,13 @@ const TARGET_PRESETS := [
 ## stun in the harness without adding an HP control to the target card.
 const PRACTICE_TARGET_HP := 100
 
+var content_registry: BuildContentRegistry = null
+var practice_save_path := ""
+var allocation_locked := false
+var ranked_build: RankedBuild = null
+var last_build_error := ""
+var rotation_changes: Dictionary = {"removed": [], "overflow": []}
+
 var selected_class: ClassDef = null
 var selected_trees: Array[SubclassTree] = []
 var selected_talents: Array[Talent] = []
@@ -93,7 +100,11 @@ var earned_talent_points: int = PRACTICE_TALENT_POINT_BUDGET
 var rotation: Array[Skill] = []
 var build_locked: bool = false
 var gold: int = 0
+var configured_gold: int = 0
 var combat_stolen_gold: int = 0
+const MAX_CARRIED_ITEMS := 3
+var carried_items: Array[GearItem] = []
+
 var equipped_weapon: GearItem = null
 var equipped_helm: GearItem = null
 var equipped_armor: GearItem = null
@@ -166,6 +177,35 @@ func _make_practice_item(slot: GearItem.SlotType, display_name: String) -> GearI
 	return item
 
 
+## Owned occurrences isolated from Adventure and inactive custom templates.
+func add_carried_item(slot: GearItem.SlotType = GearItem.SlotType.WEAPON) -> GearItem:
+	if carried_items.size() >= MAX_CARRIED_ITEMS or allocation_locked:
+		return null
+	var item := _make_practice_item(slot, "Carried %s" % GearGenerator.universal_slot_label(slot))
+	carried_items.append(item)
+	set_slot_rarity(item, GearItem.Tier.BASIC)
+	return item
+
+
+func remove_carried_item(index: int) -> bool:
+	if index < 0 or index >= carried_items.size() or allocation_locked:
+		return false
+	carried_items.remove_at(index)
+	build_changed.emit()
+	return true
+
+
+func set_carried_slot(item: GearItem, slot: GearItem.SlotType) -> bool:
+	if not carried_items.has(item) or item.tier == GearItem.Tier.LEGENDARY or allocation_locked or not GearItem.SlotType.values().has(slot):
+		return false
+	item.slot = slot
+	item.item_family = GearGenerator.rogue_item_family_for_slot(slot)
+	item.display_name = "Carried %s" % GearGenerator.universal_slot_label(slot)
+	item.affixes.clear()
+	set_slot_rarity(item, item.tier)
+	return true
+
+
 func _clear_lock_on_change() -> void:
 	if build_locked:
 		build_locked = false
@@ -182,6 +222,7 @@ func set_locked(locked: bool) -> void:
 
 
 func set_class(class_def: ClassDef) -> void:
+	ranked_build = null
 	selected_class = class_def
 	selected_trees = []
 	selected_talents = []
@@ -203,12 +244,36 @@ func set_primary_tree(tree: SubclassTree) -> bool:
 func set_secondary_tree(tree: SubclassTree) -> bool:
 	return _set_tree_at_slot(1, tree)
 
+func swap_tree_roles() -> bool:
+	if allocation_locked or ranked_build == null or ranked_build.secondary_tree() == null:
+		last_build_error = "Select two supported trees outside playback to swap roles."
+		return false
+	return _finish_rank_edit(ranked_build.set_practice_trees(ranked_build.secondary_tree(), ranked_build.primary_tree()))
+
 
 func tree_at_slot(slot_index: int) -> SubclassTree:
 	return selected_trees[slot_index] if slot_index < selected_trees.size() else null
 
 
 func _set_tree_at_slot(slot_index: int, tree: SubclassTree) -> bool:
+	if allocation_locked:
+		last_build_error = "Finish or skip combat playback before editing talents."
+		return false
+	if ranked_build == null and tree != null and tree.ranked_content_ready:
+		if slot_index != 0:
+			last_build_error = "Select a primary tree first."
+			return false
+		return configure_ranked_build(tree)
+	if ranked_build != null:
+		if tree != null:
+			last_build_error = RankedBuild.content_error(tree)
+			if last_build_error != "":
+				return false
+		var primary := tree if slot_index == 0 else ranked_build.primary_tree()
+		var secondary := tree if slot_index == 1 else ranked_build.secondary_tree()
+		if primary == null and slot_index == 1 and secondary != null:
+			return false
+		return _finish_rank_edit(ranked_build.set_practice_trees(primary, secondary))
 	var current_at_slot := tree_at_slot(slot_index)
 	if current_at_slot == tree:
 		return true
@@ -233,6 +298,11 @@ func _set_tree_at_slot(slot_index: int, tree: SubclassTree) -> bool:
 
 
 func select_talent(talent: Talent) -> bool:
+	if allocation_locked:
+		last_build_error = "Finish or skip combat playback before editing talents."
+		return false
+	if ranked_build != null:
+		return _finish_rank_edit(ranked_build.buy(talent.id)) if talent != null else false
 	if not PassiveAllocator.can_select_talent(selected_trees, selected_talents, talent, earned_talent_points):
 		return false
 	selected_talents.append(talent)
@@ -242,6 +312,11 @@ func select_talent(talent: Talent) -> bool:
 
 
 func deselect_talent(talent: Talent) -> bool:
+	if allocation_locked:
+		last_build_error = "Finish or skip combat playback before editing talents."
+		return false
+	if ranked_build != null:
+		return _finish_rank_edit(ranked_build.refund(talent.id, true)) if talent != null else false
 	if not PassiveAllocator.can_deselect_talent(selected_talents, talent):
 		return false
 	selected_talents.erase(talent)
@@ -251,24 +326,30 @@ func deselect_talent(talent: Talent) -> bool:
 
 
 func set_rotation(skills: Array[Skill]) -> void:
-	rotation = BuildResolver.resolve_rotation(skills, unlocked_skills())
+	rotation_changes = BuildResolver.normalize_rotation(skills, unlocked_skills())
+	rotation = rotation_changes["rotation"]
 	build_changed.emit()
 
 
 func unlocked_skills() -> Array[Skill]:
+	if ranked_build != null:
+		var skills: Array[Skill] = []
+		skills.assign(BuildResolver.resolve_ranked_build(selected_class, ranked_build, equipped_gear(), gold, carried_items).get("skills", []))
+		return skills
 	return BuildResolver.resolve_unlocked_skills(selected_class, selected_trees, selected_talents, equipped_gear())
 
 
 func can_run_fight() -> bool:
-	return build_locked and not rotation.is_empty()
+	return build_locked and not allocation_locked and not rotation.is_empty()
 
 
 ## Direct Legendary equip for Practice Room's Legendary-equip control
-## (P2:R10:T3) -- bypasses reward/shop flow entirely. All 5 catalog
-## Legendaries are weapon-slot items today, so this always fills
-## `equipped_weapon`; revisit if a future Legendary uses a different slot.
+## bypasses reward/shop flow and routes fixed items to their authored slot.
 func equip_legendary(item: GearItem) -> void:
-	equipped_weapon = item
+	if item == null or item.tier != GearItem.Tier.LEGENDARY:
+		return
+	_equip_practice_item(item)
+	_prune_rotation_to_unlocked()
 	build_changed.emit()
 
 
@@ -276,6 +357,7 @@ func equip_legendary(item: GearItem) -> void:
 ## Legendary was equipped (P2:R10:T4's Custom/Legendary toggle).
 func use_custom_weapon() -> void:
 	equipped_weapon = practice_weapon
+	_prune_rotation_to_unlocked()
 	build_changed.emit()
 
 
@@ -291,8 +373,13 @@ func is_weapon_legendary() -> bool:
 ## "no item" value to represent this; the UI reads an empty `affixes` array
 ## as "None" currently selected (see training_room.gd's _refresh_gear_slot()).
 func clear_slot(item: GearItem) -> void:
+	if item == null or item.tier == GearItem.Tier.LEGENDARY:
+		return
+	# The editor targets its custom slot even while fixed gear occupies it.
+	_equip_practice_item(item)
 	_unequip_practice_item(item)
 	item.affixes.clear()
+	_prune_rotation_to_unlocked()
 	build_changed.emit()
 
 
@@ -303,7 +390,11 @@ func clear_slot(item: GearItem) -> void:
 ## items -- never a Legendary (those are handled entirely by
 ## equip_legendary()/use_custom_weapon(), never passed here).
 func set_slot_rarity(item: GearItem, tier: GearItem.Tier) -> void:
+	if item == null or item.tier == GearItem.Tier.LEGENDARY:
+		return
+	if item.tier == GearItem.Tier.LEGENDARY: return
 	_equip_practice_item(item)
+	_prune_rotation_to_unlocked()
 	item.tier = tier
 	if tier == GearItem.Tier.CRUDE:
 		item.affixes.clear()
@@ -339,6 +430,8 @@ func set_slot_rarity(item: GearItem, tier: GearItem.Tier) -> void:
 
 
 func _equip_practice_item(item: GearItem) -> void:
+	if carried_items.has(item):
+		return
 	match item.slot:
 		GearItem.SlotType.WEAPON:
 			equipped_weapon = item
@@ -377,6 +470,7 @@ func _unequip_practice_item(item: GearItem) -> void:
 ## this just seeds a sensible real default instead of leaving it at
 ## whatever the previous stat's magnitude happened to be.
 func set_affix_stat(item: GearItem, index: int, stat: Variant) -> void:
+	if item.tier == GearItem.Tier.LEGENDARY: return
 	if index < 0 or index >= item.affixes.size():
 		return
 	var slots := _affix_slots_for_tier(item.tier)
@@ -529,7 +623,14 @@ func _apply_stat_to_modifier(modifier: StatModifier, stat_id: String, slot: Gear
 	modifier.category = _stat_category_for_slot(slots, slot_index)
 	modifier.is_drawback = modifier.category == StatModifier.StatCategory.DRAWBACK
 	modifier.operation = StatModifier.OperationType.ADD
-	modifier.value = _tier_value(modifier.stat_id, slot, tier, slot_index, slots)
+	var value_slots: Array[Dictionary] = slots.duplicate(true)
+	if tier == GearItem.Tier.CHAOS and not modifier.is_drawback:
+		var category := String(value_slots[slot_index].get("category", StatCatalog.CATEGORY_BASIC))
+		if not StatCatalog.stat_ids_for_slot(slot, category).has(modifier.stat_id):
+			category = StatCatalog.CATEGORY_RARE if StatCatalog.stat_ids_for_slot(slot, StatCatalog.CATEGORY_RARE).has(modifier.stat_id) else StatCatalog.CATEGORY_BASIC
+		value_slots[slot_index]["category"] = category
+		modifier.category = StatModifier.StatCategory.RARE if category == StatCatalog.CATEGORY_RARE else StatModifier.StatCategory.BASIC
+	modifier.value = _tier_value(modifier.stat_id, slot, tier, slot_index, value_slots)
 	modifier.display_label = StatCatalog.label_for(modifier.stat_id)
 
 
@@ -930,7 +1031,8 @@ func randomize_fight_seed(context: String = "fight") -> int:
 ## (Bandit Blade's gold-scaling physical damage) and must trigger the same
 ## live-refresh `character_stats_panel` already listens for.
 func set_practice_gold(amount: int) -> void:
-	gold = maxi(0, amount)
+	configured_gold = maxi(0, amount)
+	gold = configured_gold
 	combat_stolen_gold = 0
 	build_changed.emit()
 
@@ -954,10 +1056,11 @@ func run_fight() -> void:
 	if not can_run_fight():
 		return
 	combat_stolen_gold = 0
+	gold = configured_gold
 	if random_fight_seed_enabled:
 		randomize_fight_seed("fight")
 	stats_preview_changed.emit()
-	var stats := BuildResolver.resolve_stats(selected_class, selected_trees, selected_talents, equipped_gear(), gold)
+	var stats := current_player_stats()
 	last_result = CombatResolver.resolve(rotation, stats, selected_target, duration_ms, fight_seed)
 	fight_finished.emit()
 
@@ -972,4 +1075,93 @@ func equipped_gear() -> Array[GearItem]:
 
 
 func _prune_rotation_to_unlocked() -> void:
-	rotation = BuildResolver.resolve_rotation(rotation, unlocked_skills())
+	rotation_changes = BuildResolver.normalize_rotation(rotation, unlocked_skills())
+	rotation = rotation_changes["rotation"]
+
+
+func current_player_stats() -> PlayerStats:
+	if ranked_build != null:
+		var resolved := BuildResolver.resolve_ranked_build(selected_class, ranked_build, equipped_gear(), gold, carried_items)
+		if resolved.get("stats") != null:
+			return _with_legendary_practice_context(resolved.stats)
+		var invalid := PlayerStats.new()
+		invalid.derivation_error = String(resolved.get("error", "Invalid practice build."))
+		return invalid
+	return _with_legendary_practice_context(BuildResolver.resolve_stats(selected_class, selected_trees, selected_talents, equipped_gear(), gold, carried_items))
+
+
+func configure_ranked_build(primary: SubclassTree, secondary: SubclassTree = null) -> bool:
+	var candidate := RankedBuild.new()
+	if not candidate.configure(primary, secondary, earned_talent_points):
+		last_build_error = candidate.last_error
+		return false
+	if candidate.resolved_content()["error"] != "":
+		last_build_error = candidate.resolved_content()["error"]
+		return false
+	ranked_build = candidate
+	return _finish_rank_edit(true)
+
+
+func set_talent_budget(points: Variant) -> bool:
+	if allocation_locked:
+		last_build_error = "Finish or skip combat playback before editing talents."
+		return false
+	if ranked_build != null:
+		return _finish_rank_edit(ranked_build.set_budget(points))
+	if typeof(points) != TYPE_INT or points < PassiveAllocator.points_spent(selected_talents) or points > BuildProgression.POINT_CAP or points < 0:
+		last_build_error = "Budget must cover allocated points and be within 0ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“45."
+		return false
+	earned_talent_points = points
+	build_changed.emit()
+	return true
+
+
+func refund_all_talents() -> bool:
+	if allocation_locked:
+		last_build_error = "Finish or skip combat playback before editing talents."
+		return false
+	return _finish_rank_edit(ranked_build.refund_all(true)) if ranked_build != null else false
+
+
+func refund_tree_talents(tree_id: String) -> bool:
+	if allocation_locked:
+		last_build_error = "Finish or skip combat playback before editing talents."
+		return false
+	if ranked_build == null: return false
+	return _finish_rank_edit(ranked_build.refund_tree(tree_id, true))
+
+
+func _finish_rank_edit(success: bool) -> bool:
+	last_build_error = ranked_build.last_error
+	if not success:
+		return false
+	selected_trees = ranked_build.trees()
+	selected_talents = []
+	earned_talent_points = ranked_build.budget()
+	_prune_rotation_to_unlocked()
+	set_locked(false)
+	build_changed.emit()
+	return true
+
+
+# Controlled Practice fixture; Adventure encounter attempts remain separate.
+var legendary_missing_attempts := 0
+
+func _with_legendary_practice_context(stats: PlayerStats) -> PlayerStats:
+	if stats != null:
+		var effects: Dictionary = stats.special_effects.get("legendary", {})
+		effects["missing_attempts"] = maxi(0, legendary_missing_attempts)
+		effects["unlimited_retries"] = false
+		stats.special_effects["legendary"] = effects
+		if stats.derivation_base != null:
+			stats.derivation_base.special_effects["legendary"] = effects.duplicate(true)
+	return stats
+
+
+func set_legendary_missing_attempts(value: int) -> bool:
+	if allocation_locked or value < 0 or value > 99:
+		return false
+	legendary_missing_attempts = value
+	build_changed.emit()
+	fight_setup_changed.emit()
+	return true

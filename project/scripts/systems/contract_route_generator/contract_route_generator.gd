@@ -23,7 +23,7 @@ const PRESSURE_AXIS_MIXED := "mixed"
 const DEFAULT_ROUTE_DIFFICULTY := "medium"
 const CONTRACT_PROGRESSION_STAGE_COUNT := 5
 const COMPLETED_CONTRACT_PRESSURE_STEP := 2
-const TALENT_POINT_REWARD_CAP := 10
+const TALENT_POINT_REWARD_CAP := BuildProgression.POINT_CAP
 const DEFAULT_ALLOWED_BIOMES := ["Swamp", "Cave", "Graveyard", "Haunted Forest", "Ruined Keep", "Ancient Ruins"]
 const ROUTE_DIFFICULTY_IDS := {
 	"easy": 1,
@@ -231,7 +231,7 @@ const REWARD_TABLE := {
 		"gold_depth_step": 3,
 		"gold_pressure_step": 8,
 		"gear_choice_count": 2,
-		"talent_points": 1,
+		"talent_points": BuildProgression.CONTRACT_POINTS,
 		"quality": "Contract Victory",
 	},
 }
@@ -1810,13 +1810,12 @@ static func _reward_intent_gold_bonus(node: ContractRouteNode) -> int:
 	return 0
 
 
-static func _reward_talent_points(contract: ContractDef, table: Dictionary, node: ContractRouteNode) -> int:
-	if int(contract.route_settings.get("earned_talent_points", 0)) >= TALENT_POINT_REWARD_CAP:
+static func _reward_talent_points(contract: ContractDef, _table: Dictionary, node: ContractRouteNode) -> int:
+	# The terminal boss reward carries the contract-completion payout once.
+	# No normal/captain/elite encounter earns talent points.
+	if node.node_type != ContractRouteNode.NodeType.BOSS:
 		return 0
-	if table.has("talent_points"):
-		return int(table["talent_points"])
-	var threshold := int(table.get("talent_depth_threshold", 999))
-	return 1 if node.depth >= threshold else 0
+	return BuildProgression.reward_amount(int(contract.route_settings.get("earned_talent_points", 0)), BuildProgression.CONTRACT_POINTS)
 
 
 static func _reward_gear_tier(contract: ContractDef, node: ContractRouteNode, role: String) -> GearItem.Tier:

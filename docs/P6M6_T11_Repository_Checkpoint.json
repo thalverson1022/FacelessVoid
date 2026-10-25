@@ -1,0 +1,25 @@
+{
+  "date": "2026-10-08",
+  "git_head": "1222e1c263df8dd173dd8d571a6134e79b5e69b2",
+  "status": "Working-tree checkpoint; preexisting changes retained; no commit or push.",
+  "t11_files": {
+    "README.md": "f08f3606a5709b7c11ada75080e639e4cfff4790c4481fa93ac9e4ad5f801fbc",
+    "docs/P6M6_T11_Closeout_And_M7_Handoff.md": "aafd6492b2d5e0d4aaf949d3e6a99508c896843ce31ea6df7f8d59c69a48e6ec",
+    "docs/P6M6_Enemy_Balance_And_Adventure_Progression_Tracker.md": "942d071c117146a06b37b1daf3e52b4525f787aeaf1c3cf83246da56c4933b3b",
+    "docs/P6_Milestone_Tracker.md": "e84d4770b7138d08f906b7e0ecdab3c870e4e748c1b24e430be214a99c96a1ca",
+    "docs/P6_Project_Onboarding_Context.md": "3be6997d73b3f917c2c294a9847bb709f32c0ccaa43b092c246fba06967f4113",
+    "docs/P6_Implementation_And_Test_Handoff.md": "42135c20017783f3729cf23bcfb742b569ba0fb03192fcc97d36a3a299b0bfdb",
+    "docs/Combat_Mechanics_Reference.md": "2f48479d177dc0bf40e0a4002e2b3b50eb50d7429b0e71997501bc4f6b184ff5",
+    "docs/P6_Legendary_Remake_Next_Phase_Handoff.md": "beaccca571fb0772c2b1a934140986f691c285dab8a75af9f2a30c5395a90fc6",
+    "tools/p6/run_m6_closeout.py": "9b246ee5d4662c920706b42fab9c252a673d860db4f56d9bc9a65aa26655c4b3",
+    "tools/p6/check_m6_closeout.py": "0a6df702fb9ac7da9a57a7dd0d3aa656cedb14f025767c71e7928dfd43cc2c65",
+    "project/tests/balance_lab_test.gd": "58291b685f605381447e3463fcca4e0b88acf21c9ccbca8c6610801146c3da6e",
+    "project/tests/combat_screen_test.gd": "03991e5249a1495f9945d93eab94026ab527c63d289dcd3af905564c7f6fc1f1",
+    "project/tests/p6_core_journey_test.gd": "493edaee510227444e0ceae005e04837d1c243e85d3c26dd6da476b74e1961c1",
+    "project/tests/save_load_ui_test.gd": "2ed3f072d73354fed72c3bdf985e01797fb1ac379753e64ee57fc271288e934d"
+  },
+  "runtime_unchanged_from_T10": true,
+  "accepted_summary": "project/reports/p6_m6_t11_closeout/summary.json",
+  "baseline": "project/reports/p6_m6_t11/baseline.json",
+  "accepted_T10_snapshot": "project/reports/p6_m6_t10/protected_before.json"
+}

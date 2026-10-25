@@ -248,6 +248,9 @@ func refresh() -> void:
 			_contract_body_label.text = CONTRACT_VYRA_DETAIL_TEXT
 			_contract_action_button.text = "Accept"
 			CardStyle.configure_icon_button(_contract_action_button, CONTRACT_ICON)
+	if BuildState.is_test_mode:
+		_contract_body_label.visible = true
+		_contract_body_label.text = "Test Mode — Bladedancer core only: Whetstone, Rending Slash and Fancy Footwork. Other talents, Dance and secondary trees are unavailable. Rewards continue normally; points beyond this core remain unspent. Session progress is not saved."
 
 
 ## A larger, toggleable rectangle (not a plain button) naming the contract and

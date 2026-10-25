@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="Skill" format=3 uid="uid://dgswcvtvlpyyb"]
+
+[ext_resource type="Script" uid="uid://b3jgtul4lne2k" path="res://scripts/resources/skill_effect.gd" id="1_kmgig"]
+[ext_resource type="Script" uid="uid://dlekciyngr6xr" path="res://scripts/resources/physical_damage_effect.gd" id="damage"]
+[ext_resource type="Script" uid="uid://d3apprhhvrqum" path="res://scripts/resources/skill.gd" id="skill"]
+
+[sub_resource type="Resource" id="damage"]
+script = ExtResource("damage")
+amount = 1.0
+
+[resource]
+script = ExtResource("skill")
+id = "skill.parry_strike"
+display_name = "Parry Strike"
+base_execution_ms = 500
+min_execution_ms = 300
+effects = Array[ExtResource("1_kmgig")]([SubResource("damage")])
+enables_readiness = true

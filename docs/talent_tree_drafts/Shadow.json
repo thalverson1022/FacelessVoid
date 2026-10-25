@@ -1,0 +1,350 @@
+{
+  "format": "faceless-void.tree-lab",
+  "schema_version": 1,
+  "tree": {
+    "id": "draft.411f8321-f3e8-460d-a875-11fc57e2f8d6",
+    "name": "Shadow",
+    "subclass": "",
+    "notes": "",
+    "levels": [
+      {
+        "id": "level.1",
+        "order": 1,
+        "required_points": 0
+      },
+      {
+        "id": "level.2",
+        "order": 2,
+        "required_points": 5
+      },
+      {
+        "id": "level.3",
+        "order": 3,
+        "required_points": 10
+      },
+      {
+        "id": "level.4",
+        "order": 4,
+        "required_points": 15
+      },
+      {
+        "id": "level.5",
+        "order": 5,
+        "required_points": 20
+      }
+    ],
+    "talents": [
+      {
+        "id": "talent.5465413e-ddf0-409e-9498-d9bce17eecd5",
+        "name": "Umbral Presence",
+        "flavour_text": "",
+        "description": "Increase Poison stack cap to 80",
+        "icon_id": "rogue.beguiling_strike",
+        "level_id": "level.5",
+        "position": {
+          "x": 0.5
+        },
+        "max_ranks": 1,
+        "prerequisite_ids": [],
+        "values": [],
+        "skill_grant": null
+      },
+      {
+        "id": "talent.f6f0c0a5-eef5-49ad-8453-505bb57da116",
+        "name": "Coated Weapons",
+        "flavour_text": "",
+        "description": "Stab and Heavy Slash now apply 2 stacks of Poison",
+        "icon_id": "rogue.venom_jab",
+        "level_id": "level.1",
+        "position": {
+          "x": 0.7
+        },
+        "max_ranks": 1,
+        "prerequisite_ids": [],
+        "values": [],
+        "skill_grant": null
+      },
+      {
+        "id": "talent.e138e6fe-0f89-461e-a2db-19b6ba4fcb17",
+        "name": "Blind Spot",
+        "flavour_text": "",
+        "description": "Increased crit chance",
+        "icon_id": "rogue.heavy_slash",
+        "level_id": "level.1",
+        "position": {
+          "x": 0.5
+        },
+        "max_ranks": 5,
+        "prerequisite_ids": [],
+        "values": [
+          {
+            "id": "value.c86f107a-5e8e-4a49-bb21-e4ee693b3285",
+            "label": "Crit Chance",
+            "unit": "%",
+            "rank_1": 2,
+            "per_rank": 2
+          }
+        ],
+        "skill_grant": null
+      },
+      {
+        "id": "talent.ea1c0755-e280-4e65-936b-49ccf3b6937f",
+        "name": "Snake Oil",
+        "flavour_text": "",
+        "description": "Increased Base Elemental Damage",
+        "icon_id": "rogue.beguiling_strike",
+        "level_id": "level.1",
+        "position": {
+          "x": 0.35
+        },
+        "max_ranks": 4,
+        "prerequisite_ids": [],
+        "values": [
+          {
+            "id": "value.8ca74c09-7538-4878-b571-6932999768e9",
+            "label": "Base Elemental Damage",
+            "unit": "",
+            "rank_1": 2,
+            "per_rank": 2
+          }
+        ],
+        "skill_grant": null
+      },
+      {
+        "id": "talent.67a4f847-f898-4bfd-929b-62b6f1348f18",
+        "name": "Death Touch",
+        "flavour_text": "",
+        "description": "All stacks you apply are increased",
+        "icon_id": "rogue.death_strike",
+        "level_id": "level.3",
+        "position": {
+          "x": 0.6
+        },
+        "max_ranks": 3,
+        "prerequisite_ids": [],
+        "values": [
+          {
+            "id": "value.365e6fb1-2769-4ce6-bcec-b6ae85244534",
+            "label": "Increased Stacks",
+            "unit": "stacks",
+            "rank_1": 3,
+            "per_rank": 3
+          }
+        ],
+        "skill_grant": null
+      },
+      {
+        "id": "talent.e2c6d402-4d20-453d-b14f-d5e454471905",
+        "name": "Dusk Strike",
+        "flavour_text": "",
+        "description": "When you apply decay you also apply shred. +10 armor reduction per Shred stack.",
+        "icon_id": "rogue.rending_slash",
+        "level_id": "level.4",
+        "position": {
+          "x": 0.5
+        },
+        "max_ranks": 1,
+        "prerequisite_ids": [],
+        "values": [],
+        "skill_grant": null
+      },
+      {
+        "id": "talent.1ebc1ec2-d3fe-48b0-9a07-90446f52df28",
+        "name": "Shadow Mastery",
+        "flavour_text": "",
+        "description": "A portion of your elemental damage bonuses are converted to physical ",
+        "icon_id": "rogue.poison_strike",
+        "level_id": "level.4",
+        "position": {
+          "x": 0.35
+        },
+        "max_ranks": 5,
+        "prerequisite_ids": [
+          "talent.e95e78cc-d08d-4d42-98c7-a6468041c3ce"
+        ],
+        "values": [
+          {
+            "id": "value.c991af58-b15f-4c02-86a4-d58d58eaab22",
+            "label": "Percent Conversion",
+            "unit": "%",
+            "rank_1": 10,
+            "per_rank": 10
+          }
+        ],
+        "skill_grant": null
+      },
+      {
+        "id": "talent.e95e78cc-d08d-4d42-98c7-a6468041c3ce",
+        "name": "Deception",
+        "flavour_text": "",
+        "description": "Increased Elemental Damage",
+        "icon_id": "rogue.venom_jab",
+        "level_id": "level.2",
+        "position": {
+          "x": 0.35
+        },
+        "max_ranks": 5,
+        "prerequisite_ids": [
+          "talent.ea1c0755-e280-4e65-936b-49ccf3b6937f"
+        ],
+        "values": [
+          {
+            "id": "value.acee9749-dad4-4032-b8d2-075cfd8f3f2e",
+            "label": "Increased Elemental Damage",
+            "unit": "%",
+            "rank_1": 10,
+            "per_rank": 10
+          }
+        ],
+        "skill_grant": null
+      },
+      {
+        "id": "talent.2def1356-df57-4b8b-b526-ff0f90af4779",
+        "name": "Death from the Shadows",
+        "flavour_text": "",
+        "description": "Increased crit damage",
+        "icon_id": "rogue.stab",
+        "level_id": "level.2",
+        "position": {
+          "x": 0.5
+        },
+        "max_ranks": 5,
+        "prerequisite_ids": [],
+        "values": [
+          {
+            "id": "value.4c8a7717-fb77-45c1-862c-79728e5afd9a",
+            "label": "Increased crit damage",
+            "unit": "%",
+            "rank_1": 20,
+            "per_rank": 20
+          }
+        ],
+        "skill_grant": null
+      },
+      {
+        "id": "talent.5498b7b0-5523-43f7-9b4e-cf1340388382",
+        "name": "Death Pact",
+        "flavour_text": "",
+        "description": "Consuming Poison or Decay grants stacks of Death Pact equal to the number of stacks consumed. Each stack of Death Pact ignores 1 block or 1 absorb.  ",
+        "icon_id": "rogue.hold",
+        "level_id": "level.3",
+        "position": {
+          "x": 0.45
+        },
+        "max_ranks": 3,
+        "prerequisite_ids": [],
+        "values": [
+          {
+            "id": "value.e45b80bd-efd4-4538-aa49-57f633b66b8c",
+            "label": "Death Pact Buff timer",
+            "unit": "%",
+            "rank_1": 2,
+            "per_rank": 2
+          }
+        ],
+        "skill_grant": null
+      },
+      {
+        "id": "talent.2dd768f0-494e-4004-84bc-c720702d20b7",
+        "name": "Death Blade",
+        "flavour_text": "",
+        "description": "Stab can no longer apply poison. When you apply poison you have a chance to trigger stab.",
+        "icon_id": "rogue.quick_cut",
+        "level_id": "level.4",
+        "position": {
+          "x": 0.7
+        },
+        "max_ranks": 2,
+        "prerequisite_ids": [
+          "talent.f6f0c0a5-eef5-49ad-8453-505bb57da116"
+        ],
+        "values": [
+          {
+            "id": "value.1a1bf2af-c4a5-467d-93f9-7ea34423dd3f",
+            "label": "Trigger Chance",
+            "unit": "%",
+            "rank_1": 40,
+            "per_rank": 40
+          }
+        ],
+        "skill_grant": null
+      }
+    ],
+    "intrinsic": {
+      "name": "Shadow Intrinsic",
+      "description": "20% Chance for crits to apply poison (+2% per point)",
+      "icon_id": "placeholder",
+      "values": [
+        {
+          "id": "value.89567972-6262-42b6-822c-3874ae687103",
+          "label": "Increased chance for crits to poison",
+          "unit": "%",
+          "base": 20,
+          "per_point": 2
+        }
+      ]
+    },
+    "automatic_unlocks": [
+      {
+        "id": "unlock.1",
+        "order": 1,
+        "required_points": 1,
+        "icon_id": "rogue.rending_slash",
+        "skill": {
+          "id": "draft.skill.6ea7c82d-61bf-4f60-9ba0-375aa394ef83",
+          "name": "Beguiling Strike",
+          "description": "Applies 1 stack of decay"
+        },
+        "values": []
+      },
+      {
+        "id": "unlock.2",
+        "order": 2,
+        "required_points": 3,
+        "icon_id": "rogue.death_strike",
+        "skill": {
+          "id": "draft.skill.1eee0559-2acb-4d87-8f95-c72cc231159b",
+          "name": "Death Strike",
+          "description": "Adds poison stacks damage"
+        },
+        "values": []
+      },
+      {
+        "id": "unlock.3",
+        "order": 3,
+        "required_points": 6,
+        "icon_id": "rogue.venom_jab",
+        "skill": {
+          "id": "draft.skill.8afdd760-6053-4b38-8e87-d32a9aa2fefe",
+          "name": "Distilled Corruption",
+          "description": "Does physical damage  and converts up to 5 stacks of Decay into Poison"
+        },
+        "values": []
+      },
+      {
+        "id": "unlock.4",
+        "order": 4,
+        "required_points": 9,
+        "icon_id": "rogue.beguiling_strike",
+        "skill": {
+          "id": "draft.skill.ae2f1e15-a0d4-46ca-95fc-c374ef2cb8b7",
+          "name": "Touch of Darkness",
+          "description": "Consume all poison stacks to increase attack speed by 10% and base physical damage by 2 per stack consumed for 12 sec. 30 sec cooldown"
+        },
+        "values": []
+      },
+      {
+        "id": "unlock.5",
+        "order": 5,
+        "required_points": 12,
+        "icon_id": "rogue.beguiling_strike",
+        "skill": {
+          "id": "draft.skill.61de2222-cb8d-4ef8-8969-004280b1f601",
+          "name": "Beguiling Presence ",
+          "description": "Consume all stacks of Decay to increase your elemental base damage by 1 and critical chance by 2 percentage points per stack consumed for 10 sec. 30 sec cooldown"
+        },
+        "values": []
+      }
+    ]
+  }
+}

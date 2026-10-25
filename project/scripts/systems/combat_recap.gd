@@ -54,20 +54,26 @@ static func summarize(result: CombatResolver.CombatResult, monster: Monster = nu
 			poison_resistance_reduction_casts += event.decay_stacks_applied
 			active_poison_resistance_reduction_casts += event.decay_stacks_applied
 		if event.cleanse_triggered:
-			active_armor_reduction_total = 0
-			active_armor_reduction_casts = 0
+			if event.status_snapshot.is_empty() or int(event.status_snapshot.get("shred", 0)) == 0:
+				active_armor_reduction_total = 0
+				active_armor_reduction_casts = 0
 			final_poison_resistance = monster.poison_resistance if monster != null else 0.0
 			active_poison_resistance_reduction_casts = 0
+		if not event.status_snapshot.is_empty():
+			final_poison_resistance = float(event.status_snapshot.poison_resistance)
+			active_poison_resistance_reduction_casts = int(event.status_snapshot.decay)
+			if monster != null:
+				active_armor_reduction_total = monster.armor - int(event.status_snapshot.armor)
 
 	var poison := 0.0
 	var poison_tick_count := 0
 	var peak_poison_stacks := 0
 	for tick in result.tick_events:
-		if tick.damage <= 0.0 and tick.absorbed_amount <= 0.0:
+		if not tick.had_active_stack:
 			continue
 		poison += tick.damage
 		poison_tick_count += 1
-		var stacks_before_tick: int = tick.stacks_remaining + 1
+		var stacks_before_tick: int = tick.stacks_before
 		if stacks_before_tick > peak_poison_stacks:
 			peak_poison_stacks = stacks_before_tick
 
@@ -78,7 +84,7 @@ static func summarize(result: CombatResolver.CombatResult, monster: Monster = nu
 		poison_pct = poison / result.total_damage * 100.0
 
 	var damage_required := monster.hp if monster != null else 0
-	var damage_delta := result.total_damage - float(damage_required)
+	var damage_delta := result.total_health_loss() - float(damage_required)
 	var overkill := result.overkill_damage if result.is_win else 0.0
 	var required_dps := 0.0
 	if monster != null and result.duration_ms > 0:
@@ -86,6 +92,8 @@ static func summarize(result: CombatResolver.CombatResult, monster: Monster = nu
 
 	return {
 		"total_damage": result.total_damage,
+		"health_removed": result.total_health_removed,
+		"total_health_loss": result.total_health_loss(),
 		"actual_dps": result.dps,
 		"dps": result.dps,
 		"damage_required": damage_required,

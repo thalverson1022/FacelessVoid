@@ -1,0 +1,53 @@
+[gd_resource type="Resource" script_class="SubclassTree" format=3 uid="uid://d00uyuhuv2jps"]
+
+[ext_resource type="Script" uid="uid://cbkin0ub6teak" path="res://scripts/resources/skill_augment.gd" id="7_cpnss"]
+[ext_resource type="Script" uid="uid://d3apprhhvrqum" path="res://scripts/resources/skill.gd" id="12_s8ssn"]
+[ext_resource type="Resource" uid="uid://bkjopx83ollxa" path="res://data/p6/test_mode/fancy_footwork.tres" id="foot"]
+[ext_resource type="Script" uid="uid://m13uapmegxo2" path="res://scripts/resources/stat_modifier.gd" id="modifier"]
+[ext_resource type="Resource" uid="uid://dgswcvtvlpyyb" path="res://data/p6/test_mode/parry_strike.tres" id="parry"]
+[ext_resource type="Resource" uid="uid://c44phex5ynaw0" path="res://data/p6/test_mode/leaping_plunge.tres" id="plunge"]
+[ext_resource type="Resource" uid="uid://ddv8tdp6541c0" path="res://data/skills/quick_cut.tres" id="quick"]
+[ext_resource type="Resource" uid="uid://bmivy7pyt8mqk" path="res://data/p6/test_mode/rending_slash.tres" id="rend"]
+[ext_resource type="Script" uid="uid://bq2fx6c5wnwsg" path="res://scripts/resources/talent.gd" id="talent"]
+[ext_resource type="Script" uid="uid://bu6ht8c08e4an" path="res://scripts/resources/subclass_tree.gd" id="tree"]
+[ext_resource type="Script" uid="uid://ccn5oxlw8r50c" path="res://scripts/resources/tree_skill_unlock.gd" id="unlock"]
+[ext_resource type="Resource" uid="uid://bxahaawb4a50p" path="res://data/p6/test_mode/whetstone.tres" id="wet"]
+
+[sub_resource type="Resource" id="unlock1"]
+script = ExtResource("unlock")
+required_points = 1
+skill = ExtResource("quick")
+
+[sub_resource type="Resource" id="unlock3"]
+script = ExtResource("unlock")
+required_points = 3
+skill = ExtResource("plunge")
+
+[sub_resource type="Resource" id="unlock6"]
+script = ExtResource("unlock")
+required_points = 6
+skill = ExtResource("parry")
+
+[sub_resource type="Resource" id="unlock9"]
+script = ExtResource("unlock")
+required_points = 9
+
+[sub_resource type="Resource" id="base"]
+script = ExtResource("modifier")
+stat_id = "chance_for_retrigger"
+value = 0.05
+
+[sub_resource type="Resource" id="point"]
+script = ExtResource("modifier")
+stat_id = "chance_for_retrigger"
+value = 0.002
+
+[resource]
+script = ExtResource("tree")
+id = "tree.bladedancer"
+display_name = "Bladedancer"
+talents = Array[ExtResource("talent")]([ExtResource("wet"), ExtResource("rend"), ExtResource("foot")])
+innate_modifiers = Array[ExtResource("modifier")]([SubResource("base")])
+ranked_content_ready = true
+primary_point_modifiers = Array[ExtResource("modifier")]([SubResource("point")])
+automatic_unlocks = Array[ExtResource("unlock")]([SubResource("unlock1"), SubResource("unlock3"), SubResource("unlock6"), SubResource("unlock9")])

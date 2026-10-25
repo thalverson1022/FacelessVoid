@@ -97,7 +97,7 @@ func _is_resource_dir_entry(file_name: String) -> bool:
 func _populate_classes() -> void:
 	for child in _card_box.get_children():
 		child.queue_free()
-	for res in _scan_resources(CLASS_DIR):
+	for res in BuildContentRegistry.adventure().classes.values():
 		var class_def: ClassDef = res
 		var select_button := Button.new()
 		select_button.text = "Select"

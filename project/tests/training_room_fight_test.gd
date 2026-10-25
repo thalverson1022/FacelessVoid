@@ -75,11 +75,11 @@ func _initialize() -> void:
 	assert(not training_room._state.build_locked)
 	assert(fight_button.disabled)
 
-	# -- Build a real practice rotation: Bladedancer + Piercing Blades + Stab --
-	training_room._on_primary_tree_selected(rogue.trees[1])
-	var talent_panel = training_room.find_child("TalentPanel", true, false)
-	var piercing_blades: Talent = _find_talent(rogue.trees[1], "talent.piercing_blades")
-	talent_panel._on_node_pressed(piercing_blades)
+	# Scoped Practice starts with Bladedancer. Use an explicit weapon so the
+	# armor comparison is above the one-damage floor in both fixtures.
+	var weapon: GearItem = load("res://data/gear/bandit_blade.tres").duplicate(true)
+	training_room._state._equip_practice_item(weapon)
+	training_room._state.notify_gear_edited()
 	await process_frame
 
 	var stab: Skill = null
@@ -113,11 +113,7 @@ func _initialize() -> void:
 	assert(training_room._state.last_result != null)
 	var first_damage: float = training_room._state.last_result.total_damage
 
-	var expected_stats := BuildResolver.resolve_stats(
-		training_room._state.selected_class, training_room._state.selected_trees,
-		training_room._state.selected_talents, training_room._state.equipped_gear(),
-		training_room._state.gold
-	)
+	var expected_stats: PlayerStats = training_room._state.current_player_stats()
 	var expected_result := CombatResolver.resolve(
 		training_room._state.rotation, expected_stats, training_room._state.selected_target, 10000, 1
 	)
@@ -143,6 +139,7 @@ func _initialize() -> void:
 	training_room._state.set_locked(false)
 	await process_frame
 	skill_build_panel._on_slot_pressed(0)
+	skill_build_panel._remove_selected()
 	await process_frame
 	_assert_result_review_invalidated(training_room, result_log, view_log_button)
 	assert(training_room._state.rotation.is_empty())

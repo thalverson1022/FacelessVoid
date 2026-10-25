@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="Talent" format=3]
+[ext_resource type="Script" path="res://scripts/resources/talent.gd" id="talent"]
+[ext_resource type="Script" path="res://scripts/resources/talent_rank.gd" id="rank"]
+[ext_resource type="Resource" path="res://data/skills/rending_slash.tres" id="skill"]
+[sub_resource type="Resource" id="rank"]
+script = ExtResource("rank")
+[resource]
+script = ExtResource("talent")
+id = "talent.bladedancer.rending_slash"
+display_name = "Rending Slash"
+max_ranks = 1
+unlocked_skills = Array[Skill]([ExtResource("skill")])
+ranks = Array[ExtResource("rank")]([SubResource("rank")])

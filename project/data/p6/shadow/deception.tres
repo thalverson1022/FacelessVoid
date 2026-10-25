@@ -1,0 +1,58 @@
+[gd_resource type="Resource" script_class="Talent" format=3]
+[ext_resource type="Script" path="res://scripts/resources/talent.gd" id="talent"]
+[ext_resource type="Script" path="res://scripts/resources/talent_rank.gd" id="rank"]
+[ext_resource type="Script" path="res://scripts/resources/stat_modifier.gd" id="effect"]
+
+[sub_resource type="Resource" id="effect1"]
+script = ExtResource("effect")
+stat_id = "percent_elemental_damage"
+value = 0.10000000
+
+[sub_resource type="Resource" id="rank1"]
+script = ExtResource("rank")
+stat_modifiers = Array[StatModifier]([SubResource("effect1")])
+
+[sub_resource type="Resource" id="effect2"]
+script = ExtResource("effect")
+stat_id = "percent_elemental_damage"
+value = 0.20000000
+
+[sub_resource type="Resource" id="rank2"]
+script = ExtResource("rank")
+stat_modifiers = Array[StatModifier]([SubResource("effect2")])
+
+[sub_resource type="Resource" id="effect3"]
+script = ExtResource("effect")
+stat_id = "percent_elemental_damage"
+value = 0.30000000
+
+[sub_resource type="Resource" id="rank3"]
+script = ExtResource("rank")
+stat_modifiers = Array[StatModifier]([SubResource("effect3")])
+
+[sub_resource type="Resource" id="effect4"]
+script = ExtResource("effect")
+stat_id = "percent_elemental_damage"
+value = 0.40000000
+
+[sub_resource type="Resource" id="rank4"]
+script = ExtResource("rank")
+stat_modifiers = Array[StatModifier]([SubResource("effect4")])
+
+[sub_resource type="Resource" id="effect5"]
+script = ExtResource("effect")
+stat_id = "percent_elemental_damage"
+value = 0.50000000
+
+[sub_resource type="Resource" id="rank5"]
+script = ExtResource("rank")
+stat_modifiers = Array[StatModifier]([SubResource("effect5")])
+
+[resource]
+script = ExtResource("talent")
+id = "talent.shadow.deception"
+display_name = "Deception"
+max_ranks = 5
+required_tree_points = 5
+prerequisite_ids = Array[String](["talent.shadow.snake_oil"])
+ranks = Array[ExtResource("rank")]([SubResource("rank1"), SubResource("rank2"), SubResource("rank3"), SubResource("rank4"), SubResource("rank5")])
