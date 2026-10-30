@@ -7,7 +7,7 @@
 [sub_resource type="Resource" id="Resource_tavern_bouncer_reward"]
 script = ExtResource("3_reward_script")
 gold_amount = 24
-talent_points = 1
+talent_points = 2
 
 [resource]
 script = ExtResource("1_encounter")

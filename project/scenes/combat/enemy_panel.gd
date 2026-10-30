@@ -63,8 +63,9 @@ func _ready() -> void:
 	# without a second label node.
 	_info_label = RichTextLabel.new()
 	_info_label.bbcode_enabled = true
-	_info_label.fit_content = true
-	_info_label.scroll_active = false
+	_info_label.fit_content = false
+	_info_label.scroll_active = true
+	_info_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_info_label.add_theme_font_size_override("normal_font_size", 17)
 	content.add_child(_info_label)
 

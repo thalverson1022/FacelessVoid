@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="Talent" format=3]
+[ext_resource type="Script" path="res://scripts/resources/talent.gd" id="talent"]
+[ext_resource type="Script" path="res://scripts/resources/talent_rank.gd" id="rank"]
+
+[sub_resource type="Resource" id="rank1"]
+script = ExtResource("rank")
+echoing_toxin_rank = 1
+
+[sub_resource type="Resource" id="rank2"]
+script = ExtResource("rank")
+echoing_toxin_rank = 2
+
+[sub_resource type="Resource" id="rank3"]
+script = ExtResource("rank")
+echoing_toxin_rank = 3
+
+[resource]
+script = ExtResource("talent")
+id = "talent.assassin.echoing_toxin"
+display_name = "Echoing Toxin"
+max_ranks = 3
+required_tree_points = 5
+ranks = Array[ExtResource("rank")]([SubResource("rank1"), SubResource("rank2"), SubResource("rank3")])

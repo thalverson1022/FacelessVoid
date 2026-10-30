@@ -1,0 +1,342 @@
+{
+  "format": "faceless-void.tree-lab",
+  "schema_version": 1,
+  "tree": {
+    "id": "draft.796efc38-720f-4ee9-bdfa-816ab6540b0d",
+    "name": "Thief",
+    "subclass": "Thief",
+    "notes": "",
+    "levels": [
+      {
+        "id": "level.1",
+        "order": 1,
+        "required_points": 0
+      },
+      {
+        "id": "level.2",
+        "order": 2,
+        "required_points": 5
+      },
+      {
+        "id": "level.3",
+        "order": 3,
+        "required_points": 10
+      },
+      {
+        "id": "level.4",
+        "order": 4,
+        "required_points": 15
+      },
+      {
+        "id": "level.5",
+        "order": 5,
+        "required_points": 20
+      }
+    ],
+    "talents": [
+      {
+        "id": "talent.af3c13fe-ca0d-4b76-824c-b3f297ad1bcd",
+        "name": "Gilded Blade",
+        "flavour_text": "",
+        "description": "1% crit damage per gold is stash (Capped at 500)",
+        "icon_id": "rogue.venom_jab",
+        "level_id": "level.5",
+        "position": {
+          "x": 0.5
+        },
+        "max_ranks": 1,
+        "prerequisite_ids": [],
+        "values": [],
+        "skill_grant": null
+      },
+      {
+        "id": "talent.218204d6-6d0d-4786-abf9-ab5a88162460",
+        "name": "Keen Eye",
+        "flavour_text": "",
+        "description": "2% Increased all damage per point",
+        "icon_id": "rogue.venom_jab",
+        "level_id": "level.1",
+        "position": {
+          "x": 0.4
+        },
+        "max_ranks": 5,
+        "prerequisite_ids": [],
+        "values": [
+          {
+            "id": "value.236a1da3-c683-48d1-af9f-992613d4fd0e",
+            "label": "Increased Physical Damage",
+            "unit": "%",
+            "rank_1": 2,
+            "per_rank": 2
+          },
+          {
+            "id": "value.b04874f6-62cd-469c-b65e-990d05522de2",
+            "label": "Increased Elemental Damage",
+            "unit": "%",
+            "rank_1": 2,
+            "per_rank": 2
+          }
+        ],
+        "skill_grant": null
+      },
+      {
+        "id": "talent.e427faad-e406-48de-91df-87a8b89f605f",
+        "name": "Sticky Fingers",
+        "flavour_text": "",
+        "description": "10% Increased gold per point",
+        "icon_id": "rogue.steal",
+        "level_id": "level.1",
+        "position": {
+          "x": 0.6
+        },
+        "max_ranks": 5,
+        "prerequisite_ids": [],
+        "values": [
+          {
+            "id": "value.27b6ccc1-aa22-48dc-876b-13acee4da5b4",
+            "label": "Increased Gold",
+            "unit": "%",
+            "rank_1": 10,
+            "per_rank": 10
+          }
+        ],
+        "skill_grant": null
+      },
+      {
+        "id": "talent.c710496f-e14c-417c-a986-679a06f755b1",
+        "name": "Silvered Edge",
+        "flavour_text": "",
+        "description": "Add 1% crit per gold stolen. ",
+        "icon_id": "rogue.stab",
+        "level_id": "level.3",
+        "position": {
+          "x": 0.6
+        },
+        "max_ranks": 3,
+        "prerequisite_ids": [],
+        "values": [
+          {
+            "id": "value.11985aba-4fb9-4ce3-bcbd-c0961262558d",
+            "label": "Max Crit Chance",
+            "unit": "%",
+            "rank_1": 25,
+            "per_rank": 25
+          }
+        ],
+        "skill_grant": null
+      },
+      {
+        "id": "talent.ea4bc525-1133-4983-9197-30f2ded2b0d4",
+        "name": "Fast Hands",
+        "flavour_text": "",
+        "description": "You attack speed is increased based on a percentage of your Increased Gold",
+        "icon_id": "rogue.quick_cut",
+        "level_id": "level.2",
+        "position": {
+          "x": 0.3
+        },
+        "max_ranks": 5,
+        "prerequisite_ids": [],
+        "values": [
+          {
+            "id": "value.9512f9e3-d6cc-4f70-86e2-02833301d349",
+            "label": "Percentage of Increased Gold as attack speed",
+            "unit": "%",
+            "rank_1": 10,
+            "per_rank": 10
+          }
+        ],
+        "skill_grant": null
+      },
+      {
+        "id": "talent.0b3a6738-69a2-4776-8bd6-2c431ee87f14",
+        "name": "Fill Your Pockets",
+        "flavour_text": "",
+        "description": "Increase your elemental damage based on a percentage of magic find",
+        "icon_id": "rogue.beguiling_strike",
+        "level_id": "level.2",
+        "position": {
+          "x": 0.45
+        },
+        "max_ranks": 5,
+        "prerequisite_ids": [],
+        "values": [
+          {
+            "id": "value.d3e5f90c-da19-48af-aea9-9dfed1fc683e",
+            "label": "Percentage of Magic Find as elemental damage",
+            "unit": "%",
+            "rank_1": 20,
+            "per_rank": 20
+          }
+        ],
+        "skill_grant": null
+      },
+      {
+        "id": "talent.38bc1195-2df1-4a68-95c3-3ce47dac594e",
+        "name": "Charisma",
+        "flavour_text": "",
+        "description": "Increased Shop Discount",
+        "icon_id": "rogue.death_strike",
+        "level_id": "level.2",
+        "position": {
+          "x": 0.7
+        },
+        "max_ranks": 3,
+        "prerequisite_ids": [],
+        "values": [
+          {
+            "id": "value.2c71cc21-cb60-486f-b9ba-02b0ad1b8354",
+            "label": "",
+            "unit": "%",
+            "rank_1": 10,
+            "per_rank": 10
+          }
+        ],
+        "skill_grant": null
+      },
+      {
+        "id": "talent.85903eb4-7bd5-4193-88d4-483d29903fdf",
+        "name": "Load Dice",
+        "flavour_text": "",
+        "description": "Increased Magic Find",
+        "icon_id": "rogue.death_strike",
+        "level_id": "level.4",
+        "position": {
+          "x": 0.7
+        },
+        "max_ranks": 3,
+        "prerequisite_ids": [
+          "talent.38bc1195-2df1-4a68-95c3-3ce47dac594e"
+        ],
+        "values": [
+          {
+            "id": "value.52c938c5-4f18-4a5c-bffa-43b1f81b8bd5",
+            "label": "Increased Magic Find",
+            "unit": "%",
+            "rank_1": 100,
+            "per_rank": 100
+          }
+        ],
+        "skill_grant": null
+      },
+      {
+        "id": "talent.63088562-c24a-437b-b5ae-9620c3fa735f",
+        "name": "Bribery",
+        "flavour_text": "",
+        "description": "Stealing gold applies shred",
+        "icon_id": "rogue.hold",
+        "level_id": "level.3",
+        "position": {
+          "x": 0.4
+        },
+        "max_ranks": 3,
+        "prerequisite_ids": [],
+        "values": [
+          {
+            "id": "value.5c5cb0a8-7ecd-4c0c-9062-0145b088e620",
+            "label": "Stacks of Shred",
+            "unit": "stacks of shred",
+            "rank_1": 2,
+            "per_rank": 2
+          }
+        ],
+        "skill_grant": null
+      },
+      {
+        "id": "talent.7d15dba0-0aca-48b9-b347-0c3890d0a78f",
+        "name": "Finders Keepers",
+        "flavour_text": "",
+        "description": "Attacks ingore block",
+        "icon_id": "rogue.hold",
+        "level_id": "level.4",
+        "position": {
+          "x": 0.5
+        },
+        "max_ranks": 2,
+        "prerequisite_ids": [],
+        "values": [
+          {
+            "id": "value.285a5619-0bac-45a1-a5c7-e885848c36dc",
+            "label": "Percent Block Ignored",
+            "unit": "%",
+            "rank_1": 50,
+            "per_rank": 50
+          }
+        ],
+        "skill_grant": null
+      }
+    ],
+    "intrinsic": {
+      "name": "Thief Intrinsic",
+      "description": "10% + 2% extra gold per point",
+      "icon_id": "placeholder",
+      "values": [
+        {
+          "id": "value.327b5593-ad3b-485a-9beb-4c9027da7ec6",
+          "label": "Extra Gold",
+          "unit": "%",
+          "base": 10,
+          "per_point": 2
+        }
+      ]
+    },
+    "automatic_unlocks": [
+      {
+        "id": "unlock.1",
+        "order": 1,
+        "required_points": 1,
+        "icon_id": "rogue.steal",
+        "skill": {
+          "id": "draft.skill.35218f74-d5c9-420f-9c33-fa84919900f6",
+          "name": "Steal",
+          "description": "Crits steal 3 gold"
+        },
+        "values": []
+      },
+      {
+        "id": "unlock.2",
+        "order": 2,
+        "required_points": 3,
+        "icon_id": "rogue.steal",
+        "skill": {
+          "id": "draft.skill.7cda0b57-089b-45ba-a9b8-ff709c86f557",
+          "name": "Mug",
+          "description": "Add stolen gold as base physical damage (cap 100)"
+        },
+        "values": []
+      },
+      {
+        "id": "unlock.3",
+        "order": 3,
+        "required_points": 6,
+        "icon_id": "rogue.steal",
+        "skill": {
+          "id": "draft.skill.233951b0-cea3-4411-a655-a7ae6700462d",
+          "name": "Pick pocket",
+          "description": " Low damage but steals 20 gold"
+        },
+        "values": []
+      },
+      {
+        "id": "unlock.4",
+        "order": 4,
+        "required_points": 9,
+        "icon_id": "placeholder",
+        "skill": null,
+        "values": []
+      },
+      {
+        "id": "unlock.5",
+        "order": 5,
+        "required_points": 12,
+        "icon_id": "rogue.quick_cut",
+        "skill": {
+          "id": "draft.skill.5d93b084-6349-4df6-b8b1-a06a2a2d3db9",
+          "name": "Big Score",
+          "description": "Physical damage attack that does 2X crit damage"
+        },
+        "values": []
+      }
+    ]
+  }
+}

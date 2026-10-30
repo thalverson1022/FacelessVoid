@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="Talent" format=3]
+[ext_resource type="Script" path="res://scripts/resources/talent.gd" id="talent"]
+[ext_resource type="Script" path="res://scripts/resources/talent_rank.gd" id="rank"]
+
+[sub_resource type="Resource" id="rank1"]
+script = ExtResource("rank")
+hastened_poison_rank = 1
+
+[sub_resource type="Resource" id="rank2"]
+script = ExtResource("rank")
+hastened_poison_rank = 2
+
+[sub_resource type="Resource" id="rank3"]
+script = ExtResource("rank")
+hastened_poison_rank = 3
+
+[sub_resource type="Resource" id="rank4"]
+script = ExtResource("rank")
+hastened_poison_rank = 4
+
+[sub_resource type="Resource" id="rank5"]
+script = ExtResource("rank")
+hastened_poison_rank = 5
+
+[resource]
+script = ExtResource("talent")
+id = "talent.assassin.hastened_poison"
+display_name = "Hastened Poison"
+max_ranks = 5
+required_tree_points = 5
+ranks = Array[ExtResource("rank")]([SubResource("rank1"), SubResource("rank2"), SubResource("rank3"), SubResource("rank4"), SubResource("rank5")])

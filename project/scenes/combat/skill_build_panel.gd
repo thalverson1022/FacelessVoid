@@ -1,18 +1,19 @@
 extends PanelContainer
 ## Combat dashboard strip (center column, bottom): the skill macro as a
-## horizontal row of icon boxes in left-to-right cast order. Skills without
-## assigned art still fall back to Skill.icon_letter. Clicking a box removes
-## that slot from the macro; the full skill name is on the tooltip. Adding
+## wrapping numbered slots in reading order. Skills without
+## assigned art still fall back to Skill.icon_letter. Clicking a box
+## selects it; right-click removes it. Hover shows current-build information. Adding
 ## happens in available_skills_panel.gd; both strips sync purely through
 ## state.rotation.
 
 const CARD_TITLE_FONT_SIZE := 28
-const SLOT_SIZE := Vector2(72, 72)
+const SLOT_SIZE := Vector2(76, 80)
+const TEST_ICONS := preload("res://scripts/ui/test_mode_skill_icons.gd")
+const TEST_ICON_SHADER := preload("res://scripts/ui/rounded_skill_icon.gdshader")
 const SLOT_FONT_SIZE := 26
-const SLOT_ICON_INSET := 7.0
-const SLOT_ICON_SIZE := Vector2(58, 58)
-const PANEL_MIN_HEIGHT := 184
-const ORDER_BADGE_FONT_SIZE := 11
+const SLOT_ICON_SIZE := Vector2(72, 72)
+const PANEL_MIN_HEIGHT := 112
+const ORDER_BADGE_FONT_SIZE := 18
 const REMOVE_BADGE_FONT_SIZE := 14
 const SLOT_COUNT_FONT_SIZE := 22
 const INTERRUPT_LOCK_ICON_SIZE := Vector2(46, 46)
@@ -26,6 +27,7 @@ const PROGRESS_FILL_COLOR := UIColors.BUILD_PROGRESS_FILL
 const PROC_PROGRESS_FILL_COLOR := UIColors.BUILD_PROC_PROGRESS_FILL
 const SLOW_PROGRESS_FILL_COLOR := Color(0.38, 0.72, 1.0, 0.48)
 const STUNNED_SLOT_MODULATE := Color(0.38, 0.38, 0.38, 0.76)
+const UNAVAILABLE_SLOT_MODULATE := Color(0.5, 0.5, 0.5, 1.0)
 const STUN_COOLDOWN_FILL := Color(0.02, 0.018, 0.016, 0.64)
 const STUN_COOLDOWN_EDGE := Color(0.0, 0.0, 0.0, 0.58)
 const LOCK_ICON := preload("res://assets/ui/icons/build_lock.png")
@@ -38,11 +40,16 @@ const SkillTooltipFormatterScript := preload("res://scripts/ui/skill_tooltip_for
 ## P2:R10: see talent_panel.gd's `state` comment -- same pattern, same
 ## default, same untyped declaration reason.
 var state = BuildState
+var _credit_model
+var _seen_cooldown_credits := {}
+var _cooldown_pulses := {}
+var locket_pulse_count := 0
 
 var _content: VBoxContainer
 var _title_label: Label
 var _macro_row: HBoxContainer
-var _slots_box: HBoxContainer
+var _slots_box: GridContainer
+var _selected_index := -1
 var _slot_count_label: Label
 var _lock_button: Button
 var _lock_button_icon: TextureRect
@@ -58,6 +65,8 @@ var _stun_tween: Tween
 var _combat_interaction_locked := false
 var _slow_effect_active := false
 var _stun_effect_active := false
+var _readiness_available := false
+var _readiness_cast_index := -1
 var _stun_generation := 0
 var stun_effect_count := 0
 var last_stun_duration_ms := 0
@@ -83,36 +92,14 @@ class InterruptLockOverlay:
 
 
 class StunCooldownOverlay:
-	extends Control
-
-	var fill_color := Color(0.02, 0.018, 0.016, 0.64)
-	var edge_color := Color(0.0, 0.0, 0.0, 0.58)
-	var progress := 0.0:
-		set(value):
-			progress = clampf(value, 0.0, 1.0)
-			queue_redraw()
-
-	func _ready() -> void:
-		mouse_filter = Control.MOUSE_FILTER_IGNORE
-
-	func _draw() -> void:
-		if progress <= 0.0:
-			return
-		var center := size * 0.5
-		var radius := minf(size.x, size.y) * 0.68
-		var points := PackedVector2Array([center])
-		var start_angle := -PI * 0.5
-		var sweep := TAU * progress
-		var steps := maxi(8, ceili(48.0 * progress))
-		for i in range(steps + 1):
-			var angle := start_angle + sweep * (float(i) / float(steps))
-			points.append(center + Vector2(cos(angle), sin(angle)) * radius)
-		draw_colored_polygon(points, fill_color)
-		draw_arc(center, radius, start_angle, start_angle + sweep, steps, edge_color, 3.0, true)
-
+	extends "res://scripts/ui/combat_radial_countdown.gd"
 
 func _ready() -> void:
-	add_theme_stylebox_override("panel", CardStyle.make_stylebox())
+	var panel_style := CardStyle.make_stylebox()
+	# Ten full-size slots must fit Practice without pushing its side panels.
+	panel_style.content_margin_left = 8
+	panel_style.content_margin_right = 8
+	add_theme_stylebox_override("panel", panel_style)
 	custom_minimum_size = Vector2(0, PANEL_MIN_HEIGHT)
 
 	_content = VBoxContainer.new()
@@ -159,23 +146,28 @@ func _ready() -> void:
 	_lock_button_icon.anchor_bottom = 0.5
 	_lock_button.add_child(_lock_button_icon)
 
+	var row_height: float = SLOT_SIZE.y
 	_macro_row = HBoxContainer.new()
+	_macro_row.custom_minimum_size.y = row_height
 	_macro_row.add_theme_constant_override("separation", 2)
 	_content.add_child(_macro_row)
 
-	_slots_box = HBoxContainer.new()
-	_slots_box.add_theme_constant_override("separation", 6)
-	_slots_box.custom_minimum_size = Vector2(0, SLOT_SIZE.y)
+	_slots_box = GridContainer.new()
+	_slots_box.columns = 10
+	_slots_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_slots_box.add_theme_constant_override("h_separation", 4)
+	_slots_box.add_theme_constant_override("v_separation", 6)
+	# Reserve the complete row even when empty, keeping all columns stable.
+	_slots_box.custom_minimum_size = Vector2(SLOT_SIZE.x * 10 + 4 * 9, row_height)
 	_macro_row.add_child(_slots_box)
 
-	var lock_spacer := Control.new()
-	lock_spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_macro_row.add_child(lock_spacer)
+	
 
 	_lock_holder = CenterContainer.new()
-	_lock_holder.custom_minimum_size = Vector2(LOCK_BUTTON_SIZE.x, SLOT_SIZE.y)
+	_lock_holder.custom_minimum_size = Vector2(LOCK_BUTTON_SIZE.x, row_height)
 	_macro_row.add_child(_lock_holder)
 	_lock_holder.add_child(_lock_button)
+
 
 	state.build_changed.connect(_refresh)
 	state.lock_changed.connect(_refresh)
@@ -227,6 +219,7 @@ func _update_lock_button() -> void:
 func _refresh() -> void:
 	_update_lock_button()
 	_update_slot_count_label()
+	_selected_index = mini(_selected_index, state.rotation.size() - 1)
 	_slot_buttons = []
 	_slot_fills = []
 	_slot_interrupt_overlays = []
@@ -234,32 +227,40 @@ func _refresh() -> void:
 	for child in _slots_box.get_children():
 		if child is Button:
 			child.disabled = state.build_locked
+		_slots_box.remove_child(child)
 		child.queue_free()
 
 	if state.rotation.is_empty():
 		var empty_label := Label.new()
-		empty_label.text = "No skills slotted -- click a skill above to add it."
+		empty_label.text = "Click a skill above to add it."
 		_slots_box.add_child(empty_label)
 		return
 
 	for i in state.rotation.size():
 		var skill: Skill = state.rotation[i]
-		var slot := Button.new()
+		var slot := IconTooltipButton.new()
+		slot.tooltip_icon = skill.icon
 		slot.text = _glyph_for(skill)
 		slot.custom_minimum_size = SLOT_SIZE
 		slot.add_theme_font_size_override("font_size", SLOT_FONT_SIZE)
 		slot.add_theme_color_override("font_color", CardStyle.ACCENT_COLOR)
-		slot.disabled = state.build_locked
-		slot.tooltip_text = "%s\n%s\ncast position %d of %d (%s)" % [
-			skill.display_name,
-			SkillTooltipFormatterScript.effect_summary(skill, state),
-			i + 1,
-			state.rotation.size(),
-			"unlock to edit" if state.build_locked else "click the slot or the x to remove",
-		]
+		slot.disabled = false
+		slot.tooltip_text = _slot_tooltip(skill, i)
+		slot.tooltip_provider = func(): return _slot_tooltip(skill, i)
+		slot.skill_hover_provider = func(): return preload("res://scripts/ui/skill_hover_formatter.gd").model(skill,state)
+		slot.gui_input.connect(_on_slot_input.bind(i))
 		slot.pressed.connect(_on_slot_pressed.bind(i))
 		_apply_slot_style(slot, i == _active_index, false)
 		_add_skill_icon(slot, skill)
+		var category_style = preload("res://scripts/ui/skill_category_preview_style.gd")
+		if category_style.icon_selected(skill):
+			var accent = preload("res://scripts/ui/skill_category_icon_accent.gd").new()
+			accent.state = state
+			accent.skill = skill
+			accent.macro_slot = true
+			accent.bottom_bar_height = 6.0
+			accent.z_index = 9
+			slot.add_child(accent)
 
 		var fill := ColorRect.new()
 		fill.name = "CastProgressFill"
@@ -295,21 +296,18 @@ func _refresh() -> void:
 		order_badge.position = Vector2(3, 1)
 		slot.add_child(order_badge)
 
-		# Explicit remove affordance, top-right corner -- the whole slot
-		# already removes on click, but the task calls for an obvious,
-		# discoverable remove control rather than only implicit behavior.
-		# Hidden while locked, since clicking does nothing then.
-		if not state.build_locked:
-			var remove_badge := Label.new()
-			remove_badge.text = "x"
-			remove_badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
-			remove_badge.z_index = 4
-			remove_badge.add_theme_font_size_override("font_size", REMOVE_BADGE_FONT_SIZE)
-			remove_badge.add_theme_color_override("font_color", UIColors.TEXT_WARNING)
-			remove_badge.set_anchors_preset(Control.PRESET_TOP_RIGHT)
-			remove_badge.position = Vector2(-13, 1)
-			slot.add_child(remove_badge)
 
+		var cooldown := Label.new()
+		cooldown.name = "CooldownLabel"
+		cooldown.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		cooldown.position = Vector2(3, 25)
+		cooldown.add_theme_font_size_override("font_size", 18)
+		cooldown.add_theme_color_override("font_color", UIColors.TEXT_GOLD)
+		var cooldown_style := StyleBoxFlat.new()
+		cooldown_style.bg_color = Color(0.03, 0.025, 0.02, 0.95)
+		cooldown.add_theme_stylebox_override("normal", cooldown_style)
+		cooldown.z_index = 8
+		slot.add_child(cooldown)
 		_slots_box.add_child(slot)
 		_slot_buttons.append(slot)
 		_slot_fills.append(fill)
@@ -325,7 +323,7 @@ func highlight_rotation_index(index: int, pulse: bool = false) -> void:
 	_active_index = posmod(index, state.rotation.size())
 	for i in _slot_buttons.size():
 		_apply_slot_style(_slot_buttons[i], i == _active_index, false)
-	if pulse and _active_index >= 0 and _active_index < _slot_buttons.size():
+	if pulse and not CombatEffectIcons.reduced_motion and _active_index >= 0 and _active_index < _slot_buttons.size():
 		_pulse_slot(_slot_buttons[_active_index])
 
 
@@ -424,17 +422,21 @@ func _add_skill_icon(slot: Button, skill: Skill) -> void:
 		return
 	var icon := TextureRect.new()
 	icon.name = "SkillIcon"
-	icon.texture = skill.icon
 	icon.custom_minimum_size = SLOT_ICON_SIZE
 	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	icon.set_anchors_preset(Control.PRESET_FULL_RECT)
-	icon.offset_left = SLOT_ICON_INSET
-	icon.offset_top = SLOT_ICON_INSET
-	icon.offset_right = -SLOT_ICON_INSET
-	icon.offset_bottom = -SLOT_ICON_INSET
+	icon.texture = TEST_ICONS.icon_for(skill.id, skill.icon, 2)
+	icon.offset_left = 2
+	icon.offset_right = -2
+	icon.offset_top = 2
+	icon.offset_bottom = -6
+	var rounded := ShaderMaterial.new()
+	rounded.shader = TEST_ICON_SHADER
+	rounded.set_shader_parameter("icon_size", Vector2(72, 72))
+	icon.material = rounded
 	icon.z_index = 2
 	slot.add_child(icon)
 
@@ -493,6 +495,16 @@ func _apply_slot_stun_modulate(slot: Button) -> void:
 	if slot == null:
 		return
 	slot.modulate = STUNNED_SLOT_MODULATE if _stun_effect_active else Color.WHITE
+	var index := _slot_buttons.find(slot)
+	if index < 0 or index >= state.rotation.size():
+		return
+	var skill: Skill = state.rotation[index]
+	var unavailable := skill.enables_readiness and skill.id == "skill.parry_strike" and not _readiness_available and index != _readiness_cast_index
+	if unavailable:
+		slot.modulate *= UNAVAILABLE_SLOT_MODULATE
+	var icon := slot.get_node_or_null("SkillIcon") as TextureRect
+	if icon != null:
+		(icon.material as ShaderMaterial).set_shader_parameter("grayscale", unavailable)
 
 
 func _set_stun_overlay_progress(progress: float) -> void:
@@ -517,18 +529,33 @@ func _skill_lock_key(skill: Skill) -> String:
 
 
 func _on_slot_pressed(index: int) -> void:
-	if state.build_locked:
+	_selected_index = index
+
+
+func _slot_tooltip(skill: Skill, index: int) -> String:
+	return preload("res://scripts/ui/skill_hover_formatter.gd").plain_text(preload("res://scripts/ui/skill_hover_formatter.gd").model(skill,state))
+
+func _on_slot_input(event: InputEvent, index: int) -> void:
+	if (event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT and event.pressed) or (event is InputEventKey and event.keycode == KEY_DELETE and event.pressed and not event.echo):
+		_selected_index = index
+		_remove_selected()
+		accept_event()
+
+func _remove_selected() -> void:
+	if state.build_locked or _combat_interaction_locked or _selected_index < 0 or _selected_index >= state.rotation.size():
 		return
 	var rotation: Array[Skill] = state.rotation.duplicate()
-	rotation.remove_at(index)
+	rotation.remove_at(_selected_index)
 	state.set_rotation(rotation)
-
+	if not _slot_buttons.is_empty(): _slot_buttons[mini(_selected_index, _slot_buttons.size() - 1)].grab_focus()
 
 func _apply_slot_style(slot: Button, active: bool, pulse: bool) -> void:
 	var border_color := PULSE_SLOT_COLOR if pulse else (ACTIVE_SLOT_COLOR if active else CardStyle.ACCENT_COLOR)
 	var bg_color := PULSE_SLOT_BG if pulse else (ACTIVE_SLOT_BG if active else UIColors.PANEL_DEEP)
 	for state_name in ["normal", "hover", "pressed", "disabled", "focus"]:
 		var style := CardStyle.make_slot_stylebox(bg_color, border_color, 3 if active or pulse else 1, state_name)
+		if not active and not pulse and state_name == "normal":
+			style.bg_color = Color("28282b")
 		slot.add_theme_stylebox_override(state_name, style)
 	slot.add_theme_color_override("font_color", border_color)
 
@@ -566,3 +593,66 @@ func _pulse_slot(slot: Button) -> void:
 	_pulse_tween = create_tween()
 	_pulse_tween.tween_interval(0.16)
 	_pulse_tween.tween_callback(func(): _apply_slot_style(slot, true, false))
+
+
+func update_presentation(model, animate: bool = true) -> void:
+	if _credit_model != model:
+		clear_legendary_feedback()
+		_credit_model = model
+		_seen_cooldown_credits.clear()
+	_readiness_available = model.units("buff.readiness") > 0
+	# A charge can be granted and spent at the same timeline instant. Keep the
+	# accepted Parry lit through windup, like the HUD's held Readiness display.
+	_readiness_cast_index = -1
+	if model.time_ms < int(model.attempt.get("end_ms", 0)) and int(model.attempt.get("lifecycle", {}).get("readiness_consumed", 0)) > 0:
+		_readiness_cast_index = int(model.attempt.get("rotation_index", -1))
+	for i in _slot_buttons.size():
+		_apply_slot_stun_modulate(_slot_buttons[i])
+		var skill: Skill = state.rotation[i]
+		var label: Label = _slot_buttons[i].get_node("CooldownLabel")
+		var credits := int(model.cooldown_credits.get(skill.id, 0))
+		if credits > int(_seen_cooldown_credits.get(skill.id, 0)) and animate and not CombatEffectIcons.reduced_motion:
+			_pulse_cooldown(label)
+		label.text = "%.1fs" % ((int(model.cooldowns[skill.id]) - model.time_ms) / 1000.0) if model.cooldowns.has(skill.id) else ""
+		if label.text.is_empty() and _cooldown_pulses.has(label): label.text = "0.0s"
+		if i == int(model.attempt.get("rotation_index", -1)) and model.time_ms < int(model.attempt.get("end_ms", 0)) and model.attempt.get("reason") == "missing_readiness":
+			label.text = "No stack"
+		label.visible = not label.text.is_empty()
+	_seen_cooldown_credits = model.cooldown_credits.duplicate()
+	if not animate or CombatEffectIcons.reduced_motion: clear_legendary_feedback()
+
+func _pulse_cooldown(label: Label) -> void:
+	if _cooldown_pulses.has(label): _cooldown_pulses[label].kill()
+	locket_pulse_count += 1
+	label.set_meta("locket_pulse", true)
+	label.pivot_offset = label.size * 0.5
+	label.scale = Vector2.ONE * 1.3
+	label.modulate = Color(1.0, 1.0, 0.65)
+	var tween := label.create_tween().set_parallel(true)
+	_cooldown_pulses[label] = tween
+	tween.tween_property(label, "scale", Vector2.ONE, 0.28).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween.tween_property(label, "modulate", Color.WHITE, 0.28)
+	tween.chain().tween_callback(func():
+		_cooldown_pulses.erase(label)
+		label.set_meta("locket_pulse", false)
+	)
+
+func clear_legendary_feedback() -> void:
+	for label in _cooldown_pulses:
+		_cooldown_pulses[label].kill()
+		if is_instance_valid(label):
+			label.scale = Vector2.ONE
+			label.modulate = Color.WHITE
+			label.set_meta("locket_pulse", false)
+	_cooldown_pulses.clear()
+
+func clear_presentation() -> void:
+	clear_legendary_feedback()
+	_credit_model = null
+	_seen_cooldown_credits.clear()
+	state.remove_meta("combat_presentation")
+	_readiness_available = false
+	_readiness_cast_index = -1
+	for slot in _slot_buttons:
+		_apply_slot_stun_modulate(slot)
+		slot.get_node("CooldownLabel").text = ""

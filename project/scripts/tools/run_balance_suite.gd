@@ -12,7 +12,7 @@ func _initialize() -> void:
 		return
 
 	var counts := BalanceLab.status_counts(report)
-	print("Project Enigma Balance Lab report: %s" % output_dir)
+	print("FacelessVoid Balance Lab report: %s" % output_dir)
 	print("Status: %s | Scenarios: %s | Mechanics: %s | Seeds: %s" % [
 		report.get("status", "unknown"),
 		report.get("scenario_count", 0),

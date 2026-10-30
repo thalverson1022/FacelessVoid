@@ -3,7 +3,8 @@ extends PanelContainer
 ## earned inventory grid per the user's mockup.
 ##
 ## Equipment doll layout: hood (top), doublet (center, largest), dagger
-## (left), necklace above ring (stacked right). These are the five universal
+## (left), gloves below dagger, pants below doublet, necklace above ring.
+## These are the seven universal
 ## equipment slots, filled by rewards/shop inventory decisions.
 ## Slots render as gray boxes when empty and tier-treated when filled. Hovering
 ## a slot shows its name, or the item's name and stats.
@@ -23,6 +24,8 @@ const HELM_SLOT_SIZE := Vector2(76, 76)
 const ARMOR_SLOT_SIZE := Vector2(112, 112)
 const WEAPON_SLOT_SIZE := Vector2(88, 88)
 const SMALL_SLOT_SIZE := Vector2(60, 60)
+const LEGS_SLOT_SIZE := Vector2(88, 88)
+const HANDS_SLOT_SIZE := Vector2(68, 68)
 const INVENTORY_SLOT_SIZE := Vector2(88, 88)
 const ACTION_EQUIP_ID := 1
 const ACTION_SELL_ID := 2
@@ -41,6 +44,8 @@ var _armor_slot: Panel
 var _weapon_slot: Panel
 var _trinket_slot: Panel
 var _charm_slot: Panel
+var _legs_slot: Panel
+var _hands_slot: Panel
 var _inventory_grid: GridContainer
 var _gold_badge: PanelContainer
 var _gold_row: HBoxContainer
@@ -62,7 +67,7 @@ func _ready() -> void:
 	add_theme_stylebox_override("panel", CardStyle.make_stylebox())
 
 	var content := VBoxContainer.new()
-	content.add_theme_constant_override("separation", 10)
+	content.add_theme_constant_override("separation", 8)
 	content.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	add_child(content)
 
@@ -123,6 +128,7 @@ func _ready() -> void:
 	inventory_label.add_theme_font_size_override("font_size", SECTION_LABEL_FONT_SIZE)
 	content.add_child(inventory_label)
 
+
 	var inventory := PanelContainer.new()
 	inventory.custom_minimum_size = Vector2(0, 120)
 	inventory.tooltip_text = "Inventory -- storage for unequipped gear"
@@ -153,45 +159,45 @@ func _ready() -> void:
 	_refresh()
 
 
-## Paper doll source-of-truth arrangement: helm centered on top, then
-## weapon | armor | (charm over trinket).
-func _build_doll() -> VBoxContainer:
-	var doll := VBoxContainer.new()
-	doll.alignment = BoxContainer.ALIGNMENT_END
-	doll.add_theme_constant_override("separation", 8)
-
-	_helm_slot = _make_slot(HELM_SLOT_SIZE, GearItem.SlotType.HELM)
-	_helm_slot.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	doll.add_child(_helm_slot)
-
-	var middle_row := HBoxContainer.new()
-	middle_row.alignment = BoxContainer.ALIGNMENT_CENTER
-	middle_row.add_theme_constant_override("separation", 10)
-
+## Seven-slot arrangement shared with Practice: weapon/gloves on the left,
+## helm/chest/pants in the center, charm/trinket on the right.
+func _build_doll() -> HBoxContainer:
+	var doll := HBoxContainer.new()
+	doll.alignment = BoxContainer.ALIGNMENT_CENTER
+	doll.add_theme_constant_override("separation", 10)
+	var left := VBoxContainer.new()
+	left.alignment = BoxContainer.ALIGNMENT_CENTER
+	left.add_theme_constant_override("separation", 8)
+	doll.add_child(left)
 	_weapon_slot = _make_slot(WEAPON_SLOT_SIZE, GearItem.SlotType.WEAPON)
-	_weapon_slot.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	_weapon_slot.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	middle_row.add_child(_weapon_slot)
-
+	_hands_slot = _make_slot(HANDS_SLOT_SIZE, GearItem.SlotType.HANDS)
+	left.add_child(_weapon_slot)
+	left.add_child(_hands_slot)
+	var center := VBoxContainer.new()
+	center.alignment = BoxContainer.ALIGNMENT_CENTER
+	center.add_theme_constant_override("separation", 8)
+	doll.add_child(center)
+	_helm_slot = _make_slot(HELM_SLOT_SIZE, GearItem.SlotType.HELM)
 	_armor_slot = _make_slot(ARMOR_SLOT_SIZE, GearItem.SlotType.ARMOR)
-	middle_row.add_child(_armor_slot)
-
-	var right_stack := VBoxContainer.new()
-	right_stack.alignment = BoxContainer.ALIGNMENT_CENTER
-	right_stack.add_theme_constant_override("separation", 6)
+	_legs_slot = _make_slot(LEGS_SLOT_SIZE, GearItem.SlotType.LEGS)
+	center.add_child(_helm_slot)
+	center.add_child(_armor_slot)
+	center.add_child(_legs_slot)
+	var right := VBoxContainer.new()
+	right.alignment = BoxContainer.ALIGNMENT_CENTER
+	right.add_theme_constant_override("separation", 6)
+	doll.add_child(right)
 	_charm_slot = _make_slot(SMALL_SLOT_SIZE, GearItem.SlotType.CHARM)
-	right_stack.add_child(_charm_slot)
 	_trinket_slot = _make_slot(SMALL_SLOT_SIZE, GearItem.SlotType.TRINKET)
-	right_stack.add_child(_trinket_slot)
-	middle_row.add_child(right_stack)
-
-	doll.add_child(middle_row)
+	right.add_child(_charm_slot)
+	right.add_child(_trinket_slot)
 	return doll
 
 
 func _make_slot(slot_size: Vector2, gear_slot: int) -> Panel:
 	var slot: Panel = GearTooltipPanelScript.new()
 	slot.custom_minimum_size = slot_size
+	slot.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	slot.mouse_filter = Control.MOUSE_FILTER_STOP
 
 	var slot_background := TextureRect.new()
@@ -202,6 +208,11 @@ func _make_slot(slot_size: Vector2, gear_slot: int) -> Panel:
 	slot_background.texture = GearIcons.slot_background_for(gear_slot)
 	slot_background.modulate = Color(1, 1, 1, 0.46)
 	slot_background.set_anchors_preset(Control.PRESET_FULL_RECT)
+	if gear_slot in [GearItem.SlotType.LEGS, GearItem.SlotType.HANDS]:
+		slot_background.offset_left = 4
+		slot_background.offset_top = 4
+		slot_background.offset_right = -4
+		slot_background.offset_bottom = -4
 	slot.add_child(slot_background)
 
 	var icon := TextureRect.new()
@@ -213,6 +224,11 @@ func _make_slot(slot_size: Vector2, gear_slot: int) -> Panel:
 	icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	icon.set_anchors_preset(Control.PRESET_FULL_RECT)
+	if gear_slot in [GearItem.SlotType.LEGS, GearItem.SlotType.HANDS]:
+		icon.offset_left = 4
+		icon.offset_top = 4
+		icon.offset_right = -4
+		icon.offset_bottom = -4
 	slot.add_child(icon)
 	return slot
 
@@ -224,6 +240,8 @@ func _refresh() -> void:
 	_update_slot(_weapon_slot, "Dagger", BuildState.equipped_weapon)
 	_update_slot(_charm_slot, "Necklace", BuildState.equipped_charm)
 	_update_slot(_trinket_slot, "Ring", BuildState.equipped_trinket)
+	_update_slot(_legs_slot, "Pants", BuildState.equipped_legs)
+	_update_slot(_hands_slot, "Gloves", BuildState.equipped_hands)
 	_refresh_inventory()
 
 
@@ -290,13 +308,17 @@ func _show_inventory_action_menu(gear: GearItem) -> void:
 	if gear == null:
 		return
 	_pending_inventory_action_item = gear
+	_inventory_action_menu.set_item_disabled(_inventory_action_menu.get_item_index(ACTION_EQUIP_ID), BuildState.build_locked)
+	_inventory_action_menu.set_item_disabled(_inventory_action_menu.get_item_index(ACTION_DESTROY_ID), BuildState.build_locked)
 	_inventory_action_menu.set_item_text(_inventory_action_menu.get_item_index(ACTION_SELL_ID), _sell_action_text(gear))
-	_inventory_action_menu.set_item_disabled(_inventory_action_menu.get_item_index(ACTION_SELL_ID), not BuildState.shop_round_pending)
+	_inventory_action_menu.set_item_disabled(_inventory_action_menu.get_item_index(ACTION_SELL_ID), not BuildState.shop_round_pending or BuildState.build_locked)
 	_inventory_action_menu.position = Vector2i(get_viewport().get_mouse_position())
 	_inventory_action_menu.popup()
 
 
 func _on_inventory_action_selected(action_id: int) -> void:
+	if BuildState.build_locked:
+		return
 	var gear := _pending_inventory_action_item
 	_pending_inventory_action_item = null
 	if gear == null:
@@ -325,14 +347,18 @@ func _show_equipped_action_menu(gear_slot: GearItem.SlotType) -> void:
 	if gear == null:
 		return
 	_pending_equipped_action_slot = gear_slot
+	_equipped_action_menu.set_item_disabled(_equipped_action_menu.get_item_index(ACTION_DESTROY_ID), BuildState.build_locked)
 	_equipped_action_menu.set_item_text(_equipped_action_menu.get_item_index(ACTION_SELL_ID), _sell_action_text(gear))
 	_equipped_action_menu.set_item_disabled(_equipped_action_menu.get_item_index(ACTION_UNEQUIP_ID), not _can_unequip_to_inventory())
-	_equipped_action_menu.set_item_disabled(_equipped_action_menu.get_item_index(ACTION_SELL_ID), not BuildState.shop_round_pending)
+	_equipped_action_menu.set_item_tooltip(_equipped_action_menu.get_item_index(ACTION_UNEQUIP_ID), "Inventory full -- make space first." if not _can_unequip_to_inventory() else "Move this item to inventory.")
+	_equipped_action_menu.set_item_disabled(_equipped_action_menu.get_item_index(ACTION_SELL_ID), not BuildState.shop_round_pending or BuildState.build_locked)
 	_equipped_action_menu.position = Vector2i(get_viewport().get_mouse_position())
 	_equipped_action_menu.popup()
 
 
 func _on_equipped_action_selected(action_id: int) -> void:
+	if BuildState.build_locked:
+		return
 	var gear_slot := _pending_equipped_action_slot
 	_pending_equipped_action_slot = -1
 	if gear_slot == -1:
@@ -398,6 +424,8 @@ func _confirm_destroy_equipped_item(slot: GearItem.SlotType) -> void:
 
 
 func _on_sell_confirmed() -> void:
+	if BuildState.build_locked or not BuildState.shop_round_pending:
+		return
 	var sold_gear: GearItem = null
 	var source_rect := Rect2()
 	var sale_value := 0
@@ -424,6 +452,8 @@ func _on_sell_confirmed() -> void:
 
 
 func _on_destroy_confirmed() -> void:
+	if BuildState.build_locked:
+		return
 	var destroyed := false
 	if _pending_destroy_inventory_item != null:
 		destroyed = BuildState.destroy_inventory_item(_pending_destroy_inventory_item)
@@ -469,6 +499,11 @@ func _update_slot(slot: Panel, slot_name: String, gear: GearItem) -> void:
 		_connect_equipped_slot_click(slot, GearItem.SlotType.TRINKET)
 	elif slot == _charm_slot:
 		_connect_equipped_slot_click(slot, GearItem.SlotType.CHARM)
+
+	elif slot == _legs_slot:
+		_connect_equipped_slot_click(slot, GearItem.SlotType.LEGS)
+	elif slot == _hands_slot:
+		_connect_equipped_slot_click(slot, GearItem.SlotType.HANDS)
 
 
 func _connect_equipped_slot_click(slot: Panel, gear_slot: GearItem.SlotType) -> void:
@@ -535,7 +570,7 @@ func animate_gold_to_rect(destination_rect: Rect2, amount: int, wait_for_complet
 
 
 func _equip_from_inventory_with_animation(gear: GearItem, source_slot: Control = null) -> void:
-	if gear == null or not BuildState.has_inventory_item(gear):
+	if BuildState.build_locked or gear == null or not BuildState.has_inventory_item(gear):
 		return
 	var target_slot := _equipped_panel_for_slot(gear.slot)
 	var source_rect := _global_rect_for(source_slot if source_slot != null else _inventory_button_for_item(gear))
@@ -598,6 +633,10 @@ func _equipped_panel_for_slot(gear_slot: GearItem.SlotType) -> Panel:
 			return _trinket_slot
 		GearItem.SlotType.CHARM:
 			return _charm_slot
+		GearItem.SlotType.LEGS:
+			return _legs_slot
+		GearItem.SlotType.HANDS:
+			return _hands_slot
 	return null
 
 

@@ -1,0 +1,32 @@
+[
+  {
+    "name": "shadow_mastery",
+    "reference": "project/assets/ui/assigned/talents/shadow/shadow_mastery.png",
+    "prompt": "Edit this existing pixel-art game icon as a conservative readability refinement. Preserve the dark hooded skull/face with dripping violet shadow. Brighten violet outer contour and eye/face highlights so the silhouette is unmistakable at 22px on a near-black background; retain ominous dark center. One isolated icon only, transparent background, no words, border, frame, sheet or labels. Crisp 32x32-style pixel art with a deliberately coarse pixel grid, no smooth painting, no anti-aliased gradients. Preserve original orientation, palette identity and overall subject. Fit within square with small transparent margin. This is a candidate for side-by-side review, not a redesign.",
+    "transparent_background": true
+  },
+  {
+    "name": "dusk_strike",
+    "reference": "project/assets/ui/assigned/talents/shadow/dusk_strike.png",
+    "prompt": "Edit this existing pixel-art game icon as a conservative readability refinement. Preserve two parallel diagonal dark daggers aimed upper-right. Broaden the silver/lavender blade highlights and handles, retain the two separate blades and purple shadow identity. One isolated icon only, transparent background, no words, border, frame, sheet or labels. Crisp 32x32-style pixel art with a deliberately coarse pixel grid, no smooth painting, no anti-aliased gradients. Preserve original orientation, palette identity and overall subject. Fit within square with small transparent margin. This is a candidate for side-by-side review, not a redesign.",
+    "transparent_background": true
+  },
+  {
+    "name": "potency",
+    "reference": "project/assets/ui/assigned/statuses/potency.png",
+    "prompt": "Edit this existing pixel-art game icon as a conservative readability refinement. Preserve purple segmented orb with bright green downward dripping energy. Increase purple/lavender edge contrast and make the green descending mark clearer without changing composition. One isolated icon only, transparent background, no words, border, frame, sheet or labels. Crisp 32x32-style pixel art with a deliberately coarse pixel grid, no smooth painting, no anti-aliased gradients. Preserve original orientation, palette identity and overall subject. Fit within square with small transparent margin. This is a candidate for side-by-side review, not a redesign.",
+    "transparent_background": true
+  },
+  {
+    "name": "toxic_tradeoff",
+    "reference": "project/assets/ui/assigned/talents/assassin/toxic_tradeoff.png",
+    "prompt": "Edit this existing pixel-art game icon as a conservative readability refinement. Preserve a single diagonal poison-coated silver sword with green toxic dots, handle lower left and point upper right. Thicken the silver blade and green poison silhouette for readability at 22px. One isolated icon only, transparent background, no words, border, frame, sheet or labels. Crisp 32x32-style pixel art with a deliberately coarse pixel grid, no smooth painting, no anti-aliased gradients. Preserve original orientation, palette identity and overall subject. Fit within square with small transparent margin. This is a candidate for side-by-side review, not a redesign.",
+    "transparent_background": true
+  },
+  {
+    "name": "sharpened_edge",
+    "reference": "project/assets/ui/assigned/talents/bladedancer/sharpened_edge.png",
+    "prompt": "Edit this existing pixel-art game icon as a conservative readability refinement. Preserve a single diagonal blue-silver sharpened sword, handle lower left, point upper right. Broaden the bright blade silhouette so it remains clear at 22px. One isolated icon only, transparent background, no words, border, frame, sheet or labels. Crisp 32x32-style pixel art with a deliberately coarse pixel grid, no smooth painting, no anti-aliased gradients. Preserve original orientation, palette identity and overall subject. Fit within square with small transparent margin. This is a candidate for side-by-side review, not a redesign.",
+    "transparent_background": true
+  }
+]

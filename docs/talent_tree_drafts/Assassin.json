@@ -1,0 +1,352 @@
+{
+  "format": "faceless-void.tree-lab",
+  "schema_version": 1,
+  "tree": {
+    "id": "draft.assassin",
+    "name": "Assassin",
+    "subclass": "Assassin",
+    "notes": "Illustrative transcription of the user sketch, not an approved redesign. Names, thresholds, rank caps and unspecified values are proposals. Fifth automatic slot intentionally blank. IAS means increased attack speed. Bypass and bonus tick damage are unimplemented concepts.",
+    "levels": [
+      {
+        "id": "level.1",
+        "order": 1,
+        "required_points": 0
+      },
+      {
+        "id": "level.2",
+        "order": 2,
+        "required_points": 5
+      },
+      {
+        "id": "level.3",
+        "order": 3,
+        "required_points": 10
+      },
+      {
+        "id": "level.4",
+        "order": 4,
+        "required_points": 15
+      },
+      {
+        "id": "level.5",
+        "order": 5,
+        "required_points": 20
+      }
+    ],
+    "talents": [
+      {
+        "id": "talent.quick_hands",
+        "name": "Quick Hands",
+        "flavour_text": "",
+        "description": "Increase attack speed by 1% per point.",
+        "icon_id": "rogue.quick_cut",
+        "level_id": "level.1",
+        "position": {
+          "x": 0.4
+        },
+        "max_ranks": 5,
+        "prerequisite_ids": [],
+        "values": [
+          {
+            "id": "ias",
+            "label": "Attack speed",
+            "unit": "%",
+            "rank_1": 1,
+            "per_rank": 1
+          }
+        ],
+        "skill_grant": null
+      },
+      {
+        "id": "talent.precision",
+        "name": "Precision",
+        "flavour_text": "",
+        "description": "Increase crit chance by 1 percentage point per rank.",
+        "icon_id": "rogue.stab",
+        "level_id": "level.1",
+        "position": {
+          "x": 0.6
+        },
+        "max_ranks": 5,
+        "prerequisite_ids": [],
+        "values": [
+          {
+            "id": "crit",
+            "label": "Crit chance",
+            "unit": "percentage points",
+            "rank_1": 1,
+            "per_rank": 1
+          }
+        ],
+        "skill_grant": null
+      },
+      {
+        "id": "talent.hastened_poison",
+        "name": "Hastened Poison",
+        "flavour_text": "",
+        "description": "Poison tick rate is increased by attack speed.",
+        "icon_id": "rogue.venom_jab",
+        "level_id": "level.2",
+        "position": {
+          "x": 0.3
+        },
+        "max_ranks": 5,
+        "prerequisite_ids": [],
+        "values": [
+          {
+            "id": "value.0bab6ed6-d3e7-417d-a1e6-002c260a8f7f",
+            "label": "Percent of attack speed ",
+            "unit": "%",
+            "rank_1": 10,
+            "per_rank": 10
+          }
+        ],
+        "skill_grant": null
+      },
+      {
+        "id": "talent.echoing_toxin",
+        "name": "Echoing Toxin",
+        "flavour_text": "",
+        "description": "Poison now consumes 2 stacks each tick, but the damage is increased.",
+        "icon_id": "rogue.beguiling_strike",
+        "level_id": "level.2",
+        "position": {
+          "x": 0.5
+        },
+        "max_ranks": 3,
+        "prerequisite_ids": [],
+        "values": [
+          {
+            "id": "value.0d6edb41-406f-42f7-8c6b-e201568e2987",
+            "label": "Damage Increase ",
+            "unit": "%",
+            "rank_1": 10,
+            "per_rank": 10
+          }
+        ],
+        "skill_grant": null
+      },
+      {
+        "id": "talent.poison_strike",
+        "name": "Poison Strike",
+        "flavour_text": "",
+        "description": "Unlock Poison Strike: hits from Poison Strike cause poison ticks.",
+        "icon_id": "rogue.poison_strike",
+        "level_id": "level.2",
+        "position": {
+          "x": 0.7
+        },
+        "max_ranks": 1,
+        "prerequisite_ids": [],
+        "values": [],
+        "skill_grant": {
+          "id": "draft.skill.poison_strike",
+          "name": "Poison Strike",
+          "description": "Hits cause poison ticks."
+        }
+      },
+      {
+        "id": "talent.bypass",
+        "name": "Bypass",
+        "flavour_text": "",
+        "description": "Stab grants a stack of Bypass. Bypass lasts for 3 sec. and can stack up to 3 times. Each stack provides x10% elemental damage increase (x30% total).",
+        "icon_id": "rogue.heavy_slash",
+        "level_id": "level.3",
+        "position": {
+          "x": 0.4
+        },
+        "max_ranks": 1,
+        "prerequisite_ids": [],
+        "values": [
+          {
+            "id": "bypass",
+            "label": "Elemental damage per Bypass stack",
+            "unit": "% multiplicative ",
+            "rank_1": 10,
+            "per_rank": 0
+          }
+        ],
+        "skill_grant": null
+      },
+      {
+        "id": "talent.toxic_tradeoff",
+        "name": "Toxic Tradeoff",
+        "flavour_text": "",
+        "description": "Increase poison damage; reduce physical damage. Both values are illustrative.",
+        "icon_id": "rogue.venom_jab",
+        "level_id": "level.3",
+        "position": {
+          "x": 0.6
+        },
+        "max_ranks": 5,
+        "prerequisite_ids": [],
+        "values": [
+          {
+            "id": "poison",
+            "label": "Poison damage",
+            "unit": "%",
+            "rank_1": 20,
+            "per_rank": 20
+          },
+          {
+            "id": "physical",
+            "label": "Physical damage",
+            "unit": "%",
+            "rank_1": -10,
+            "per_rank": -10
+          }
+        ],
+        "skill_grant": null
+      },
+      {
+        "id": "talent.accelerant",
+        "name": "Accelerant",
+        "flavour_text": "",
+        "description": "Increase the attack-speed scaling of poison ticks. Value is illustrative.",
+        "icon_id": "rogue.quick_cut",
+        "level_id": "level.4",
+        "position": {
+          "x": 0.3
+        },
+        "max_ranks": 5,
+        "prerequisite_ids": [
+          "talent.hastened_poison"
+        ],
+        "values": [
+          {
+            "id": "ias_scaling",
+            "label": "Additional IAS scaling",
+            "unit": "%",
+            "rank_1": 10,
+            "per_rank": 10
+          }
+        ],
+        "skill_grant": null
+      },
+      {
+        "id": "talent.resonance",
+        "name": "Resonance",
+        "flavour_text": "",
+        "description": "Poison now consumes 3 stacks, and the damage is increased further. ",
+        "icon_id": "rogue.beguiling_strike",
+        "level_id": "level.4",
+        "position": {
+          "x": 0.5
+        },
+        "max_ranks": 4,
+        "prerequisite_ids": [
+          "talent.echoing_toxin"
+        ],
+        "values": [
+          {
+            "id": "bonus",
+            "label": "Bonus tick damage",
+            "unit": "%",
+            "rank_1": 20,
+            "per_rank": 20
+          }
+        ],
+        "skill_grant": null
+      },
+      {
+        "id": "talent.critical_poison",
+        "name": "Critical Poison",
+        "flavour_text": "",
+        "description": "Poison can crit. Each tick of poison has a chance to crit  based on your crit chance. The damage is increased by you crit damage. ",
+        "icon_id": "rogue.death_strike",
+        "level_id": "level.5",
+        "position": {
+          "x": 0.5
+        },
+        "max_ranks": 1,
+        "prerequisite_ids": [],
+        "values": [],
+        "skill_grant": null
+      }
+    ],
+    "intrinsic": {
+      "name": "Assassin intrinsic",
+      "description": "Base: +5 elemental damage\nMain: +1 increased elemental damage per point invested",
+      "icon_id": "rogue.venom_jab",
+      "values": [
+        {
+          "id": "poison_per_point",
+          "label": "Increased elemental damage",
+          "unit": "",
+          "base": 5,
+          "per_point": 1
+        }
+      ]
+    },
+    "automatic_unlocks": [
+      {
+        "id": "unlock.1",
+        "order": 1,
+        "required_points": 1,
+        "icon_id": "rogue.venom_jab",
+        "skill": {
+          "id": "draft.skill.venom_jab",
+          "name": "Venom Jab",
+          "description": "Apply 5 stacks of poison."
+        },
+        "values": []
+      },
+      {
+        "id": "unlock.2",
+        "order": 2,
+        "required_points": 3,
+        "icon_id": "rogue.hold",
+        "skill": {
+          "id": "draft.skill.blinding_powder",
+          "name": "Blinding Powder",
+          "description": "Poison ignores <Assassin Level> absorb. Assassin Level means tree points in this mockup; definition remains a design question."
+        },
+        "values": [
+          {
+            "id": "absorb",
+            "label": "Absorb ignored (draft)",
+            "unit": "",
+            "base": 0,
+            "per_point": 1
+          }
+        ]
+      },
+      {
+        "id": "unlock.3",
+        "order": 3,
+        "required_points": 6,
+        "icon_id": "rogue.poison_strike",
+        "skill": {
+          "id": "draft.skill.virulent_poison",
+          "name": "Virulent Poison",
+          "description": "The next 5 ticks of poison do 2x damage."
+        },
+        "values": []
+      },
+      {
+        "id": "unlock.4",
+        "order": 4,
+        "required_points": 9,
+        "icon_id": "rogue.death_strike",
+        "skill": {
+          "id": "draft.skill.master_of_poisons",
+          "name": "Master of Poisons",
+          "description": "Your elemental damage ignores resistance for the next 5 sec. "
+        },
+        "values": []
+      },
+      {
+        "id": "unlock.5",
+        "order": 5,
+        "required_points": 12,
+        "icon_id": "rogue.venom_jab",
+        "skill": {
+          "id": "draft.skill.4420a5ac-be90-42bd-a011-0d3ab97ac048",
+          "name": "Poison Vile",
+          "description": "Applies 20 stacks of poison"
+        },
+        "values": []
+      }
+    ]
+  }
+}

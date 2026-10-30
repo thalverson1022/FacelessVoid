@@ -1,0 +1,33 @@
+{
+  "content_revision": "p6.playable.bladedancer.1",
+  "mode": "test_mode",
+  "compatible_revisions": [
+    "p6.playable.bladedancer.1",
+    "p6.playable.mixed.1",
+    "p6.playable.bladedancer_core.1"
+  ],
+  "authority": "P6M5-D003 / M5-T4",
+  "scope": "Complete Bladedancer 13 talents/35 ranks; existing Thief Keen Eye only. Adventure stays p6.compat.1.",
+  "source_sha256": {
+    "project/data/p6/test_mode/tree.tres": "bde86151bff2782666412efc0753656f3de4ec2ad27198c8d8b43f200b8edbd0",
+    "project/data/p6/test_mode/whetstone.tres": "63e1d7d4700b6f398345616ff386ca290c902feaa0aa5a047eb9258bb2f8c698",
+    "project/data/p6/test_mode/rending_slash.tres": "fb9135af57c7b67677af50a61c1b4b59662e136fda45899f6c849556c0c6346a",
+    "project/data/p6/test_mode/fancy_footwork.tres": "22215b459f3194c956020f7123179f3cad874c0cf53bab4c7795afd49a4c66f8",
+    "project/data/p6/test_mode/leaping_plunge.tres": "7fe8fcc4396f53525d29fe0e506268e495a4b4273084c0d96a8763cb4f0d16ce",
+    "project/data/p6/test_mode/parry_strike.tres": "39dcecf5aaae382e2289b7ac72b9812c22dca288dbbccdc882da93d63f6b97f2",
+    "project/data/p6/bladedancer/double_dip.tres": "27b98f89f3f71eb591190bea43dd2e2981ea0b8a5927b99899ed0f5b0a65f41d",
+    "project/data/p6/bladedancer/precision_attacks.tres": "f204aaee0fa5f1c41822ca56b7208833b944b938059ae3a069dd76a78f8e1cfe",
+    "project/data/p6/bladedancer/riposte.tres": "00fb3c8edc037e92e1f48f335ddd104eb7a1bc878cf0b0cab08d1fa41cdf82f5",
+    "project/data/p6/bladedancer/sharpened_edge.tres": "46fae51629b9aa03465c2bf332afc628c346f52f334825498ca4c0e261ca7dbe",
+    "project/data/p6/bladedancer/side_step.tres": "99df7c5344fbf1708ecc98bca922e54766bff1a4c912b3603dd4d6664618c107",
+    "project/data/p6/bladedancer/virulent_corruption.tres": "8e3f56f52b77d7686fa3bf6ff853cfabfd2a583cdccc827bbadd2aa17caf1993",
+    "project/data/p6/bladedancer/weakness.tres": "0a7cbcc3c09d39ed97fd2449ba4dbdd98da08038a4bc1af5cc63957da46a7070",
+    "project/data/p6/bladedancer/weapon_master.tres": "6aab829cece705c65b1ff86454c928182b5539daf7efd13b112ab46676bc7291",
+    "project/scripts/systems/playable_bladedancer_content.gd": "3e41266afefaa2cad2af70b723713e0695a8fd0eb48515ba5ad0e9f9a6d24eff",
+    "project/scripts/systems/playable_mixed_content.gd": "0de4ebd99ea5a07f459c200575351a59e25b144c9354e073ab7565483018d566",
+    "project/scripts/systems/build_content_registry.gd": "cb1622a181da49a5db593378bb0c796b686606d20de86bd8b60049bfe4f0bceb",
+    "project/scripts/systems/p6_thief_contracts.gd": "7673ac4cb65212c2b917be40c89b75eb8d7f9c115761a6fb3a35db3c6b130ca3",
+    "docs/P6M5_T3_Bladedancer_Design_Review.md": "300d4f64ebc09ea20ae6ec413e88ce84549968d626e9cf4325820165e0bde387",
+    "docs/talent_tree_drafts/Bladedancer.json": "8c33a60060ad7e42c45f254b2c24515c217f22f94fe68dfec819ae183242cbc2"
+  }
+}

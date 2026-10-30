@@ -1,0 +1,116 @@
+[
+  {
+    "check": "check_shadow_release",
+    "command": [
+      "C:\\Users\\tommh\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+      "tools/p6/check_shadow_release.py"
+    ]
+  },
+  {
+    "check": "check_assassin_release",
+    "command": [
+      "C:\\Users\\tommh\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+      "tools/p6/check_assassin_release.py"
+    ]
+  },
+  {
+    "check": "check_thief_release",
+    "command": [
+      "C:\\Users\\tommh\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+      "tools/p6/check_thief_release.py"
+    ]
+  },
+  {
+    "check": "check_bladedancer_release",
+    "command": [
+      "C:\\Users\\tommh\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+      "tools/p6/check_bladedancer_release.py"
+    ]
+  },
+  {
+    "check": "check_content_registry",
+    "command": [
+      "C:\\Users\\tommh\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+      "tools/p6/check_content_registry.py"
+    ]
+  },
+  {
+    "check": "check_bladedancer_core",
+    "command": [
+      "C:\\Users\\tommh\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+      "tools/p6/check_bladedancer_core.py"
+    ]
+  },
+  {
+    "check": "check_mixed_build",
+    "command": [
+      "C:\\Users\\tommh\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+      "tools/p6/check_mixed_build.py"
+    ]
+  },
+  {
+    "check": "check_m5_shadow_review",
+    "command": [
+      "C:\\Users\\tommh\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+      "tools/p6/check_m5_shadow_review.py"
+    ]
+  },
+  {
+    "check": "check_m5_assassin_review",
+    "command": [
+      "C:\\Users\\tommh\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+      "tools/p6/check_m5_assassin_review.py"
+    ]
+  },
+  {
+    "check": "check_m5_thief_review",
+    "command": [
+      "C:\\Users\\tommh\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+      "tools/p6/check_m5_thief_review.py"
+    ]
+  },
+  {
+    "check": "check_m5_bladedancer_review",
+    "command": [
+      "C:\\Users\\tommh\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+      "tools/p6/check_m5_bladedancer_review.py"
+    ]
+  },
+  {
+    "check": "test_content_conversion",
+    "command": [
+      "C:\\Users\\tommh\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+      "tools/p6/test_content_conversion.py"
+    ]
+  },
+  {
+    "check": "build_tree_display_catalog",
+    "command": [
+      "C:\\Users\\tommh\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+      "tools/p6/build_tree_display_catalog.py",
+      "--check"
+    ]
+  },
+  {
+    "check": "build_m5_coverage_ledger",
+    "command": [
+      "C:\\Users\\tommh\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+      "tools/p6/build_m5_coverage_ledger.py",
+      "--check"
+    ]
+  },
+  {
+    "check": "check_content_identity_manifest",
+    "command": [
+      "node",
+      "tools/p6/check_content_identity_manifest.js"
+    ]
+  },
+  {
+    "check": "check_build_fixtures",
+    "command": [
+      "node",
+      "tools/p6/check_build_fixtures.js"
+    ]
+  }
+]

@@ -1,0 +1,34 @@
+[gd_resource type="Resource" script_class="GearItem" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/gear_item.gd" id="1_gear"]
+[ext_resource type="Script" path="res://scripts/resources/stat_modifier.gd" id="2_affix"]
+[ext_resource type="Resource" path="res://data/skills/quick_cut.tres" id="3_skill"]
+
+[sub_resource type="Resource" id="Resource_affix_0"]
+script = ExtResource("2_affix")
+stat_id = "percent_physical_damage"
+stat = 4
+category = 0
+operation = 0
+value = 0.7
+
+[sub_resource type="Resource" id="Resource_affix_1"]
+script = ExtResource("2_affix")
+stat_id = "crit_applies_penetration"
+stat = 0
+category = 1
+operation = 0
+value = 0.25
+
+[resource]
+script = ExtResource("1_gear")
+id = "gear.legendary.cloak_of_speed"
+display_name = "Cloak of Speed"
+legendary_effect_id = "cloak"
+slot = 4
+tier = 3
+item_family = "Armor"
+class_family = 1
+source_kind = 3
+affixes = Array[StatModifier]([SubResource("Resource_affix_0"), SubResource("Resource_affix_1")])
+unlocked_skills = Array[Skill]([ExtResource("3_skill")])

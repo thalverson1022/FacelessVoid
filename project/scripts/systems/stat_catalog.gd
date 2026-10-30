@@ -46,6 +46,12 @@ const CHANCE_TO_SHRED := "chance_to_shred"
 const CHANCE_TO_DECAY := "chance_to_decay"
 const CRIT_APPLIES_ELEMENT := "crit_applies_element"
 
+const COOLDOWN_REDUCTION := "cooldown_reduction"
+const INCREASED_BUFF_DURATION := "increased_buff_duration"
+const CRIT_APPLIES_PENETRATION := "crit_applies_penetration"
+const CRIT_APPLIES_POTENCY := "crit_applies_potency"
+const INVENTORY_ECONOMY_STATS := "inventory_economy_stats"
+
 const DISABLE_ENEMY_DODGE := "disable_enemy_dodge"
 const DISABLE_ENEMY_BLOCK := "disable_enemy_block"
 const DISABLE_ENEMY_ABSORB := "disable_enemy_absorb"
@@ -84,6 +90,7 @@ const BASIC_STAT_IDS: Array[String] = [
 ]
 
 const RARE_STAT_IDS: Array[String] = [
+	COOLDOWN_REDUCTION, INCREASED_BUFF_DURATION, CRIT_APPLIES_PENETRATION, CRIT_APPLIES_POTENCY,
 	CHANCE_FOR_RETRIGGER,
 	CHANCE_TO_SHRED,
 	CHANCE_TO_DECAY,
@@ -94,6 +101,7 @@ const RARE_STAT_IDS: Array[String] = [
 ]
 
 const SPECIAL_STAT_IDS: Array[String] = [
+	INVENTORY_ECONOMY_STATS,
 	DISABLE_ENEMY_DODGE,
 	DISABLE_ENEMY_BLOCK,
 	DISABLE_ENEMY_ABSORB,
@@ -148,6 +156,12 @@ const STAT_ID_ALIASES := {
 }
 
 const DEFINITIONS := {
+	COOLDOWN_REDUCTION: {"label": "Cooldown Reduction", "category": CATEGORY_RARE, "value_kind": VALUE_PERCENT, "aggregation": "multiplicative_cooldown", "floor": FLOOR_ZERO, "cap": CAP_NONE, "is_numeric": true, "is_binary": false, "drawback_allowed": false, "scales_with_all_stats": true},
+	INCREASED_BUFF_DURATION: {"label": "Increased Buff Duration", "category": CATEGORY_RARE, "value_kind": VALUE_PERCENT, "aggregation": AGGREGATE_ADDITIVE, "floor": FLOOR_ZERO, "cap": CAP_NONE, "is_numeric": true, "is_binary": false, "drawback_allowed": false, "scales_with_all_stats": true},
+	CRIT_APPLIES_PENETRATION: {"label": "Crits Apply Penetration", "category": CATEGORY_RARE, "value_kind": VALUE_CHANCE, "aggregation": AGGREGATE_ADDITIVE, "floor": FLOOR_ZERO, "cap": CAP_CHANCE, "is_numeric": true, "is_binary": false, "drawback_allowed": false, "scales_with_all_stats": true},
+	CRIT_APPLIES_POTENCY: {"label": "Crits Apply Potency", "category": CATEGORY_RARE, "value_kind": VALUE_CHANCE, "aggregation": AGGREGATE_ADDITIVE, "floor": FLOOR_ZERO, "cap": CAP_CHANCE, "is_numeric": true, "is_binary": false, "drawback_allowed": false, "scales_with_all_stats": true},
+	INVENTORY_ECONOMY_STATS: {"label": "Carried Gear Economy Stats", "category": CATEGORY_SPECIAL, "value_kind": VALUE_BINARY, "aggregation": AGGREGATE_BINARY, "floor": FLOOR_ZERO, "cap": CAP_NONE, "is_numeric": false, "is_binary": true, "drawback_allowed": false, "scales_with_all_stats": false},
+
 	BASE_DAMAGE: {"label": "Base Damage", "category": CATEGORY_BASIC, "value_kind": VALUE_FLAT, "aggregation": AGGREGATE_ADDITIVE, "floor": FLOOR_NONE, "cap": CAP_NONE, "is_numeric": true, "is_binary": false, "drawback_allowed": true, "scales_with_all_stats": false},
 	PERCENT_PHYSICAL_DAMAGE: {"label": "Percent Physical Damage", "category": CATEGORY_BASIC, "value_kind": VALUE_PERCENT, "aggregation": AGGREGATE_ADDITIVE, "floor": FLOOR_NONE, "cap": CAP_NONE, "is_numeric": true, "is_binary": false, "drawback_allowed": true, "scales_with_all_stats": true},
 	INCREASED_ATTACK_SPEED: {"label": "Increased Attack Speed", "category": CATEGORY_BASIC, "value_kind": VALUE_PERCENT, "aggregation": AGGREGATE_ADDITIVE, "floor": FLOOR_NONE, "cap": CAP_NONE, "is_numeric": true, "is_binary": false, "drawback_allowed": true, "scales_with_all_stats": true},
@@ -193,51 +207,51 @@ const DEFINITIONS := {
 	LEGACY_CRIT_DAMAGE_PER_CURRENT_GOLD: {"label": "Crit Damage per Current Gold", "category": CATEGORY_COMPATIBILITY, "value_kind": VALUE_PERCENT, "aggregation": AGGREGATE_COMPATIBILITY, "floor": FLOOR_ZERO, "cap": CAP_NONE, "is_numeric": true, "is_binary": false, "drawback_allowed": false, "scales_with_all_stats": false},
 }
 
+# P6M9-D008: every eligible Basic stat has equal selection weight within its slot.
 const SLOT_CATEGORY_POOLS := {
 	GearItem.SlotType.WEAPON: {
 		CATEGORY_BASIC: [
-			{"stat_id": BASE_DAMAGE, "weight": 20},
-			{"stat_id": PERCENT_PHYSICAL_DAMAGE, "weight": 15},
-			{"stat_id": CRIT_DAMAGE, "weight": 15},
-			{"stat_id": BASE_ELEMENTAL_DAMAGE, "weight": 10},
-			{"stat_id": PERCENT_ELEMENTAL_DAMAGE, "weight": 10},
-			{"stat_id": INCREASED_GOLD, "weight": 5},
-			{"stat_id": SHOP_DISCOUNT, "weight": 5},
-			{"stat_id": INCREASED_MAGIC_FIND, "weight": 5},
+			{"stat_id": BASE_DAMAGE, "weight": 1},
+			{"stat_id": PERCENT_PHYSICAL_DAMAGE, "weight": 1},
+			{"stat_id": CRIT_DAMAGE, "weight": 1},
+			{"stat_id": BASE_ELEMENTAL_DAMAGE, "weight": 1},
+			{"stat_id": PERCENT_ELEMENTAL_DAMAGE, "weight": 1},
+			{"stat_id": INCREASED_GOLD, "weight": 1},
 		],
 		CATEGORY_RARE: [
 			{"stat_id": CHANCE_TO_SHRED, "weight": 15},
 			{"stat_id": CHANCE_TO_DECAY, "weight": 10},
 			{"stat_id": CHANCE_FOR_RETRIGGER, "weight": 10},
-			{"stat_id": INCREASED_GOLD, "weight": 5},
 			{"stat_id": SHOP_DISCOUNT, "weight": 5},
 			{"stat_id": INCREASED_MAGIC_FIND, "weight": 5},
+			{"stat_id": INCREASED_GOLD, "weight": 5},
+			{"stat_id": COOLDOWN_REDUCTION, "weight": 8},
+			{"stat_id": INCREASED_BUFF_DURATION, "weight": 8},
 		],
 		CATEGORY_SPECIAL: [
 			{"stat_id": CONVERT_DAMAGE_TO_PHYSICAL, "weight": 5},
 			{"stat_id": CONVERT_DAMAGE_TO_MAGICAL, "weight": 5},
 			{"stat_id": ALL_STATS_INCREASED, "weight": 5},
+			{"stat_id": INVENTORY_ECONOMY_STATS, "weight": 5},
 		],
 	},
 	GearItem.SlotType.HELM: {
 		CATEGORY_BASIC: [
-			{"stat_id": PERCENT_PHYSICAL_DAMAGE, "weight": 10},
-			{"stat_id": CRIT_CHANCE, "weight": 15},
-			{"stat_id": INCREASED_ATTACK_SPEED, "weight": 15},
-			{"stat_id": BASE_ELEMENTAL_DAMAGE, "weight": 10},
-			{"stat_id": PERCENT_ELEMENTAL_DAMAGE, "weight": 10},
-			{"stat_id": INCREASED_ALL_STACKS, "weight": 30},
-			{"stat_id": INCREASED_GOLD, "weight": 5},
-			{"stat_id": SHOP_DISCOUNT, "weight": 5},
-			{"stat_id": INCREASED_MAGIC_FIND, "weight": 5},
+			{"stat_id": PERCENT_PHYSICAL_DAMAGE, "weight": 1},
+			{"stat_id": CRIT_CHANCE, "weight": 1},
+			{"stat_id": INCREASED_ATTACK_SPEED, "weight": 1},
+			{"stat_id": BASE_ELEMENTAL_DAMAGE, "weight": 1},
+			{"stat_id": PERCENT_ELEMENTAL_DAMAGE, "weight": 1},
+			{"stat_id": INCREASED_ALL_STACKS, "weight": 1},
+			{"stat_id": INCREASED_GOLD, "weight": 1},
 		],
 		CATEGORY_RARE: [
 			{"stat_id": CHANCE_TO_SHRED, "weight": 10},
 			{"stat_id": CHANCE_TO_DECAY, "weight": 10},
 			{"stat_id": CRIT_APPLIES_ELEMENT, "weight": 10},
-			{"stat_id": INCREASED_GOLD, "weight": 5},
-			{"stat_id": SHOP_DISCOUNT, "weight": 5},
-			{"stat_id": INCREASED_MAGIC_FIND, "weight": 5},
+			{"stat_id": CRIT_APPLIES_PENETRATION, "weight": 10},
+			{"stat_id": CRIT_APPLIES_POTENCY, "weight": 10},
+			{"stat_id": COOLDOWN_REDUCTION, "weight": 8},
 		],
 		CATEGORY_SPECIAL: [
 			{"stat_id": DOUBLE_APPLIED_STACKS, "weight": 5},
@@ -247,21 +261,19 @@ const SLOT_CATEGORY_POOLS := {
 	},
 	GearItem.SlotType.ARMOR: {
 		CATEGORY_BASIC: [
-			{"stat_id": PERCENT_PHYSICAL_DAMAGE, "weight": 15},
-			{"stat_id": CRIT_CHANCE, "weight": 10},
-			{"stat_id": PERCENT_ELEMENTAL_DAMAGE, "weight": 10},
-			{"stat_id": INCREASED_GOLD, "weight": 15},
-			{"stat_id": INCREASED_ALL_STACKS, "weight": 30},
-			{"stat_id": SHOP_DISCOUNT, "weight": 5},
-			{"stat_id": INCREASED_MAGIC_FIND, "weight": 5},
+			{"stat_id": PERCENT_PHYSICAL_DAMAGE, "weight": 1},
+			{"stat_id": CRIT_CHANCE, "weight": 1},
+			{"stat_id": PERCENT_ELEMENTAL_DAMAGE, "weight": 1},
+			{"stat_id": INCREASED_GOLD, "weight": 1},
+			{"stat_id": INCREASED_ALL_STACKS, "weight": 1},
 		],
 		CATEGORY_RARE: [
 			{"stat_id": CHANCE_TO_SHRED, "weight": 10},
 			{"stat_id": CHANCE_TO_DECAY, "weight": 10},
 			{"stat_id": CRIT_APPLIES_ELEMENT, "weight": 10},
-			{"stat_id": INCREASED_GOLD, "weight": 5},
-			{"stat_id": SHOP_DISCOUNT, "weight": 5},
-			{"stat_id": INCREASED_MAGIC_FIND, "weight": 5},
+			{"stat_id": CRIT_APPLIES_PENETRATION, "weight": 10},
+			{"stat_id": CRIT_APPLIES_POTENCY, "weight": 10},
+			{"stat_id": INCREASED_BUFF_DURATION, "weight": 8},
 		],
 		CATEGORY_SPECIAL: [
 			{"stat_id": ALL_STATS_INCREASED, "weight": 5},
@@ -273,28 +285,27 @@ const SLOT_CATEGORY_POOLS := {
 			{"stat_id": IMMUNE_TO_STUN, "weight": 5},
 			{"stat_id": IMMUNE_TO_SLOW, "weight": 5},
 			{"stat_id": IMMUNE_TO_INTERRUPT, "weight": 5},
+			{"stat_id": INVENTORY_ECONOMY_STATS, "weight": 5},
 		],
 	},
 	GearItem.SlotType.TRINKET: {
 		CATEGORY_BASIC: [
-			{"stat_id": BASE_DAMAGE, "weight": 15},
-			{"stat_id": PERCENT_PHYSICAL_DAMAGE, "weight": 15},
-			{"stat_id": CRIT_CHANCE, "weight": 15},
-			{"stat_id": INCREASED_ATTACK_SPEED, "weight": 15},
-			{"stat_id": BASE_ELEMENTAL_DAMAGE, "weight": 10},
-			{"stat_id": PERCENT_ELEMENTAL_DAMAGE, "weight": 10},
-			{"stat_id": INCREASED_GOLD, "weight": 5},
-			{"stat_id": SHOP_DISCOUNT, "weight": 5},
-			{"stat_id": INCREASED_MAGIC_FIND, "weight": 5},
+			{"stat_id": BASE_DAMAGE, "weight": 1},
+			{"stat_id": PERCENT_PHYSICAL_DAMAGE, "weight": 1},
+			{"stat_id": CRIT_CHANCE, "weight": 1},
+			{"stat_id": INCREASED_ATTACK_SPEED, "weight": 1},
+			{"stat_id": BASE_ELEMENTAL_DAMAGE, "weight": 1},
+			{"stat_id": PERCENT_ELEMENTAL_DAMAGE, "weight": 1},
+			{"stat_id": INCREASED_GOLD, "weight": 1},
 		],
 		CATEGORY_RARE: [
 			{"stat_id": CHANCE_FOR_RETRIGGER, "weight": 15},
 			{"stat_id": CHANCE_TO_SHRED, "weight": 10},
 			{"stat_id": CHANCE_TO_DECAY, "weight": 10},
 			{"stat_id": CRIT_APPLIES_ELEMENT, "weight": 10},
-			{"stat_id": INCREASED_GOLD, "weight": 5},
-			{"stat_id": SHOP_DISCOUNT, "weight": 5},
-			{"stat_id": INCREASED_MAGIC_FIND, "weight": 5},
+			{"stat_id": CRIT_APPLIES_PENETRATION, "weight": 10},
+			{"stat_id": CRIT_APPLIES_POTENCY, "weight": 10},
+			{"stat_id": INCREASED_BUFF_DURATION, "weight": 8},
 		],
 		CATEGORY_SPECIAL: [
 			{"stat_id": DOUBLE_APPLIED_STACKS, "weight": 5},
@@ -309,26 +320,89 @@ const SLOT_CATEGORY_POOLS := {
 	},
 	GearItem.SlotType.CHARM: {
 		CATEGORY_BASIC: [
-			{"stat_id": PERCENT_PHYSICAL_DAMAGE, "weight": 10},
-			{"stat_id": CRIT_CHANCE, "weight": 20},
-			{"stat_id": INCREASED_ATTACK_SPEED, "weight": 15},
-			{"stat_id": CRIT_DAMAGE, "weight": 15},
-			{"stat_id": BASE_ELEMENTAL_DAMAGE, "weight": 10},
-			{"stat_id": PERCENT_ELEMENTAL_DAMAGE, "weight": 10},
-			{"stat_id": INCREASED_GOLD, "weight": 5},
-			{"stat_id": INCREASED_ALL_STACKS, "weight": 30},
-			{"stat_id": SHOP_DISCOUNT, "weight": 5},
-			{"stat_id": INCREASED_MAGIC_FIND, "weight": 5},
+			{"stat_id": PERCENT_PHYSICAL_DAMAGE, "weight": 1},
+			{"stat_id": CRIT_CHANCE, "weight": 1},
+			{"stat_id": INCREASED_ATTACK_SPEED, "weight": 1},
+			{"stat_id": CRIT_DAMAGE, "weight": 1},
+			{"stat_id": BASE_ELEMENTAL_DAMAGE, "weight": 1},
+			{"stat_id": PERCENT_ELEMENTAL_DAMAGE, "weight": 1},
+			{"stat_id": INCREASED_GOLD, "weight": 1},
+			{"stat_id": INCREASED_ALL_STACKS, "weight": 1},
 		],
 		CATEGORY_RARE: [
 			{"stat_id": CHANCE_TO_SHRED, "weight": 10},
 			{"stat_id": CHANCE_TO_DECAY, "weight": 10},
 			{"stat_id": CRIT_APPLIES_ELEMENT, "weight": 15},
-			{"stat_id": INCREASED_GOLD, "weight": 5},
-			{"stat_id": SHOP_DISCOUNT, "weight": 5},
-			{"stat_id": INCREASED_MAGIC_FIND, "weight": 5},
+			{"stat_id": CRIT_APPLIES_PENETRATION, "weight": 10},
+			{"stat_id": CRIT_APPLIES_POTENCY, "weight": 10},
+			{"stat_id": COOLDOWN_REDUCTION, "weight": 8},
 		],
 		CATEGORY_SPECIAL: [
+			{"stat_id": IGNORE_ARMOR_NO_SHRED, "weight": 5},
+			{"stat_id": IGNORE_RESISTANCE_PHYSICAL_PENALTY, "weight": 5},
+			{"stat_id": DOUBLE_APPLIED_STACKS, "weight": 5},
+			{"stat_id": DISABLE_ENEMY_DODGE, "weight": 10},
+			{"stat_id": DISABLE_ENEMY_BLOCK, "weight": 10},
+			{"stat_id": DISABLE_ENEMY_ABSORB, "weight": 10},
+			{"stat_id": DISABLE_ENEMY_SUPPRESS, "weight": 10},
+			{"stat_id": DISABLE_ENEMY_CLEANSE, "weight": 10},
+		],
+	},
+	GearItem.SlotType.LEGS: {
+		CATEGORY_BASIC: [
+			{"stat_id": PERCENT_PHYSICAL_DAMAGE, "weight": 1},
+			{"stat_id": CRIT_DAMAGE, "weight": 1},
+			{"stat_id": BASE_ELEMENTAL_DAMAGE, "weight": 1},
+			{"stat_id": PERCENT_ELEMENTAL_DAMAGE, "weight": 1},
+			{"stat_id": INCREASED_GOLD, "weight": 1},
+			{"stat_id": INCREASED_MAGIC_FIND, "weight": 1},
+		],
+		CATEGORY_RARE: [
+			{"stat_id": CHANCE_FOR_RETRIGGER, "weight": 15},
+			{"stat_id": CRIT_APPLIES_ELEMENT, "weight": 10},
+			{"stat_id": CRIT_APPLIES_POTENCY, "weight": 10},
+			{"stat_id": CRIT_APPLIES_PENETRATION, "weight": 10},
+			{"stat_id": INCREASED_BUFF_DURATION, "weight": 8},
+			{"stat_id": COOLDOWN_REDUCTION, "weight": 8},
+			{"stat_id": SHOP_DISCOUNT, "weight": 5},
+			{"stat_id": INCREASED_MAGIC_FIND, "weight": 5},
+			{"stat_id": INCREASED_GOLD, "weight": 5},
+		],
+		CATEGORY_SPECIAL: [
+			{"stat_id": ALL_STATS_INCREASED, "weight": 5},
+			{"stat_id": DISABLE_ENEMY_DODGE, "weight": 10},
+			{"stat_id": DISABLE_ENEMY_BLOCK, "weight": 10},
+			{"stat_id": DISABLE_ENEMY_ABSORB, "weight": 10},
+			{"stat_id": DISABLE_ENEMY_SUPPRESS, "weight": 10},
+			{"stat_id": DISABLE_ENEMY_CLEANSE, "weight": 10},
+			{"stat_id": IMMUNE_TO_STUN, "weight": 5},
+			{"stat_id": IMMUNE_TO_SLOW, "weight": 5},
+			{"stat_id": IMMUNE_TO_INTERRUPT, "weight": 5},
+			{"stat_id": INVENTORY_ECONOMY_STATS, "weight": 5},
+		],
+	},
+	GearItem.SlotType.HANDS: {
+		CATEGORY_BASIC: [
+			{"stat_id": BASE_DAMAGE, "weight": 1},
+			{"stat_id": PERCENT_PHYSICAL_DAMAGE, "weight": 1},
+			{"stat_id": CRIT_CHANCE, "weight": 1},
+			{"stat_id": CRIT_DAMAGE, "weight": 1},
+			{"stat_id": BASE_ELEMENTAL_DAMAGE, "weight": 1},
+			{"stat_id": PERCENT_ELEMENTAL_DAMAGE, "weight": 1},
+			{"stat_id": INCREASED_GOLD, "weight": 1},
+			{"stat_id": INCREASED_MAGIC_FIND, "weight": 1},
+		],
+		CATEGORY_RARE: [
+			{"stat_id": CHANCE_FOR_RETRIGGER, "weight": 15},
+			{"stat_id": CHANCE_TO_SHRED, "weight": 10},
+			{"stat_id": CHANCE_TO_DECAY, "weight": 10},
+			{"stat_id": CRIT_APPLIES_ELEMENT, "weight": 15},
+			{"stat_id": INCREASED_BUFF_DURATION, "weight": 8},
+			{"stat_id": COOLDOWN_REDUCTION, "weight": 8},
+		],
+		CATEGORY_SPECIAL: [
+			{"stat_id": CONVERT_DAMAGE_TO_PHYSICAL, "weight": 5},
+			{"stat_id": CONVERT_DAMAGE_TO_MAGICAL, "weight": 5},
 			{"stat_id": IGNORE_ARMOR_NO_SHRED, "weight": 5},
 			{"stat_id": IGNORE_RESISTANCE_PHYSICAL_PENALTY, "weight": 5},
 			{"stat_id": DOUBLE_APPLIED_STACKS, "weight": 5},
@@ -343,102 +417,239 @@ const SLOT_CATEGORY_POOLS := {
 
 const SLOT_VALUE_RANGES := {
 	GearItem.SlotType.WEAPON: {
-		BASE_DAMAGE: [2.0, 5.0],
-		PERCENT_PHYSICAL_DAMAGE: [0.06, 0.12],
-		CRIT_DAMAGE: [0.30, 0.45],
-		BASE_ELEMENTAL_DAMAGE: [3.0, 6.0],
-		PERCENT_ELEMENTAL_DAMAGE: [0.18, 0.24],
-		INCREASED_GOLD: [0.40, 0.60],
-		SHOP_DISCOUNT: [0.05, 0.10],
-		INCREASED_MAGIC_FIND: [0.15, 0.20],
-		CHANCE_TO_SHRED: [0.08, 0.10],
-		CHANCE_TO_DECAY: [0.08, 0.10],
+		BASE_DAMAGE: [2, 5],
+		PERCENT_PHYSICAL_DAMAGE: [0.1, 0.2],
+		CRIT_DAMAGE: [0.5, 0.75],
+		BASE_ELEMENTAL_DAMAGE: [3, 6],
+		PERCENT_ELEMENTAL_DAMAGE: [0.3, 0.4],
+		INCREASED_GOLD: [0.2, 0.3],
+		CHANCE_TO_SHRED: [0.08, 0.1],
+		CHANCE_TO_DECAY: [0.08, 0.1],
 		CHANCE_FOR_RETRIGGER: [0.05, 0.08],
+		SHOP_DISCOUNT: [0.1, 0.2],
+		INCREASED_MAGIC_FIND: [0.1, 0.2],
+		COOLDOWN_REDUCTION: [0.04, 0.06],
+		INCREASED_BUFF_DURATION: [0.08, 0.14],
 	},
 	GearItem.SlotType.HELM: {
-		PERCENT_PHYSICAL_DAMAGE: [0.12, 0.15],
-		CRIT_CHANCE: [0.018, 0.048],
-		INCREASED_ATTACK_SPEED: [0.03, 0.072],
-		BASE_ELEMENTAL_DAMAGE: [4.0, 10.0],
-		PERCENT_ELEMENTAL_DAMAGE: [0.15, 0.21],
-		INCREASED_ALL_STACKS: [1.0, 2.0],
-		INCREASED_GOLD: [0.80, 1.00],
-		SHOP_DISCOUNT: [0.05, 0.10],
-		INCREASED_MAGIC_FIND: [0.15, 0.20],
-		CHANCE_TO_SHRED: [0.08, 0.10],
-		CHANCE_TO_DECAY: [0.08, 0.10],
-		CRIT_APPLIES_ELEMENT: [0.20, 0.30],
+		PERCENT_PHYSICAL_DAMAGE: [0.2, 0.25],
+		CRIT_CHANCE: [0.03, 0.08],
+		INCREASED_ATTACK_SPEED: [0.05, 0.12],
+		BASE_ELEMENTAL_DAMAGE: [4, 10],
+		PERCENT_ELEMENTAL_DAMAGE: [0.25, 0.35],
+		INCREASED_ALL_STACKS: [1, 2],
+		INCREASED_GOLD: [0.4, 0.5],
+		CHANCE_TO_SHRED: [0.08, 0.1],
+		CHANCE_TO_DECAY: [0.08, 0.1],
+		CRIT_APPLIES_ELEMENT: [0.2, 0.3],
+		CRIT_APPLIES_PENETRATION: [0.1, 0.15],
+		CRIT_APPLIES_POTENCY: [0.1, 0.15],
+		COOLDOWN_REDUCTION: [0.04, 0.08],
 	},
 	GearItem.SlotType.ARMOR: {
-		PERCENT_PHYSICAL_DAMAGE: [0.06, 0.12],
-		CRIT_CHANCE: [0.012, 0.024],
-		PERCENT_ELEMENTAL_DAMAGE: [0.18, 0.24],
-		INCREASED_GOLD: [0.40, 0.60],
-		INCREASED_ALL_STACKS: [1.0, 2.0],
-		SHOP_DISCOUNT: [0.05, 0.10],
-		INCREASED_MAGIC_FIND: [0.15, 0.20],
-		CHANCE_TO_SHRED: [0.08, 0.10],
-		CHANCE_TO_DECAY: [0.08, 0.10],
-		CRIT_APPLIES_ELEMENT: [0.10, 0.20],
+		PERCENT_PHYSICAL_DAMAGE: [0.1, 0.2],
+		CRIT_CHANCE: [0.02, 0.04],
+		PERCENT_ELEMENTAL_DAMAGE: [0.3, 0.4],
+		INCREASED_GOLD: [0.2, 0.3],
+		INCREASED_ALL_STACKS: [1, 2],
+		CHANCE_TO_SHRED: [0.08, 0.1],
+		CHANCE_TO_DECAY: [0.08, 0.1],
+		CRIT_APPLIES_ELEMENT: [0.1, 0.2],
+		CRIT_APPLIES_PENETRATION: [0.1, 0.15],
+		CRIT_APPLIES_POTENCY: [0.1, 0.15],
+		INCREASED_BUFF_DURATION: [0.1, 0.2],
 	},
 	GearItem.SlotType.TRINKET: {
-		BASE_DAMAGE: [4.0, 6.0],
-		PERCENT_PHYSICAL_DAMAGE: [0.09, 0.15],
-		CRIT_CHANCE: [0.024, 0.036],
-		INCREASED_ATTACK_SPEED: [0.048, 0.06],
-		BASE_ELEMENTAL_DAMAGE: [5.0, 8.0],
-		PERCENT_ELEMENTAL_DAMAGE: [0.12, 0.18],
-		INCREASED_GOLD: [0.20, 0.40],
-		SHOP_DISCOUNT: [0.05, 0.10],
-		INCREASED_MAGIC_FIND: [0.15, 0.20],
+		BASE_DAMAGE: [4, 6],
+		PERCENT_PHYSICAL_DAMAGE: [0.15, 0.25],
+		CRIT_CHANCE: [0.04, 0.06],
+		INCREASED_ATTACK_SPEED: [0.08, 0.1],
+		BASE_ELEMENTAL_DAMAGE: [5, 8],
+		PERCENT_ELEMENTAL_DAMAGE: [0.2, 0.3],
+		INCREASED_GOLD: [0.1, 0.2],
 		CHANCE_FOR_RETRIGGER: [0.03, 0.06],
-		CHANCE_TO_SHRED: [0.08, 0.10],
-		CHANCE_TO_DECAY: [0.08, 0.10],
-		CRIT_APPLIES_ELEMENT: [0.10, 0.15],
+		CHANCE_TO_SHRED: [0.08, 0.1],
+		CHANCE_TO_DECAY: [0.08, 0.1],
+		CRIT_APPLIES_ELEMENT: [0.1, 0.15],
+		CRIT_APPLIES_PENETRATION: [0.1, 0.15],
+		CRIT_APPLIES_POTENCY: [0.1, 0.15],
+		INCREASED_BUFF_DURATION: [0.1, 0.12],
 	},
 	GearItem.SlotType.CHARM: {
-		PERCENT_PHYSICAL_DAMAGE: [0.09, 0.15],
-		CRIT_CHANCE: [0.036, 0.048],
-		INCREASED_ATTACK_SPEED: [0.06, 0.09],
-		CRIT_DAMAGE: [0.24, 0.36],
-		BASE_ELEMENTAL_DAMAGE: [6.0, 10.0],
-		PERCENT_ELEMENTAL_DAMAGE: [0.18, 0.24],
-		INCREASED_GOLD: [0.30, 0.60],
-		INCREASED_ALL_STACKS: [1.0, 2.0],
-		SHOP_DISCOUNT: [0.05, 0.10],
-		INCREASED_MAGIC_FIND: [0.15, 0.20],
-		CHANCE_TO_SHRED: [0.08, 0.10],
-		CHANCE_TO_DECAY: [0.08, 0.10],
+		PERCENT_PHYSICAL_DAMAGE: [0.15, 0.25],
+		CRIT_CHANCE: [0.06, 0.08],
+		INCREASED_ATTACK_SPEED: [0.1, 0.15],
+		CRIT_DAMAGE: [0.4, 0.6],
+		BASE_ELEMENTAL_DAMAGE: [6, 10],
+		PERCENT_ELEMENTAL_DAMAGE: [0.3, 0.4],
+		INCREASED_GOLD: [0.15, 0.3],
+		INCREASED_ALL_STACKS: [1, 2],
+		CHANCE_TO_SHRED: [0.08, 0.1],
+		CHANCE_TO_DECAY: [0.08, 0.1],
 		CRIT_APPLIES_ELEMENT: [0.12, 0.18],
+		CRIT_APPLIES_PENETRATION: [0.1, 0.15],
+		CRIT_APPLIES_POTENCY: [0.1, 0.15],
+		COOLDOWN_REDUCTION: [0.06, 0.1],
+	},
+	GearItem.SlotType.LEGS: {
+		PERCENT_PHYSICAL_DAMAGE: [0.1, 0.2],
+		CRIT_DAMAGE: [0.5, 0.75],
+		BASE_ELEMENTAL_DAMAGE: [3.0, 6.0],
+		PERCENT_ELEMENTAL_DAMAGE: [0.3, 0.4],
+		INCREASED_GOLD: [0.2, 0.3],
+		INCREASED_MAGIC_FIND: [0.15, 0.3],
+		CHANCE_FOR_RETRIGGER: [0.03, 0.06],
+		CRIT_APPLIES_ELEMENT: [0.1, 0.2],
+		CRIT_APPLIES_POTENCY: [0.1, 0.15],
+		CRIT_APPLIES_PENETRATION: [0.1, 0.15],
+		INCREASED_BUFF_DURATION: [0.1, 0.2],
+		COOLDOWN_REDUCTION: [0.06, 0.1],
+		SHOP_DISCOUNT: [0.1, 0.2],
+	},
+	GearItem.SlotType.HANDS: {
+		BASE_DAMAGE: [2.0, 5.0],
+		PERCENT_PHYSICAL_DAMAGE: [0.15, 0.25],
+		CRIT_CHANCE: [0.06, 0.08],
+		CRIT_DAMAGE: [0.5, 0.75],
+		BASE_ELEMENTAL_DAMAGE: [3.0, 6.0],
+		PERCENT_ELEMENTAL_DAMAGE: [0.3, 0.4],
+		INCREASED_GOLD: [0.15, 0.3],
+		INCREASED_MAGIC_FIND: [0.1, 0.2],
+		CHANCE_FOR_RETRIGGER: [0.03, 0.06],
+		CHANCE_TO_SHRED: [0.08, 0.1],
+		CHANCE_TO_DECAY: [0.08, 0.1],
+		CRIT_APPLIES_ELEMENT: [0.12, 0.18],
+		INCREASED_BUFF_DURATION: [0.08, 0.14],
+		COOLDOWN_REDUCTION: [0.06, 0.1],
 	},
 }
 
 const CATEGORY_SLOT_VALUE_RANGES := {
-	CATEGORY_RARE: {
+	CATEGORY_BASIC: {
 		GearItem.SlotType.WEAPON: {
-			INCREASED_GOLD: [0.44, 0.66],
-			SHOP_DISCOUNT: [0.06, 0.11],
-			INCREASED_MAGIC_FIND: [0.17, 0.22],
+			BASE_DAMAGE: [2, 5],
+			PERCENT_PHYSICAL_DAMAGE: [0.1, 0.2],
+			CRIT_DAMAGE: [0.5, 0.75],
+			BASE_ELEMENTAL_DAMAGE: [3, 6],
+			PERCENT_ELEMENTAL_DAMAGE: [0.3, 0.4],
+			INCREASED_GOLD: [0.2, 0.3],
 		},
 		GearItem.SlotType.HELM: {
-			INCREASED_GOLD: [0.88, 1.10],
-			SHOP_DISCOUNT: [0.06, 0.11],
-			INCREASED_MAGIC_FIND: [0.17, 0.22],
+			PERCENT_PHYSICAL_DAMAGE: [0.2, 0.25],
+			CRIT_CHANCE: [0.03, 0.08],
+			INCREASED_ATTACK_SPEED: [0.05, 0.12],
+			BASE_ELEMENTAL_DAMAGE: [4, 10],
+			PERCENT_ELEMENTAL_DAMAGE: [0.25, 0.35],
+			INCREASED_ALL_STACKS: [1, 2],
+			INCREASED_GOLD: [0.4, 0.5],
 		},
 		GearItem.SlotType.ARMOR: {
-			INCREASED_GOLD: [0.44, 0.66],
-			SHOP_DISCOUNT: [0.06, 0.11],
-			INCREASED_MAGIC_FIND: [0.17, 0.22],
+			PERCENT_PHYSICAL_DAMAGE: [0.1, 0.2],
+			CRIT_CHANCE: [0.02, 0.04],
+			PERCENT_ELEMENTAL_DAMAGE: [0.3, 0.4],
+			INCREASED_GOLD: [0.2, 0.3],
+			INCREASED_ALL_STACKS: [1, 2],
 		},
 		GearItem.SlotType.TRINKET: {
-			INCREASED_GOLD: [0.22, 0.44],
-			SHOP_DISCOUNT: [0.06, 0.11],
-			INCREASED_MAGIC_FIND: [0.17, 0.22],
+			BASE_DAMAGE: [4, 6],
+			PERCENT_PHYSICAL_DAMAGE: [0.15, 0.25],
+			CRIT_CHANCE: [0.04, 0.06],
+			INCREASED_ATTACK_SPEED: [0.08, 0.1],
+			BASE_ELEMENTAL_DAMAGE: [5, 8],
+			PERCENT_ELEMENTAL_DAMAGE: [0.2, 0.3],
+			INCREASED_GOLD: [0.1, 0.2],
 		},
 		GearItem.SlotType.CHARM: {
-			INCREASED_GOLD: [0.33, 0.66],
-			SHOP_DISCOUNT: [0.06, 0.11],
-			INCREASED_MAGIC_FIND: [0.17, 0.22],
+			PERCENT_PHYSICAL_DAMAGE: [0.15, 0.25],
+			CRIT_CHANCE: [0.06, 0.08],
+			INCREASED_ATTACK_SPEED: [0.1, 0.15],
+			CRIT_DAMAGE: [0.4, 0.6],
+			BASE_ELEMENTAL_DAMAGE: [6, 10],
+			PERCENT_ELEMENTAL_DAMAGE: [0.3, 0.4],
+			INCREASED_GOLD: [0.15, 0.3],
+			INCREASED_ALL_STACKS: [1, 2],
+		},
+		GearItem.SlotType.LEGS: {
+			PERCENT_PHYSICAL_DAMAGE: [0.1, 0.2],
+			CRIT_DAMAGE: [0.5, 0.75],
+			BASE_ELEMENTAL_DAMAGE: [3.0, 6.0],
+			PERCENT_ELEMENTAL_DAMAGE: [0.3, 0.4],
+			INCREASED_GOLD: [0.2, 0.3],
+			INCREASED_MAGIC_FIND: [0.15, 0.3],
+		},
+		GearItem.SlotType.HANDS: {
+			BASE_DAMAGE: [2.0, 5.0],
+			PERCENT_PHYSICAL_DAMAGE: [0.15, 0.25],
+			CRIT_CHANCE: [0.06, 0.08],
+			CRIT_DAMAGE: [0.5, 0.75],
+			BASE_ELEMENTAL_DAMAGE: [3.0, 6.0],
+			PERCENT_ELEMENTAL_DAMAGE: [0.3, 0.4],
+			INCREASED_GOLD: [0.15, 0.3],
+			INCREASED_MAGIC_FIND: [0.1, 0.2],
+		},
+	},
+	CATEGORY_RARE: {
+		GearItem.SlotType.WEAPON: {
+			CHANCE_TO_SHRED: [0.08, 0.1],
+			CHANCE_TO_DECAY: [0.08, 0.1],
+			CHANCE_FOR_RETRIGGER: [0.05, 0.08],
+			SHOP_DISCOUNT: [0.1, 0.2],
+			INCREASED_MAGIC_FIND: [0.1, 0.2],
+			INCREASED_GOLD: [0.5, 1.0],
+			COOLDOWN_REDUCTION: [0.04, 0.06],
+			INCREASED_BUFF_DURATION: [0.08, 0.14],
+		},
+		GearItem.SlotType.HELM: {
+			CHANCE_TO_SHRED: [0.08, 0.1],
+			CHANCE_TO_DECAY: [0.08, 0.1],
+			CRIT_APPLIES_ELEMENT: [0.2, 0.3],
+			CRIT_APPLIES_PENETRATION: [0.1, 0.15],
+			CRIT_APPLIES_POTENCY: [0.1, 0.15],
+			COOLDOWN_REDUCTION: [0.04, 0.08],
+		},
+		GearItem.SlotType.ARMOR: {
+			CHANCE_TO_SHRED: [0.08, 0.1],
+			CHANCE_TO_DECAY: [0.08, 0.1],
+			CRIT_APPLIES_ELEMENT: [0.1, 0.2],
+			CRIT_APPLIES_PENETRATION: [0.1, 0.15],
+			CRIT_APPLIES_POTENCY: [0.1, 0.15],
+			INCREASED_BUFF_DURATION: [0.1, 0.2],
+		},
+		GearItem.SlotType.TRINKET: {
+			CHANCE_FOR_RETRIGGER: [0.03, 0.06],
+			CHANCE_TO_SHRED: [0.08, 0.1],
+			CHANCE_TO_DECAY: [0.08, 0.1],
+			CRIT_APPLIES_ELEMENT: [0.1, 0.15],
+			CRIT_APPLIES_PENETRATION: [0.1, 0.15],
+			CRIT_APPLIES_POTENCY: [0.1, 0.15],
+			INCREASED_BUFF_DURATION: [0.1, 0.12],
+		},
+		GearItem.SlotType.CHARM: {
+			CHANCE_TO_SHRED: [0.08, 0.1],
+			CHANCE_TO_DECAY: [0.08, 0.1],
+			CRIT_APPLIES_ELEMENT: [0.12, 0.18],
+			CRIT_APPLIES_PENETRATION: [0.1, 0.15],
+			CRIT_APPLIES_POTENCY: [0.1, 0.15],
+			COOLDOWN_REDUCTION: [0.06, 0.1],
+		},
+		GearItem.SlotType.LEGS: {
+			CHANCE_FOR_RETRIGGER: [0.03, 0.06],
+			CRIT_APPLIES_ELEMENT: [0.1, 0.2],
+			CRIT_APPLIES_POTENCY: [0.1, 0.15],
+			CRIT_APPLIES_PENETRATION: [0.1, 0.15],
+			INCREASED_BUFF_DURATION: [0.1, 0.2],
+			COOLDOWN_REDUCTION: [0.06, 0.1],
+			SHOP_DISCOUNT: [0.1, 0.2],
+			INCREASED_MAGIC_FIND: [0.1, 0.2],
+			INCREASED_GOLD: [0.5, 1.0],
+		},
+		GearItem.SlotType.HANDS: {
+			CHANCE_FOR_RETRIGGER: [0.03, 0.06],
+			CHANCE_TO_SHRED: [0.08, 0.1],
+			CHANCE_TO_DECAY: [0.08, 0.1],
+			CRIT_APPLIES_ELEMENT: [0.12, 0.18],
+			INCREASED_BUFF_DURATION: [0.08, 0.14],
+			COOLDOWN_REDUCTION: [0.06, 0.1],
 		},
 	},
 }
@@ -567,7 +778,19 @@ static func value_range_for_slot_category(slot: GearItem.SlotType, category: Str
 	return value_range_for_slot(slot, canonical_id)
 
 
+static var _pool_for_slot_cache: Dictionary = {}
+
+
+## SLOT_CATEGORY_POOLS/DEFINITIONS are fixed constants, so the derived pool
+## for a given (slot, category) is always the same -- cached instead of
+## re-canonicalizing every entry on every call, since gear generation and
+## weight_for_slot()/is_stat_valid_for_slot() (which each call this just to
+## scan for one entry) can hit this dozens of times per item rolled.
 static func pool_for_slot(slot: GearItem.SlotType, category: String) -> Array[Dictionary]:
+	var cache_key := "%d:%s" % [slot, category]
+	if _pool_for_slot_cache.has(cache_key):
+		var cached: Array[Dictionary] = _pool_for_slot_cache[cache_key]
+		return cached.duplicate()
 	var slot_pools: Dictionary = SLOT_CATEGORY_POOLS.get(slot, {})
 	var raw_pool: Array = slot_pools.get(category, [])
 	var pool: Array[Dictionary] = []
@@ -581,7 +804,8 @@ static func pool_for_slot(slot: GearItem.SlotType, category: String) -> Array[Di
 			"stat_id": stat_id,
 			"weight": max(0, int(entry.get("weight", 0))),
 		})
-	return pool
+	_pool_for_slot_cache[cache_key] = pool
+	return pool.duplicate()
 
 
 static func stat_ids_for_slot(slot: GearItem.SlotType, category: String) -> Array[String]:
@@ -633,3 +857,17 @@ static func drawback_stat_ids_for_slot(slot: GearItem.SlotType) -> Array[String]
 		if stat_id != "":
 			ids.append(stat_id)
 	return ids
+
+
+## Shared domain validation for the five new semantics; old signed/operation rules remain valid.
+static func modifier_validation_error(modifier: StatModifier) -> String:
+	if modifier == null:
+		return ""
+	var id := canonical_id_for_modifier(modifier)
+	if id not in [COOLDOWN_REDUCTION, INCREASED_BUFF_DURATION, CRIT_APPLIES_PENETRATION, CRIT_APPLIES_POTENCY, INVENTORY_ECONOMY_STATS]:
+		return ""
+	if not is_finite(modifier.value) or modifier.value < 0.0 or modifier.is_drawback or modifier.category == StatModifier.StatCategory.DRAWBACK or modifier.operation != StatModifier.OperationType.ADD:
+		return "Invalid new gear modifier: " + id
+	if id == INVENTORY_ECONOMY_STATS and modifier.value != 1.0:
+		return "Inventory Economy Special requires binary value 1."
+	return ""

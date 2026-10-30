@@ -1,0 +1,50 @@
+{
+  "status": "Pending concrete user review",
+  "candidates": [
+    {
+      "id": "talent.shadow.shadow_mastery",
+      "name": "Shadow Mastery",
+      "candidate": "shadow_mastery.png",
+      "sha256": "8ca3089476cb6b90d2a8b2b8edc13d7d107857411b086874b51b01774ebdfd98",
+      "master_sha256": "d13b41f72a6e44b55c2dd2f7e8310dac1f950b1603786b6a0faa774021656bec",
+      "original": "res://assets/ui/assigned/talents/shadow/shadow_mastery.png",
+      "original_sha256": "2906b1e1ca43b5c514c255b5de9f4cc5bfe564f4dc1bde42dec1efacb62a8cfb"
+    },
+    {
+      "id": "talent.shadow.dusk_strike",
+      "name": "Dusk Strike",
+      "candidate": "dusk_strike.png",
+      "sha256": "9f0d7afbecec78fb040e586f311b9fc298b31f3b8dbe26eeed98ab4d4bee2d93",
+      "master_sha256": "9d60a20acb1d1795ad0af209ca9a60a7c2d86c6f0e5241e386a7e8dac6813f2f",
+      "original": "res://assets/ui/assigned/talents/shadow/dusk_strike.png",
+      "original_sha256": "fc40c3a4cd001425e22c25817c454ca60247bdd5081686f41b8243a915c7c0ca"
+    },
+    {
+      "id": "status.potency",
+      "name": "Potency",
+      "candidate": "potency.png",
+      "sha256": "a80767bbb9070eb549c9870d0cd387ef1d657799e2a760db727fc269c1321837",
+      "master_sha256": "bc2d1fb48486083314832e9b94c10bb781b8c79fa03247fc256ed6ba09ff02a8",
+      "original": "res://assets/ui/assigned/statuses/potency.png",
+      "original_sha256": "add70f8bf0a93784abaf3186fd558867ea93e6c35dd157d67344c03474bd9f86"
+    },
+    {
+      "id": "talent.assassin.toxic_tradeoff",
+      "name": "Toxic Tradeoff",
+      "candidate": "toxic_tradeoff.png",
+      "sha256": "07000623b331c7f7f7efb6f6935be3517db98bd110945430c620464662ad73c5",
+      "master_sha256": "9a386d31f4e55c1239f1facd1c24ea48826fab7d905079027defc42555cb6a36",
+      "original": "res://assets/ui/assigned/talents/assassin/toxic_tradeoff.png",
+      "original_sha256": "6b606587fd9ac303b11e4a8d171a24575768bfa5ca8a70768ec966b737714052"
+    },
+    {
+      "id": "talent.bladedancer.sharpened_edge",
+      "name": "Sharpened Edge",
+      "candidate": "sharpened_edge.png",
+      "sha256": "697cca5968b007fcd0422c591626b5a82deb5397a1b64558770ecdde8b5ce185",
+      "master_sha256": "bb04c9d5e8bcea1f1600c855b239069196e5fe3f4e574d5f780b15f1279c0887",
+      "original": "res://assets/ui/assigned/talents/bladedancer/sharpened_edge.png",
+      "original_sha256": "194f89c28b47a90c43b92d5420bce1c1c26029d5d0af2882b889ac12450e5b72"
+    }
+  ]
+}

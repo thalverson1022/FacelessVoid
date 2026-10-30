@@ -1,0 +1,57 @@
+[gd_resource type="Resource" script_class="Talent" format=3]
+[ext_resource type="Script" path="res://scripts/resources/talent.gd" id="talent"]
+[ext_resource type="Script" path="res://scripts/resources/talent_rank.gd" id="rank"]
+[ext_resource type="Script" path="res://scripts/resources/stat_modifier.gd" id="modifier"]
+
+[sub_resource type="Resource" id="mod1"]
+script = ExtResource("modifier")
+stat_id = "crit_chance"
+value = 0.01000000
+
+[sub_resource type="Resource" id="rank1"]
+script = ExtResource("rank")
+stat_modifiers = Array[StatModifier]([SubResource("mod1")])
+
+[sub_resource type="Resource" id="mod2"]
+script = ExtResource("modifier")
+stat_id = "crit_chance"
+value = 0.02000000
+
+[sub_resource type="Resource" id="rank2"]
+script = ExtResource("rank")
+stat_modifiers = Array[StatModifier]([SubResource("mod2")])
+
+[sub_resource type="Resource" id="mod3"]
+script = ExtResource("modifier")
+stat_id = "crit_chance"
+value = 0.03000000
+
+[sub_resource type="Resource" id="rank3"]
+script = ExtResource("rank")
+stat_modifiers = Array[StatModifier]([SubResource("mod3")])
+
+[sub_resource type="Resource" id="mod4"]
+script = ExtResource("modifier")
+stat_id = "crit_chance"
+value = 0.04000000
+
+[sub_resource type="Resource" id="rank4"]
+script = ExtResource("rank")
+stat_modifiers = Array[StatModifier]([SubResource("mod4")])
+
+[sub_resource type="Resource" id="mod5"]
+script = ExtResource("modifier")
+stat_id = "crit_chance"
+value = 0.05000000
+
+[sub_resource type="Resource" id="rank5"]
+script = ExtResource("rank")
+stat_modifiers = Array[StatModifier]([SubResource("mod5")])
+
+[resource]
+script = ExtResource("talent")
+id = "talent.assassin.precision"
+display_name = "Precision"
+max_ranks = 5
+required_tree_points = 0
+ranks = Array[ExtResource("rank")]([SubResource("rank1"), SubResource("rank2"), SubResource("rank3"), SubResource("rank4"), SubResource("rank5")])

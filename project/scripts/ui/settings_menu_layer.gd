@@ -12,6 +12,7 @@ var _center: CenterContainer
 var _settings_panel: PanelContainer
 var _audio_panel: PanelContainer
 var _gear_icon: Texture2D = null
+var _return_focus: Control
 
 
 func _ready() -> void:
@@ -45,6 +46,19 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 
 
+func _input(event: InputEvent) -> void:
+	if not _overlay.visible or not event is InputEventKey or not event.pressed or event.echo or event.keycode != KEY_TAB:
+		return
+	var controls: Array[Control] = []
+	for control in _overlay.find_children("*", "Control", true, false):
+		if control.is_visible_in_tree() and control.focus_mode == Control.FOCUS_ALL and not (control is BaseButton and control.disabled):
+			controls.append(control)
+	if controls.is_empty(): return
+	var current := controls.find(get_viewport().gui_get_focus_owner())
+	controls[posmod(current + (-1 if event.shift_pressed else 1), controls.size())].grab_focus()
+	get_viewport().set_input_as_handled()
+
+
 func _build_settings_button() -> void:
 	var button := Button.new()
 	button.name = "SettingsButton"
@@ -58,7 +72,11 @@ func _build_settings_button() -> void:
 	button.add_theme_stylebox_override("normal", _round_button_style(UIColors.BUTTON_FILL, UIColors.PANEL_BORDER))
 	button.add_theme_stylebox_override("hover", _round_button_style(UIColors.BUTTON_TOP_LIGHT, UIColors.PANEL_BORDER))
 	button.add_theme_stylebox_override("pressed", _round_button_style(UIColors.BUTTON_FILL_PRESSED, UIColors.PANEL_BORDER))
-	button.add_theme_stylebox_override("focus", _round_button_style(UIColors.BUTTON_FILL, UIColors.TEXT_GOLD))
+	var focus_outline := _round_button_style(Color.TRANSPARENT, UIColors.TEXT_NORMAL)
+	focus_outline.set_border_width_all(2)
+	focus_outline.set_expand_margin_all(3)
+	focus_outline.set_corner_radius_all(31)
+	button.add_theme_stylebox_override("focus", focus_outline)
 	add_child(button)
 	button.set_anchors_preset(Control.PRESET_TOP_RIGHT)
 	button.offset_left = -SCREEN_MARGIN - BUTTON_SIZE.x
@@ -179,6 +197,7 @@ func _build_audio_panel() -> PanelContainer:
 
 
 func _show_overlay() -> void:
+	_return_focus = get_viewport().gui_get_focus_owner()
 	_sync_to_viewport()
 	_show_settings_panel()
 	_overlay.visible = true
@@ -189,6 +208,8 @@ func _show_overlay() -> void:
 
 func _hide_overlay() -> void:
 	_overlay.visible = false
+	if is_instance_valid(_return_focus) and _return_focus.is_visible_in_tree():
+		_return_focus.grab_focus()
 
 
 func _show_settings_panel() -> void:

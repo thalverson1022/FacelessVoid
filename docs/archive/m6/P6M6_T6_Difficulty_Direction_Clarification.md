@@ -1,0 +1,17 @@
+# T6 difficulty direction clarification
+
+> **Historical record — not an active work plan.** Status labels, next-step instructions and milestone numbering below describe the recorded checkpoint. M8 is closed; consult the current M9 tracker for authorized work. [Current context](../../P6_Project_Onboarding_Context.md).
+
+**2026-10-08 — T6 focused review Complete:** [Optimization and counterplay reassessment](P6M6_T6_Optimization_And_Counterplay_Review.md) retains current enemy values and rejects the three prior nerfs. Matched build/skill-omission trials, tag-only offer comparisons, route commitment checks and nine regressions support the decision. No numerical approval is pending. T1–T7 Complete; T8–T11 Not started; Adventure disabled. Full-run difficulty, optimized-play tension and hands-on acceptance remain T9/T10.
+
+2026-10-08. User clarification supersedes the earlier interpretation of smooth early progression and the pending three-change recommendation. T6 is In progress for reassessment; no numerical approval is currently requested. No proposed gameplay changes have been applied.
+
+The game should be hard. Optimization, understanding mechanical synergies, reading archetype tags and avoiding dangerous combinations are central gameplay. Strong, informed builds should be rewarded; weak builds should fail. Optimized play should still face meaningful challenges. Boss mechanics may combine to heavily counter a specific build. A losing matchup alone is not evidence that the enemy should be weakened.
+
+The previous C1 toll result of 280/280 within two attempts used seven earned-gear histories and selected macros. It does not demonstrate that arbitrary builds succeed, but it also does not establish that weak builds still fail or that optimized victories remain demanding. Success rate alone is insufficient to approve the change. The 18-second HP floor in a 14-second fight creates additional pressure; whether that pressure is undesirable is a design question, not automatically a bug.
+
+The C1 timing-counter and C4–C6 Poison-counter proposals improved the tested disadvantaged matchups. Those improvements do not by themselves justify softening intended counters. The current three-change recommendation is withdrawn pending reassessment; the saved patch and measurements remain historical candidate evidence, not an adopted baseline.
+
+Reassessment should compare the unchanged baseline with each candidate using equal stage, gear and point budgets: weak or unsynergized allocations and macros, coherent builds, and optimized/adapted builds. Measure first-attempt and retry outcomes, damage relative to required HP, sensitivity to removing key synergies, and the benefit of informed routing or adaptation. Verify actual tag visibility, meaningful route alternatives, and legal adaptation opportunities before describing a counter as avoidable. A strong build need not beat every matchup; informed avoidance may be the successful choice. Do not target universal success or an arbitrary percentage.
+
+Retain the current live values while that evidence is gathered. Full-run and hands-on evaluation must still assess whether optimization remains necessary and rewarding and whether optimized play retains tension. Earlier 99%/95%/80% diagnostic references and smooth-C10 language must not be used to override this clarified direction or justify automatic early enemy nerfs. Later escalation remains relevant, but early contracts are not guaranteed wins for merely coherent builds.

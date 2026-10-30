@@ -8,9 +8,9 @@ extends SceneTree
 ## killable HP target. Run with:
 ##   godot --headless -s res://tests/training_room_fight_setup_test.gd
 
-const MECHANIC_DODGE_ICON := preload("res://assets/ui/icons/mechanics/dodge.png")
-const MECHANIC_BLOCK_ICON := preload("res://assets/ui/icons/mechanics/block.png")
-const MECHANIC_INTERRUPT_ICON := preload("res://assets/ui/icons/mechanics/interrupt.png")
+static var MECHANIC_DODGE_ICON: Texture2D = GameIcons.icon_for("defense.dodge")
+static var MECHANIC_BLOCK_ICON: Texture2D = GameIcons.icon_for("defense.block")
+static var MECHANIC_INTERRUPT_ICON: Texture2D = GameIcons.icon_for("defense.interrupt")
 
 
 func _initialize() -> void:
@@ -332,9 +332,13 @@ func _initialize() -> void:
 	random_fight_seed_toggle.toggled.emit(true)
 	await process_frame
 	var seed_before_random_fight: int = training_room._state.fight_seed
-	training_room._state.set_primary_tree(training_room._state.selected_class.trees[1])
-	var quick_cut: Skill = load("res://data/skills/quick_cut.tres")
-	var practice_rotation: Array[Skill] = [quick_cut]
+	# Use an unlocked base skill in the scoped registry, without assuming
+	# the legacy tree-array order or an intrinsic Quick Cut grant.
+	var stab: Skill = null
+	for skill in training_room._state.unlocked_skills():
+		if skill.id == "skill.stab": stab = skill
+	assert(stab != null)
+	var practice_rotation: Array[Skill] = [stab]
 	training_room._state.set_rotation(practice_rotation)
 	training_room._state.set_locked(true)
 	training_room._state.run_fight()

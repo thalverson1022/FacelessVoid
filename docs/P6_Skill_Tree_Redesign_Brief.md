@@ -1,7 +1,11 @@
 # P6 Skill Tree Redesign Brief
 
+> **Historical record — not an active work plan.** Status labels, next-step instructions and milestone numbering below describe the recorded checkpoint. M8 is closed; consult the current M9 tracker for authorized work. Retained at this path when tooling/manifests depend on it. [Current context](P6_Project_Onboarding_Context.md).
+
 Date: 2026-09-16
-Source baseline: Project Enigma Phase 5 closeout, commit `91c1f2fdfaae7b48aa1e193adfb910956b1d6574` on `phase-5-gear-redesign`
+Source baseline: Project Enigma audited Phase 5, commit `d0e025ae9ff6b86aa389582443be6382547cb4cc` on `main` (integrated 2026-09-21; original closeout `91c1f2fdfaae7b48aa1e193adfb910956b1d6574`). See `docs/P6_Audited_Baseline_Integration.md`.
+
+> Scope update (2026-10-17): the user promoted Legendary item revamp and expansion into Phase 6 M8, with scoped gear stat pool additions under P6M8-D002. See the [M8 tracker](P6M8_Legendary_Item_Revamp_And_Expansion_Tracker.md) and [current ten-milestone roadmap](P6_Milestone_Tracker.md). Broad gear/economy redesign and procedural Legendary generation remain outside the approved scope. The original brief below is historical design context.
 
 ## Purpose
 
@@ -89,6 +93,13 @@ Phase 6 is ready to close when:
 
 ## Suggested Milestones
 
+**Superseded on 2026-09-21:** Use the current ten-milestone roadmap in the
+[Phase 6 milestone tracker](P6_Milestone_Tracker.md). P6M1 closed as roadmap and
+planning setup on 2026-09-21; M2 starts with the carried-forward draft audit and
+foundational design. Enemy/progression rebalance required by the new trees, temporary-effect
+UI, and icon production are explicitly included. The original outline below is
+retained as historical planning context, not the current milestone numbering.
+
 P6M1: Design Charter And Tree Identity
 
 Define tree fantasy, player-facing promises, non-goals, vocabulary, and first-pass talent layouts before changing data.
@@ -121,8 +132,8 @@ Start by reading:
 2. `docs/P6_Current_Player_Build_System_Map.md`
 3. `docs/P6_Skill_Tree_Content_Audit.md`
 4. `docs/P6_Implementation_And_Test_Handoff.md`
-5. `docs/Project_Overview.md`
-6. `docs/P5_Phase_5_Closeout_Handoff.md`
-7. `docs/New_Gear_Overview.md`
+5. `../Project-Enigma/docs/Project_Overview.md` (optional historical context)
+6. `../Project-Enigma/docs/P5_Phase_5_Closeout_Handoff.md` (optional historical context)
+7. `../Project-Enigma/docs/New_Gear_Overview.md` (optional historical context)
 
 Then work from the closed Phase 5 baseline and keep Phase 6 scoped to Rogue skill-tree redesign unless a new task explicitly expands the phase.

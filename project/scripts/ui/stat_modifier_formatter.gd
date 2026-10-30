@@ -71,6 +71,15 @@ static func _format_catalog_value(value: float, value_kind: String, stat_name: S
 
 
 static func _display_name_for(modifier: StatModifier, stat_id: String, has_explicit_stat_id: bool) -> String:
+	var presentation_names := {
+		"base_damage": "base physical damage",
+		"percent_physical_damage": "physical damage",
+		"base_elemental_damage": "base elemental damage",
+		"percent_elemental_damage": "elemental damage",
+		"increased_all_stacks": "increased stacks",
+	}
+	if has_explicit_stat_id and presentation_names.has(stat_id):
+		return presentation_names[stat_id]
 	if has_explicit_stat_id and stat_id == StatCatalog.SHRED_VALUE:
 		return "Bonus Armor Shred"
 	if modifier.display_label.strip_edges() != "":

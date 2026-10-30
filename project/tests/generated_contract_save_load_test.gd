@@ -9,6 +9,8 @@ var _failed := false
 
 
 func _initialize() -> void:
+	# This suite intentionally exercises the retained legacy save fixture registry.
+	SaveSystem.registry_override = BuildContentRegistry.current()
 	SaveSystemScript.save_path = "res://.test_generated_contract_save.json"
 	SaveSystemScript.delete_save()
 
@@ -538,7 +540,7 @@ func _has_notice(notices: PackedStringArray, prefix: String) -> bool:
 func _read_save_data() -> Dictionary:
 	var file := FileAccess.open(SaveSystemScript.save_path, FileAccess.READ)
 	_require(file != null, "Expected save file to be readable.")
-	var parsed = JSON.parse_string(file.get_as_text())
+	var parsed = StrictSaveJson.read(file.get_as_text())["data"]
 	file.close()
 	_require(typeof(parsed) == TYPE_DICTIONARY, "Expected save JSON object.")
 	return parsed

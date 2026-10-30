@@ -5,7 +5,7 @@ const BalanceLab = preload("res://scripts/tools/balance_lab.gd")
 
 func _initialize() -> void:
 	var report := BalanceLab.run_suite()
-	assert(report["project"] == "Project Enigma")
+	assert(report["project"] == "FacelessVoid")
 	assert(report["tool"] == "Balance Lab")
 	assert(["pass", "warn"].has(report["status"]))
 	assert(report["status_counts"]["pass"] >= 24)
@@ -71,12 +71,17 @@ func _initialize() -> void:
 		"generated_easy_fortified_normal": true,
 	}
 	var accepted_warn_scenarios := {
-		"bladedancer_contract_watchmen": "P5M11 closeout accepts this as a balance-watch scenario; the talent-tree remake will revisit final balance.",
+		"bladedancer_contract_watchmen": "M6 T3/T6 retain the legacy Watchmen comparison as diagnostic, not a win-rate gate.",
+		"shadow_intrinsic_stab_mouthy": "Legacy unranked Shadow fixture has no Poison fuel; current ranked coverage is p6_full_shadow_test.",
+		"shadow_wyvern_poison_mouthy": "Legacy unranked Shadow/Wyvern fixture has no Poison fuel; current gear coverage is p6_mixed_gear_integration_test.",
+		"defense_absorb_suppress_poison": "Legacy no-fuel fixture cannot witness Poison absorption; p6_status_interactions_test covers current mitigation.",
 	}
 	for scenario in report["scenarios"]:
 		scenario_ids.append(scenario["id"])
 		if scenario["status"] == "warn":
-			assert(accepted_warn_scenarios.has(String(scenario["id"])))
+			assert(accepted_warn_scenarios.has(String(scenario["id"])), "Unreviewed diagnostic warning: " + String(scenario["id"]))
+			if String(scenario["id"]) in ["shadow_intrinsic_stab_mouthy", "shadow_wyvern_poison_mouthy", "defense_absorb_suppress_poison"]:
+				assert(scenario["aggregate"]["poison_damage"]["mean"] == 0.0)
 		else:
 			assert(scenario["status"] == "pass")
 		assert(scenario["aggregate"]["dps"]["count"] == scenario["seed_count"])

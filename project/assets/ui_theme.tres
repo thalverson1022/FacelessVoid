@@ -1,9 +1,9 @@
-[gd_resource type="Theme" format=3]
+[gd_resource type="Theme" format=3 uid="uid://kn7tpdoectl8"]
 
-[ext_resource type="FontFile" path="res://assets/fonts/PressStart2P-Regular.ttf" id="1_7wdoa"]
-[ext_resource type="FontFile" path="res://assets/fonts/VT323-Regular.ttf" id="2_rh63s"]
-[ext_resource type="FontFile" path="res://assets/fonts/MedievalSharp-Regular.ttf" id="3_dir8o"]
-[ext_resource type="FontFile" path="res://assets/fonts/PirataOne-Regular.ttf" id="4_gond4"]
+[ext_resource type="FontFile" uid="uid://cj7sxsvvtwqjh" path="res://assets/fonts/PressStart2P-Regular.ttf" id="1_7wdoa"]
+[ext_resource type="FontFile" uid="uid://b7sdqvyvipjlx" path="res://assets/fonts/VT323-Regular.ttf" id="2_rh63s"]
+[ext_resource type="FontFile" uid="uid://bk8kdcopa0rde" path="res://assets/fonts/MedievalSharp-Regular.ttf" id="3_dir8o"]
+[ext_resource type="FontFile" uid="uid://lgfkg4q882ex" path="res://assets/fonts/PirataOne-Regular.ttf" id="4_gond4"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7wdoa"]
 content_margin_left = 16.0

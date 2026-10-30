@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="GearItem" load_steps=6 format=3]
+[gd_resource type="Resource" script_class="GearItem" load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://scripts/resources/gear_item.gd" id="1_gear"]
 [ext_resource type="Script" path="res://scripts/resources/stat_modifier.gd" id="2_affix"]
@@ -28,12 +28,13 @@ stat_id = "crit_applies_element"
 stat = 0
 category = 1
 operation = 0
-value = 1.0
+value = 0.5
 display_label = "Chance for Crits to Apply Poison"
 
 [resource]
 script = ExtResource("1_gear")
 id = "gear.legendary.umbral_stiletto"
+legendary_effect_id = "umbral"
 display_name = "Umbral Stiletto"
 slot = 0
 tier = 3

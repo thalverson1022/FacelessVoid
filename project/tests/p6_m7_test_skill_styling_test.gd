@@ -1,0 +1,90 @@
+extends SceneTree
+const Accent = preload("res://scripts/ui/skill_category_icon_accent.gd")
+var failed := false
+func _initialize() -> void: call_deferred("_run")
+func check(ok: bool, message: String) -> void:
+	if not ok:
+		failed = true
+		printerr("FAILED: " + message)
+func accents(node: Node) -> Array:
+	var result := []
+	for child in node.get_children():
+		if child.get_script() == Accent: result.append(child)
+		result.append_array(accents(child))
+	return result
+func shot(name: String) -> void:
+	await process_frame
+	await process_frame
+	if DisplayServer.get_name() != "headless":
+		await RenderingServer.frame_post_draw
+		root.get_texture().get_image().save_png("res://reports/icon_accents/" + name + ".png")
+func _run() -> void:
+	DirAccess.make_dir_recursive_absolute("res://reports/charcoal_preview")
+	var state = root.get_node("BuildState")
+	var game = load("res://scenes/game_root.tscn").instantiate()
+	root.add_child(game)
+	await process_frame
+	game._on_contract_test_pressed(1234,45,"tree.assassin","tree.shadow")
+	await process_frame
+	var screen = game._current_screen
+	check(state.ranked_build.configure(state.selected_trees[0],state.selected_trees[1],45,{"talent.assassin.quick_hands":5,"talent.assassin.precision":5,"talent.assassin.hastened_poison":2,"talent.assassin.poison_strike":1}),"Legal representative unlocks")
+	state._finish_rank_edit(true)
+	state.rotation.assign(state.unlocked_skills().filter(func(skill): return preload("res://scripts/ui/skill_category_preview_style.gd").icon_selected(skill)))
+	state.build_changed.emit()
+	screen._contract_overlay.hide()
+	screen._map_overlay.hide()
+	await process_frame
+	var selector = screen.find_child("CategoryIconStyle",true,false)
+	check(selector != null, "Test-only comparison available")
+	check(selector.selected == 1, "Available Skills defaults to bottom edge")
+	check(int(state.get_meta("category_tree_icon_style",2)) == 2, "Tree defaults independently to filled box")
+	check(accents(screen._skill_build_panel).size() == state.rotation.size(), "Every macro skill gets an accent")
+	root.size = Vector2i(1600, 900)
+	var panel = selector.get_parent().get_parent().get_parent()
+	selector.hide()
+	for width in [1280, 1600, 1920]:
+		root.size = Vector2i(width, width * 9 / 16)
+		await capture(panel, "test-mode-%d" % width)
+		for button in panel._skills_box.get_children():
+			check(button.size == Vector2(48, 48), "Compact Test Mode button bounds")
+			check(button.find_child("SkillIcon", true, false).material != null, "Rounded mask active")
+	# Dummy renderer cannot read back ImageTextures faithfully.
+	if DisplayServer.get_name() != "headless":
+		# Source pixels survive composition exactly, including the thin blades.
+		var native_icons = preload("res://scripts/ui/test_mode_skill_icons.gd")
+		for id in native_icons.ORIGINALS:
+			var original: Image = native_icons.ORIGINALS[id].get_image()
+			var tile: Image = native_icons.icon_for(id, null).get_image()
+			for y in 32:
+				for x in 32:
+					var source_pixel := original.get_pixel(x, y)
+					if source_pixel.a == 1.0:
+						check(tile.get_pixel(x + 4, y + 4).is_equal_approx(source_pixel), "Source pixel retained: " + id)
+	state.is_test_mode = false
+	game._show_combat_screen()
+	await process_frame
+	var ordinary_panel = find_palette(game._current_screen)
+	for button in ordinary_panel._skills_box.get_children():
+		check(button.find_child("SkillIcon", true, false).material.shader == preload("res://scripts/ui/rounded_skill_icon.gdshader"), "Adventure uses approved rounded icons")
+		check(button.get_theme_stylebox("normal").bg_color == Color("28282b"), "Adventure uses approved charcoal fill")
+	print("Test Mode skill styling: " + ("FAIL" if failed else "PASS"))
+	quit(1 if failed else 0)
+
+func find_palette(node: Node):
+	if node.get_script() == load("res://scenes/combat/available_skills_panel.gd"):
+		return node
+	for child in node.get_children():
+		var found = find_palette(child)
+		if found != null: return found
+	return null
+
+func capture(panel: Control, variant: String) -> void:
+	await process_frame
+	await process_frame
+	if DisplayServer.get_name() == "headless": return
+	await RenderingServer.frame_post_draw
+	var screenshot = root.get_texture().get_image()
+	screenshot.save_png("res://reports/charcoal_preview/" + variant + "-context.png")
+	var transform = panel.get_global_transform_with_canvas()
+	var area = Rect2i(transform.origin - Vector2(8,8), panel.size * transform.get_scale() + Vector2(16,16))
+	screenshot.get_region(area).save_png("res://reports/charcoal_preview/" + variant + "-bar.png")

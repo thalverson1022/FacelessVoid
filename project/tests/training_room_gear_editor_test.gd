@@ -56,11 +56,10 @@ func _initialize() -> void:
 	assert(not training_room._armor_slot_button.disabled)
 	assert(training_room._trinket_slot_button.tooltip_text == "Trinket: Empty")
 	assert(training_room._charm_slot_button.tooltip_text == "Charm: Empty")
-	var practice_doll := training_room._helm_slot_button.get_parent() as VBoxContainer
+	var practice_doll := training_room._helm_slot_button.get_parent().get_parent() as HBoxContainer
 	assert(practice_doll != null)
-	var practice_middle_row := practice_doll.get_child(1) as HBoxContainer
-	assert(practice_middle_row != null and practice_middle_row.get_child_count() == 3)
-	var practice_right_stack := practice_middle_row.get_child(2) as VBoxContainer
+	assert(practice_doll.get_child_count() == 3)
+	var practice_right_stack := practice_doll.get_child(2) as VBoxContainer
 	assert(practice_right_stack != null and practice_right_stack.get_child_count() == 2)
 	assert(practice_right_stack.get_child(0) == training_room._charm_slot_button)
 	assert(practice_right_stack.get_child(1) == training_room._trinket_slot_button)
@@ -69,7 +68,7 @@ func _initialize() -> void:
 	training_room._show_gear_slot_editor("Weapon", training_room._state.practice_weapon, true)
 	await process_frame
 	assert(training_room._gear_editor_overlay.visible)
-	assert(training_room._gear_editor_title.text == "Weapon Gear")
+	assert(training_room._gear_editor_title.text == "Weapon")
 	assert(training_room._gear_rarity_option.get_selected_id() == training_room.NONE_RARITY_ID)
 	assert(_rarity_ids(training_room) == [
 		training_room.NONE_RARITY_ID,
@@ -133,17 +132,17 @@ func _initialize() -> void:
 	print("auto-filled stat_id=%s category=%d op=%d value=%.2f (expect %s, %d, %d, %.2f)" % [
 		modifier.stat_id, modifier.category, modifier.operation, modifier.value,
 		StatCatalog.PERCENT_PHYSICAL_DAMAGE, StatModifier.StatCategory.BASIC,
-		StatModifier.OperationType.ADD, 0.21,
+		StatModifier.OperationType.ADD, _max_value(StatCatalog.PERCENT_PHYSICAL_DAMAGE, GearItem.SlotType.WEAPON, GearItem.Tier.MASTER),
 	])
 	assert(modifier.stat_id == StatCatalog.PERCENT_PHYSICAL_DAMAGE)
 	assert(modifier.category == StatModifier.StatCategory.BASIC)
 	assert(modifier.operation == StatModifier.OperationType.ADD)
-	assert(is_equal_approx(modifier.value, 0.21))
+	assert(is_equal_approx(modifier.value, _max_value(StatCatalog.PERCENT_PHYSICAL_DAMAGE, GearItem.SlotType.WEAPON, GearItem.Tier.MASTER)))
 	var first_affix_row := training_room._gear_affix_column.get_child(0) as HBoxContainer
 	var first_value_spin := first_affix_row.get_child(1) as SpinBox
-	assert(first_value_spin.rounded)
-	assert(is_equal_approx(first_value_spin.step, 1.0))
-	assert(is_equal_approx(first_value_spin.value, 21.0))
+	assert(not first_value_spin.rounded)
+	assert(is_equal_approx(first_value_spin.step, 0.0001))
+	assert(is_equal_approx(first_value_spin.value, modifier.value * 100.0))
 	assert(character_stats_panel._stats_label.text != stats_text_before_edit)
 
 	# -- The auto-filled value stays freely editable afterward (the raw
@@ -204,8 +203,8 @@ func _initialize() -> void:
 	await process_frame
 	print("weapon affixes after Chaos=%d (expect %d)" % [training_room._state.practice_weapon.affixes.size(), GearGenerator.CHAOS_ROLL_COUNT])
 	assert(training_room._state.practice_weapon.affixes.size() == GearGenerator.CHAOS_ROLL_COUNT)
-	assert(_count_category(training_room._state.practice_weapon, StatModifier.StatCategory.DRAWBACK) == 1)
-	_assert_chaos_dropdowns_expose_all_slot_stats(training_room, training_room._state.practice_weapon)
+	assert(_count_category(training_room._state.practice_weapon, StatModifier.StatCategory.BASIC) == 4)
+	_assert_chaos_dropdowns_match_selected_type(training_room, training_room._state.practice_weapon)
 	assert(_icon_path(training_room._state.practice_weapon) == "res://assets/Items/Rogue/Generated/rogue_dagger_chaos.png")
 
 	_select_rarity(training_room, GearItem.Tier.UNIQUE)
@@ -218,7 +217,7 @@ func _initialize() -> void:
 	# -- Rarity -> Legendary: affix rows disappear, Legendary dropdown shows,
 	# equipping picks a real catalog item --
 	var wyvern: GearItem = load("res://data/gear/wyvern_kriss.tres")
-	var legendary_index := LegendaryCatalog.all_items().find(wyvern)
+	var legendary_index: int = training_room._legendary_items_for_editor().find(wyvern)
 	assert(legendary_index >= 0)
 	_select_rarity(training_room, GearItem.Tier.LEGENDARY)
 	await process_frame
@@ -232,8 +231,8 @@ func _initialize() -> void:
 	assert(training_room._gear_legendary_option.visible)
 	assert(training_room._weapon_slot_button.get_node("Icon").texture == GearIcons.WYVERN_KRISS_ICON)
 	_assert_all_legendary_dropdown_options(training_room)
-	for i in LegendaryCatalog.all_items().size():
-		var legendary_item: GearItem = LegendaryCatalog.all_items()[i]
+	for i in training_room._legendary_items_for_editor().size():
+		var legendary_item: GearItem = training_room._legendary_items_for_editor()[i]
 		training_room._gear_legendary_option.select(i)
 		training_room._on_weapon_legendary_selected(i)
 		await process_frame
@@ -266,8 +265,8 @@ func _initialize() -> void:
 	assert(training_room._state.practice_weapon.tier == GearItem.Tier.BASIC)
 	assert(training_room._state.practice_weapon.affixes.size() == 1)
 
-	# -- Helm/armor/trinket/charm slots have no Legendary option and are always
-	# the rarity-driven editor, independent of the weapon slot --
+	# -- Other slots keep their rarity-driven editor and their own Legendary
+	# catalog, independent of the weapon slot --
 	training_room._show_gear_slot_editor("Helm", training_room._state.practice_helm, false)
 	await process_frame
 	assert(_rarity_ids(training_room) == [
@@ -278,6 +277,7 @@ func _initialize() -> void:
 		GearItem.Tier.CURSED,
 		GearItem.Tier.CHAOS,
 		GearItem.Tier.UNIQUE,
+		GearItem.Tier.LEGENDARY,
 	])
 	_select_rarity(training_room, GearItem.Tier.MASTER)
 	await process_frame
@@ -287,7 +287,7 @@ func _initialize() -> void:
 
 	training_room._show_gear_slot_editor("Armor", training_room._state.practice_armor, false)
 	await process_frame
-	assert(training_room._gear_rarity_option.item_count == 7)
+	assert(training_room._gear_rarity_option.item_count == 8)
 	_select_rarity(training_room, GearItem.Tier.BASIC)
 	await process_frame
 	assert(training_room._state.equipped_armor == training_room._state.practice_armor)
@@ -300,30 +300,29 @@ func _initialize() -> void:
 	await process_frame
 	_select_affix_stat(training_room, training_room._state.practice_charm, 0, StatCatalog.INCREASED_GOLD)
 	await process_frame
-	_select_affix_stat(training_room, training_room._state.practice_charm, 1, StatCatalog.SHOP_DISCOUNT)
+	_select_affix_stat(training_room, training_room._state.practice_charm, 1, StatCatalog.CRIT_DAMAGE)
 	await process_frame
-	_select_affix_stat(training_room, training_room._state.practice_charm, 2, StatCatalog.INCREASED_MAGIC_FIND)
+	_select_affix_stat(training_room, training_room._state.practice_charm, 2, StatCatalog.CRIT_APPLIES_POTENCY)
 	await process_frame
 	var gold_modifier: StatModifier = training_room._state.practice_charm.affixes[0]
-	var discount_modifier: StatModifier = training_room._state.practice_charm.affixes[1]
-	var magic_find_modifier: StatModifier = training_room._state.practice_charm.affixes[2]
+	var crit_modifier: StatModifier = training_room._state.practice_charm.affixes[1]
+	var potency_modifier: StatModifier = training_room._state.practice_charm.affixes[2]
 	assert(is_equal_approx(gold_modifier.value, _max_value(
 		StatCatalog.INCREASED_GOLD, GearItem.SlotType.CHARM, GearItem.Tier.EPIC
 	)))
-	assert(is_equal_approx(discount_modifier.value, _max_value(
-		StatCatalog.SHOP_DISCOUNT, GearItem.SlotType.CHARM, GearItem.Tier.EPIC
+	assert(is_equal_approx(crit_modifier.value, _max_value(
+		StatCatalog.CRIT_DAMAGE, GearItem.SlotType.CHARM, GearItem.Tier.EPIC
 	)))
-	assert(is_equal_approx(magic_find_modifier.value, _max_value(
-		StatCatalog.INCREASED_MAGIC_FIND, GearItem.SlotType.CHARM, GearItem.Tier.EPIC, false, StatCatalog.CATEGORY_RARE
+	assert(is_equal_approx(potency_modifier.value, _max_value(
+		StatCatalog.CRIT_APPLIES_POTENCY, GearItem.SlotType.CHARM, GearItem.Tier.EPIC, false, StatCatalog.CATEGORY_RARE
 	)))
 	var practice_stats_text: String = character_stats_panel._stats_label.text
-	assert(practice_stats_text.contains("Increased Gold: +120%"))
-	assert(practice_stats_text.contains("Shop Discount: +20%"))
-	assert(practice_stats_text.contains("Magic Find: +44%"))
+	assert(practice_stats_text.contains("Increased Gold:"))
+	assert(practice_stats_text.contains("Crits Apply Potency: %.0f%%" % (potency_modifier.value * 100.0)))
 
 	training_room._show_gear_slot_editor("Trinket", training_room._state.practice_trinket, false)
 	await process_frame
-	assert(training_room._gear_rarity_option.item_count == 7)
+	assert(training_room._gear_rarity_option.item_count == 8)
 	_select_rarity(training_room, GearItem.Tier.MASTER)
 	await process_frame
 	print("trinket affixes after Master=%d (expect 2)" % training_room._state.practice_trinket.affixes.size())
@@ -375,6 +374,39 @@ func _initialize() -> void:
 	assert(_rect_contains(viewport_rect, gear_panel.get_global_rect()))
 	assert(_rect_contains(viewport_rect, training_room._gear_affix_column.get_global_rect()))
 
+	# Restoring a setup replaces custom shells. Both click routes must resolve
+	# the current resource, and right-click must honor the playback lock.
+	assert(PracticeSaveSystem.save_setup(training_room._state, true))
+	var old_weapon: GearItem = training_room._state.practice_weapon
+	assert(PracticeSaveSystem.load_setup(training_room._state).get("status") == "loaded")
+	assert(training_room._state.practice_weapon != old_weapon)
+	training_room._weapon_slot_button.pressed.emit()
+	assert(training_room._editing_gear_item == training_room._state.practice_weapon)
+	training_room._gear_editor_overlay.hide()
+	await process_frame
+	var right_click := InputEventMouseButton.new()
+	right_click.button_index = MOUSE_BUTTON_RIGHT
+	right_click.pressed = true
+	right_click.position = training_room._weapon_slot_button.get_global_rect().get_center()
+	right_click.global_position = right_click.position
+	var motion := InputEventMouseMotion.new()
+	motion.position = right_click.position
+	motion.global_position = right_click.position
+	root.push_input(motion, true)
+	training_room._state.allocation_locked = true
+	root.push_input(right_click, true)
+	assert(training_room._state.equipped_weapon != null)
+	var release := right_click.duplicate() as InputEventMouseButton
+	release.pressed = false
+	root.push_input(release, true)
+	training_room._state.allocation_locked = false
+	root.push_input(right_click, true)
+	root.push_input(release, true)
+	await process_frame
+	assert(training_room._state.equipped_weapon == null)
+	assert(training_room._state.practice_weapon.affixes.is_empty())
+	assert(training_room._weapon_slot_button.tooltip_text == "Weapon: Empty")
+
 	# -- Isolation: none of this touched the real BuildState's gear --
 	print("real equipped weapon unchanged (expect true): %s" % (build_state.equipped_weapon == real_equipped_weapon_before))
 	assert(build_state.equipped_weapon == real_equipped_weapon_before)
@@ -421,8 +453,8 @@ func _rarity_ids(training_room: Control) -> Array[int]:
 
 
 func _assert_all_legendary_dropdown_options(training_room: Control) -> void:
-	var items := LegendaryCatalog.all_items()
-	assert(items.size() == 5)
+	var items: Array = training_room._legendary_items_for_editor()
+	assert(not items.is_empty())
 	assert(training_room._gear_legendary_option.item_count == items.size())
 	for i in items.size():
 		var item: GearItem = items[i]
@@ -440,9 +472,9 @@ func _count_category(item: GearItem, category: StatModifier.StatCategory) -> int
 	return count
 
 
-func _assert_chaos_dropdowns_expose_all_slot_stats(training_room: Control, item: GearItem) -> void:
-	var expected := _chaos_stat_ids_for_slot(item.slot)
+func _assert_chaos_dropdowns_match_selected_type(training_room: Control, item: GearItem) -> void:
 	for i in item.affixes.size():
+		var expected := StatCatalog.drawback_stat_ids_for_slot(item.slot) if item.affixes[i].category == StatModifier.StatCategory.DRAWBACK else StatCatalog.stat_ids_for_slot(item.slot, StatCatalog.CATEGORY_RARE if item.affixes[i].category == StatModifier.StatCategory.RARE else StatCatalog.CATEGORY_BASIC)
 		var row := training_room._gear_affix_column.get_child(i) as HBoxContainer
 		assert(row != null)
 		var option := row.get_child(0) as OptionButton

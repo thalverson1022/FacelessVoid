@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="Skill" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/skill.gd" id="1_skill"]
+[ext_resource type="Script" path="res://scripts/resources/skill_effect.gd" id="2_base"]
+[ext_resource type="Script" path="res://scripts/resources/exsanguinate_effect.gd" id="3_effect"]
+[ext_resource type="Texture2D" path="res://assets/ui/assigned_flat/skills/exsanguinate.png" id="4_icon"]
+
+[sub_resource type="Resource" id="Resource_exsanguinate"]
+script = ExtResource("3_effect")
+
+[resource]
+script = ExtResource("1_skill")
+id = "skill.exsanguinate"
+display_name = "Exsanguinate"
+category = 1
+icon = ExtResource("4_icon")
+icon_letter = "E"
+base_execution_ms = 300
+min_execution_ms = 300
+cooldown_ms = 8000
+effects = Array[ExtResource("2_base")]([SubResource("Resource_exsanguinate")])

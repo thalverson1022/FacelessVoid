@@ -67,11 +67,6 @@ func _ready() -> void:
 	title.add_theme_font_size_override("font_size", CARD_TITLE_FONT_SIZE)
 	content.add_child(title)
 
-	var generator_title := Label.new()
-	generator_title.text = "Generated Target"
-	generator_title.theme_type_variation = &"PanelHeader"
-	content.add_child(generator_title)
-
 	var contract_level_row := _build_labeled_row(content, "Contract Level")
 	_generator_contract_level_spin = SpinBox.new()
 	_generator_contract_level_spin.name = "GeneratedContractLevelSpin"

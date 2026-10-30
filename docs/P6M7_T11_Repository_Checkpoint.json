@@ -1,0 +1,24 @@
+{
+  "date": "2026-10-17",
+  "milestone": "P6M7",
+  "decision": "P6M7-D053",
+  "git_head": "1222e1c263df8dd173dd8d571a6134e79b5e69b2",
+  "branch": "phase-6-skill-tree-redesign",
+  "identity_note": "Inherited dirty working tree; Git HEAD alone is not the playable revision. No commit or publication created. Source/asset/test/tool hashes identify this scoped baseline, not a full recoverable Git snapshot.",
+  "manifest": "project/reports/p6_m7_t11_closeout/manifest.json",
+  "manifest_sha256": "8f24e415a8842ca95f9e38af21fb4d1beef5740c50be6d1fd314dc18fb2af5a7",
+  "summary": "project/reports/p6_m7_t11_closeout/summary.json",
+  "git_status_before": "work/t11_before/git_status_before.txt",
+  "git_status_after": "project/reports/p6_m7_t11_closeout/git_status_after.txt",
+  "runtime_change": "work/t11_before/runtime_change.diff",
+  "worker_evidence": "work/t11_regression/evidence.json",
+  "real_saves": "No real userdata read/copied/written by T11 verification; all engine runs use scratch paths. No blanket equality claim about concurrent player activity.",
+  "documentation_sha256": {
+    "README.md": "6813eace5b4f2d6b8f7949a7cf3df2c38ef07ec6efca3fdf5040e5df8ccce909",
+    "docs/P6M7_T11_Closeout_And_M8_Handoff.md": "2b1b069ee109121a8fc8f518b9062a89f8c511ad50e247362a34ed886e13d58d",
+    "docs/P6_Project_Onboarding_Context.md": "525612e713445143f337ba93864e76a6755a7826143538bd95282fce1e62ab78",
+    "docs/P6M7_Icons_And_Player_Feedback_Completion_Tracker.md": "08402f1ae9abd9eb0104d98e8d1f4a392281f695cf96a07e646ab70de02d89c2",
+    "docs/P6_Milestone_Tracker.md": "c25d8b308c911cc6cb5eb70a4a9c1648e02e50ec1fcf33e98f3bc456e37ade75",
+    "docs/P6_Implementation_And_Test_Handoff.md": "fbcb29aee939e9e027ca805fb1e7f49800424f629871dd3ac88f0d943b004ce6"
+  }
+}

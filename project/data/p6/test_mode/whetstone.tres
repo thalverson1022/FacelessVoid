@@ -1,0 +1,61 @@
+[gd_resource type="Resource" script_class="Talent" format=3 uid="uid://bxahaawb4a50p"]
+
+[ext_resource type="Script" uid="uid://bpusgj7hvipbl" path="res://scripts/resources/prerequisite_group.gd" id="1_c5pu8"]
+[ext_resource type="Script" uid="uid://cbkin0ub6teak" path="res://scripts/resources/skill_augment.gd" id="3_1b6hv"]
+[ext_resource type="Script" uid="uid://c7fj7apjjsn5" path="res://scripts/resources/triggered_skill_effect.gd" id="5_yp7d3"]
+[ext_resource type="Script" uid="uid://d3apprhhvrqum" path="res://scripts/resources/skill.gd" id="7_0antw"]
+[ext_resource type="Script" uid="uid://m13uapmegxo2" path="res://scripts/resources/stat_modifier.gd" id="modifier"]
+[ext_resource type="Script" uid="uid://evdact12hmik" path="res://scripts/resources/talent_rank.gd" id="rank"]
+[ext_resource type="Script" uid="uid://bq2fx6c5wnwsg" path="res://scripts/resources/talent.gd" id="talent"]
+
+[sub_resource type="Resource" id="m1_0"]
+script = ExtResource("modifier")
+stat_id = "base_damage"
+value = 1.0
+
+[sub_resource type="Resource" id="r1"]
+script = ExtResource("rank")
+stat_modifiers = Array[ExtResource("modifier")]([SubResource("m1_0")])
+
+[sub_resource type="Resource" id="m2_0"]
+script = ExtResource("modifier")
+stat_id = "base_damage"
+value = 2.0
+
+[sub_resource type="Resource" id="r2"]
+script = ExtResource("rank")
+stat_modifiers = Array[ExtResource("modifier")]([SubResource("m2_0")])
+
+[sub_resource type="Resource" id="m3_0"]
+script = ExtResource("modifier")
+stat_id = "base_damage"
+value = 3.0
+
+[sub_resource type="Resource" id="r3"]
+script = ExtResource("rank")
+stat_modifiers = Array[ExtResource("modifier")]([SubResource("m3_0")])
+
+[sub_resource type="Resource" id="m4_0"]
+script = ExtResource("modifier")
+stat_id = "base_damage"
+value = 4.0
+
+[sub_resource type="Resource" id="r4"]
+script = ExtResource("rank")
+stat_modifiers = Array[ExtResource("modifier")]([SubResource("m4_0")])
+
+[sub_resource type="Resource" id="m5_0"]
+script = ExtResource("modifier")
+stat_id = "base_damage"
+value = 5.0
+
+[sub_resource type="Resource" id="r5"]
+script = ExtResource("rank")
+stat_modifiers = Array[ExtResource("modifier")]([SubResource("m5_0")])
+
+[resource]
+script = ExtResource("talent")
+id = "talent.bladedancer.wet_stone"
+display_name = "Whetstone"
+max_ranks = 5
+ranks = Array[ExtResource("rank")]([SubResource("r1"), SubResource("r2"), SubResource("r3"), SubResource("r4"), SubResource("r5")])

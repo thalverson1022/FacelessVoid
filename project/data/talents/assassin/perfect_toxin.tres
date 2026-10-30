@@ -1,9 +1,16 @@
-[gd_resource type="Resource" script_class="Talent" load_steps=5 format=3]
+[gd_resource type="Resource" script_class="Talent" format=3 uid="uid://r1utyqfoj4t5"]
 
-[ext_resource type="Script" path="res://scripts/resources/talent.gd" id="1_talent"]
-[ext_resource type="Script" path="res://scripts/resources/stat_modifier.gd" id="2_modifier"]
-[ext_resource type="Script" path="res://scripts/resources/prerequisite_group.gd" id="3_group"]
-[ext_resource type="Resource" path="res://data/talents/assassin/toxic_technique.tres" id="4_toxic_technique"]
+[ext_resource type="Script" uid="uid://bq2fx6c5wnwsg" path="res://scripts/resources/talent.gd" id="1_talent"]
+[ext_resource type="Script" uid="uid://m13uapmegxo2" path="res://scripts/resources/stat_modifier.gd" id="2_modifier"]
+[ext_resource type="Script" uid="uid://bpusgj7hvipbl" path="res://scripts/resources/prerequisite_group.gd" id="3_group"]
+[ext_resource type="Script" uid="uid://evdact12hmik" path="res://scripts/resources/talent_rank.gd" id="4_rti05"]
+[ext_resource type="Resource" uid="uid://c8ixr51y88egn" path="res://data/talents/assassin/toxic_technique.tres" id="4_toxic_technique"]
+[ext_resource type="Script" uid="uid://c7fj7apjjsn5" path="res://scripts/resources/triggered_skill_effect.gd" id="6_nm15n"]
+[ext_resource type="Script" uid="uid://d3apprhhvrqum" path="res://scripts/resources/skill.gd" id="7_5tdau"]
+
+[sub_resource type="Resource" id="Resource_perfect_toxin_group"]
+script = ExtResource("3_group")
+options = Array[ExtResource("1_talent")]([ExtResource("4_toxic_technique")])
 
 [sub_resource type="Resource" id="Resource_perfect_toxin_mod"]
 script = ExtResource("2_modifier")
@@ -11,15 +18,10 @@ stat = 3
 operation = 1
 value = 2.0
 
-[sub_resource type="Resource" id="Resource_perfect_toxin_group"]
-script = ExtResource("3_group")
-options = Array[Talent]([ExtResource("4_toxic_technique")])
-
 [resource]
 script = ExtResource("1_talent")
 id = "talent.perfect_toxin"
 display_name = "Perfect Toxin"
 cost = 3
-prerequisites = Array[PrerequisiteGroup]([SubResource("Resource_perfect_toxin_group")])
-stat_modifiers = Array[StatModifier]([SubResource("Resource_perfect_toxin_mod")])
-unlocked_skills = Array[Skill]([])
+prerequisites = Array[ExtResource("3_group")]([SubResource("Resource_perfect_toxin_group")])
+stat_modifiers = Array[ExtResource("2_modifier")]([SubResource("Resource_perfect_toxin_mod")])

@@ -1,19 +1,18 @@
-[gd_resource type="Resource" script_class="Talent" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="Talent" format=3 uid="uid://cm101irl4otrw"]
 
-[ext_resource type="Script" path="res://scripts/resources/talent.gd" id="1_talent"]
-[ext_resource type="Script" path="res://scripts/resources/stat_modifier.gd" id="2_modifier"]
+[ext_resource type="Script" uid="uid://bpusgj7hvipbl" path="res://scripts/resources/prerequisite_group.gd" id="1_cb6ah"]
+[ext_resource type="Script" uid="uid://bq2fx6c5wnwsg" path="res://scripts/resources/talent.gd" id="1_talent"]
+[ext_resource type="Script" uid="uid://evdact12hmik" path="res://scripts/resources/talent_rank.gd" id="2_4rs0e"]
+[ext_resource type="Script" uid="uid://m13uapmegxo2" path="res://scripts/resources/stat_modifier.gd" id="2_modifier"]
+[ext_resource type="Script" uid="uid://c7fj7apjjsn5" path="res://scripts/resources/triggered_skill_effect.gd" id="5_3n8p8"]
+[ext_resource type="Script" uid="uid://d3apprhhvrqum" path="res://scripts/resources/skill.gd" id="6_5vfwh"]
 
 [sub_resource type="Resource" id="Resource_quick_hands_mod"]
 script = ExtResource("2_modifier")
-stat = 0
-operation = 0
 value = 0.1
 
 [resource]
 script = ExtResource("1_talent")
 id = "talent.quick_hands"
 display_name = "Quick Hands"
-cost = 1
-prerequisites = Array[PrerequisiteGroup]([])
-stat_modifiers = Array[StatModifier]([SubResource("Resource_quick_hands_mod")])
-unlocked_skills = Array[Skill]([])
+stat_modifiers = Array[ExtResource("2_modifier")]([SubResource("Resource_quick_hands_mod")])

@@ -32,6 +32,7 @@ func _ready() -> void:
 
 	_time_label = Label.new()
 	_time_label.visible = false
+	add_child(_time_label)
 
 	_playback_label = Label.new()
 	_playback_label.name = "PlaybackLabel"

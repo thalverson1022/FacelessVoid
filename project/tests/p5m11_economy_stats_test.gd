@@ -8,7 +8,7 @@ var build_state: Node
 func _initialize() -> void:
 	build_state = root.get_node("BuildState")
 	print("-- P5M11 economy stats --")
-	_check_economy_stats_are_in_all_item_pools()
+	_check_replacement_economy_pools()
 	_check_basic_and_rare_economy_ranges()
 	_check_economy_stats_resolve_to_player_stats()
 	_check_shop_discount_affects_purchase_price_only()
@@ -17,25 +17,25 @@ func _initialize() -> void:
 	quit(0)
 
 
-func _check_economy_stats_are_in_all_item_pools() -> void:
+func _check_replacement_economy_pools() -> void:
 	for slot in GearItem.universal_slot_order():
 		for stat_id in [StatCatalog.SHOP_DISCOUNT, StatCatalog.INCREASED_MAGIC_FIND]:
-			_require(StatCatalog.is_stat_valid_for_slot(slot, StatCatalog.CATEGORY_BASIC, stat_id), "Expected %s to be Basic-valid for %s." % [stat_id, GearGenerator.universal_slot_label(slot)])
-			_require(StatCatalog.is_stat_valid_for_slot(slot, StatCatalog.CATEGORY_RARE, stat_id), "Expected %s to be Rare-valid for %s." % [stat_id, GearGenerator.universal_slot_label(slot)])
-		_require(StatCatalog.is_stat_valid_for_slot(slot, StatCatalog.CATEGORY_RARE, StatCatalog.INCREASED_GOLD), "Expected Increased Gold to be Rare-valid for %s." % GearGenerator.universal_slot_label(slot))
+			_require(not StatCatalog.is_stat_valid_for_slot(slot, StatCatalog.CATEGORY_BASIC, stat_id), "Expected %s absent from new Basic pool for %s." % [stat_id, GearGenerator.universal_slot_label(slot)])
+			_require(StatCatalog.is_stat_valid_for_slot(slot, StatCatalog.CATEGORY_RARE, stat_id) == (slot == GearItem.SlotType.WEAPON), "Expected Rare %s only on Weapon." % stat_id)
+		_require(StatCatalog.is_stat_valid_for_slot(slot, StatCatalog.CATEGORY_BASIC, StatCatalog.INCREASED_GOLD), "Expected Basic Increased Gold on every slot.")
+		_require(StatCatalog.is_stat_valid_for_slot(slot, StatCatalog.CATEGORY_RARE, StatCatalog.INCREASED_GOLD) == (slot == GearItem.SlotType.WEAPON), "Expected Rare Increased Gold only on Weapon.")
+		_require(StatCatalog.is_stat_valid_for_slot(slot, StatCatalog.CATEGORY_SPECIAL, StatCatalog.INVENTORY_ECONOMY_STATS) == (slot in [GearItem.SlotType.WEAPON, GearItem.SlotType.ARMOR]), "Expected Inventory Economy Special only on Weapon/Armor.")
 
 
 func _check_basic_and_rare_economy_ranges() -> void:
-	for slot in GearItem.universal_slot_order():
-		_assert_range(slot, StatCatalog.CATEGORY_BASIC, StatCatalog.SHOP_DISCOUNT, 0.05, 0.10)
-		_assert_range(slot, StatCatalog.CATEGORY_RARE, StatCatalog.SHOP_DISCOUNT, 0.06, 0.11)
-		_assert_range(slot, StatCatalog.CATEGORY_BASIC, StatCatalog.INCREASED_MAGIC_FIND, 0.15, 0.20)
-		_assert_range(slot, StatCatalog.CATEGORY_RARE, StatCatalog.INCREASED_MAGIC_FIND, 0.17, 0.22)
-	_assert_range(GearItem.SlotType.WEAPON, StatCatalog.CATEGORY_RARE, StatCatalog.INCREASED_GOLD, 0.44, 0.66)
-	_assert_range(GearItem.SlotType.HELM, StatCatalog.CATEGORY_RARE, StatCatalog.INCREASED_GOLD, 0.88, 1.10)
-	_assert_range(GearItem.SlotType.ARMOR, StatCatalog.CATEGORY_RARE, StatCatalog.INCREASED_GOLD, 0.44, 0.66)
-	_assert_range(GearItem.SlotType.TRINKET, StatCatalog.CATEGORY_RARE, StatCatalog.INCREASED_GOLD, 0.22, 0.44)
-	_assert_range(GearItem.SlotType.CHARM, StatCatalog.CATEGORY_RARE, StatCatalog.INCREASED_GOLD, 0.33, 0.66)
+	_assert_range(GearItem.SlotType.WEAPON, StatCatalog.CATEGORY_BASIC, StatCatalog.INCREASED_GOLD, .20, .30)
+	_assert_range(GearItem.SlotType.HELM, StatCatalog.CATEGORY_BASIC, StatCatalog.INCREASED_GOLD, .40, .50)
+	_assert_range(GearItem.SlotType.ARMOR, StatCatalog.CATEGORY_BASIC, StatCatalog.INCREASED_GOLD, .20, .30)
+	_assert_range(GearItem.SlotType.TRINKET, StatCatalog.CATEGORY_BASIC, StatCatalog.INCREASED_GOLD, .10, .20)
+	_assert_range(GearItem.SlotType.CHARM, StatCatalog.CATEGORY_BASIC, StatCatalog.INCREASED_GOLD, .15, .30)
+	_assert_range(GearItem.SlotType.WEAPON, StatCatalog.CATEGORY_RARE, StatCatalog.INCREASED_GOLD, .50, 1.00)
+	_assert_range(GearItem.SlotType.WEAPON, StatCatalog.CATEGORY_RARE, StatCatalog.SHOP_DISCOUNT, .10, .20)
+	_assert_range(GearItem.SlotType.WEAPON, StatCatalog.CATEGORY_RARE, StatCatalog.INCREASED_MAGIC_FIND, .10, .20)
 
 
 func _check_economy_stats_resolve_to_player_stats() -> void:

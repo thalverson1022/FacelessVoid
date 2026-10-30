@@ -20,19 +20,19 @@ func _ready() -> void:
 	_summary_row.add_theme_constant_override("separation", 8)
 	add_child(_summary_row)
 
-	var timeline_title := _section_label("Skill Timeline")
-	add_child(timeline_title)
-	_timeline_chart = TimelineChart.new()
-	_timeline_chart.custom_minimum_size = Vector2(760, 230)
-	_timeline_chart.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	add_child(_timeline_chart)
-
 	var damage_title := _section_label("Damage By Skill")
 	add_child(damage_title)
 	_damage_chart = DamageChart.new()
-	_damage_chart.custom_minimum_size = Vector2(760, 160)
+	_damage_chart.custom_minimum_size = Vector2(0, 160)
 	_damage_chart.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	add_child(_damage_chart)
+
+	var timeline_title := _section_label("Skill Timeline")
+	add_child(timeline_title)
+	_timeline_chart = TimelineChart.new()
+	_timeline_chart.custom_minimum_size = Vector2(0, 230)
+	_timeline_chart.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	add_child(_timeline_chart)
 
 
 func set_result(result: CombatResolver.CombatResult, monster: Monster, practice_mode: bool = false) -> void:
@@ -40,29 +40,34 @@ func set_result(result: CombatResolver.CombatResult, monster: Monster, practice_
 	_set_summary(inspector, practice_mode)
 	_timeline_chart.set_rows(inspector["timeline_rows"], result.duration_ms, float(inspector["max_event_damage"]))
 	_damage_chart.set_rows(inspector["damage_rows"])
+	_summary_row.visible = true
 	visible = true
 
 
 func clear() -> void:
 	for child in _summary_row.get_children():
+		_summary_row.remove_child(child)
 		child.queue_free()
 	_timeline_chart.set_rows([], 0)
 	_damage_chart.set_rows([])
+	_summary_row.visible = false
 	visible = false
 
 
 func _set_summary(inspector: Dictionary, practice_mode: bool) -> void:
 	for child in _summary_row.get_children():
+		_summary_row.remove_child(child)
 		child.queue_free()
 	var summary: Dictionary = inspector["summary"]
-	var damage_text := "%.1f" % summary["total_damage"] if practice_mode else "%.1f / %d" % [summary["total_damage"], summary["damage_required"]]
-	var dps_text := "%.1f" % summary["actual_dps"] if practice_mode else "%.1f / %.1f" % [summary["actual_dps"], summary["required_dps"]]
-	_summary_row.add_child(_summary_chip("Damage", damage_text))
-	_summary_row.add_child(_summary_chip("DPS", dps_text))
-	var result_text := "Victory" if bool(inspector["is_win"]) else "Defeat"
-	if practice_mode:
-		result_text = "Practice"
-	_summary_row.add_child(_summary_chip("Result", result_text))
+	if not bool(inspector.get("is_valid", true)):
+		_summary_row.add_child(_summary_chip("Result", "Invalid simulation"))
+		_summary_row.add_child(_summary_chip("Partial damage", "%.1f" % summary["total_damage"]))
+		return
+	_summary_row.add_child(_summary_chip("Damage", "%.1f" % summary["total_damage"]))
+	_summary_row.add_child(_summary_chip("DPS", "%.1f" % summary["actual_dps"]))
+	var duration_chip := _summary_chip("Elapsed", "%ss" % LegendaryCatalog.number_text(float(summary["duration_ms"]) / 1000.0))
+	duration_chip.tooltip_text = "Actual combat duration; countdown budget %ss at %.0f%% speed." % [LegendaryCatalog.number_text(float(summary["nominal_duration_ms"]) / 1000.0), float(summary["countdown_rate"]) * 100.0]
+	_summary_row.add_child(duration_chip)
 
 
 func _summary_chip(label_text: String, value_text: String) -> PanelContainer:
@@ -123,6 +128,22 @@ class TimelineChart:
 		_max_event_damage = max_event_damage
 		custom_minimum_size.y = TOP_PAD + max(1, _rows.size()) * ROW_H + 18.0
 		queue_redraw()
+
+	func _get_tooltip(at_position: Vector2) -> String:
+		var index := floori((at_position.y - TOP_PAD) / ROW_H)
+		if index < 0 or index >= _rows.size(): return ""
+		var row: Dictionary = _rows[index]
+		var lines: PackedStringArray = [str(row["label"])]
+		for entry in row["events"]:
+			var amount := "%.1f damage" % float(entry.get("damage", 0))
+			var detail := ""
+			if entry.get("origin_kind", "") == "lightning_repeat": detail = " | Hands of the Lightning Lord Retrigger"
+			if row.kind == InspectorData.KIND_POISON:
+				detail = " | Free Retrigger; current buffs; no Consume" if entry.get("free_retrigger", false) else (" | Consume %d" if entry.get("keyword_consume", false) else " | %d depleted, not Consume") % int(entry.get("stacks_depleted", 0))
+				if entry.get("origin_kind", "") == "lightning_poison_repeat": detail += " | Hands of the Lightning Lord"
+				if entry.get("stacks_preserved", false): detail = " | Serpent's Scales: preserved %d stacks; damage fuel %d; 0 consumed" % [int(entry.get("damage_fuel",0)),int(entry.get("damage_fuel",0))]
+			lines.append("%.3fs: %s%s" % [int(entry.get("contact_ms", entry.get("time_ms", 0))) / 1000.0, amount, detail])
+		return "\n".join(lines)
 
 	func _draw() -> void:
 		var chart_rect := Rect2(Vector2(LEFT_PAD, TOP_PAD), Vector2(maxf(size.x - LEFT_PAD - RIGHT_PAD, 1.0), maxf(size.y - TOP_PAD - 8.0, 1.0)))
@@ -225,7 +246,7 @@ class DamageChart:
 	extends Control
 
 	const LEFT_PAD := 78.0
-	const RIGHT_PAD := 70.0
+	const RIGHT_PAD := 148.0
 	const TOP_PAD := 6.0
 	const ROW_H := 28.0
 	const BAR_H := 14.0
@@ -237,11 +258,22 @@ class DamageChart:
 	const LINE_COLOR := UIColors.COMBAT_CHART_LINE_SOFT
 
 	var _rows: Array = []
+	var _total_damage := 0.0
+
 
 	func set_rows(rows: Array) -> void:
 		_rows = rows
+		_total_damage = 0.0
+		for row in _rows:
+			_total_damage += float(row["damage"])
 		custom_minimum_size.y = TOP_PAD + max(1, _rows.size()) * ROW_H + 8.0
 		queue_redraw()
+
+	func _get_tooltip(at_position: Vector2) -> String:
+		var index := floori((at_position.y - TOP_PAD) / ROW_H)
+		if index < 0 or index >= _rows.size(): return ""
+		var row: Dictionary = _rows[index]
+		return "%s: %.1f damage" % [row.name, float(row["damage"])]
 
 	func _draw() -> void:
 		var font := get_theme_default_font()
@@ -263,7 +295,7 @@ class DamageChart:
 			draw_rect(Rect2(Vector2(LEFT_PAD, y - BAR_H * 0.5), Vector2(bar_width, BAR_H)), UIColors.COMBAT_CHART_BAR_BG, true)
 			draw_rect(rect, color, true)
 			draw_rect(rect, UIColors.COMBAT_CHART_BAR_BORDER_SOFT, false, 1.0)
-			draw_string(font, Vector2(LEFT_PAD + bar_width + 12.0, y + 5), "%.0f" % damage, HORIZONTAL_ALIGNMENT_LEFT, RIGHT_PAD - 12.0, font_size, VALUE_COLOR)
+			draw_string(font, Vector2(LEFT_PAD + bar_width + 12.0, y + 5), "%.0f  (%.1f%%)" % [damage, 100.0 * damage / _total_damage if _total_damage > 0 else 0.0], HORIZONTAL_ALIGNMENT_LEFT, RIGHT_PAD - 12.0, font_size, VALUE_COLOR)
 
 	func _color_for_kind(kind: String) -> Color:
 		if kind == InspectorData.KIND_POISON:

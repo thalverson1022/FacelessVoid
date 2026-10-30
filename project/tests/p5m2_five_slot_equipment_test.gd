@@ -6,7 +6,7 @@ extends SceneTree
 func _initialize() -> void:
 	var build_state = root.get_node("BuildState")
 	build_state.reset()
-	SaveSystem.save_path = "user://p5m2_five_slot_equipment_save.json"
+	SaveSystem.save_path = get_script().resource_path.get_base_dir().path_join("p5m2_five_slot_equipment_save.json")
 	SaveSystem.delete_save()
 
 	print("-- P5M2 five-slot equipment --")
@@ -96,7 +96,7 @@ func _check_training_room_state_slots() -> void:
 	_require(state.equipped_helm == state.practice_helm, "Expected Practice Room Helm equip.")
 	_require(state.equipped_armor == state.practice_armor, "Expected Practice Room Armor equip.")
 	_require(state.equipped_gear().size() == 5, "Expected Practice Room five equipped items.")
-	_require(state.practice_weapon.affixes[2].is_drawback, "Expected Cursed practice drawback metadata.")
+	_require(state.practice_weapon.affixes.size() == 4 and state.practice_weapon.affixes[3].is_drawback, "Expected Cursed practice drawback metadata.")
 
 
 func _make_item(id: String, slot: GearItem.SlotType) -> GearItem:

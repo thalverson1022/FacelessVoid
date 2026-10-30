@@ -12,20 +12,20 @@ extends SceneTree
 ##   godot --headless -s res://tests/training_room_combat_view_test.gd
 
 
-const HUD_ARMOR_ICON := preload("res://assets/combat_ui_icons/enemy_armor.png")
-const HUD_RESISTANCE_ICON := preload("res://assets/combat_ui_icons/resistance.png")
-const HUD_POISON_ICON := preload("res://assets/combat_ui_icons/poison_stack.png")
-const HUD_SHRED_ICON := preload("res://assets/combat_ui_icons/shred.png")
-const HUD_DECAY_ICON := preload("res://assets/combat_ui_icons/decay.png")
-const MECHANIC_DODGE_ICON := preload("res://assets/ui/icons/mechanics/dodge.png")
-const MECHANIC_CRIT_NEGATION_ICON := preload("res://assets/ui/icons/mechanics/crit_negation.png")
-const MECHANIC_BLOCK_ICON := preload("res://assets/ui/icons/mechanics/block.png")
-const MECHANIC_ABSORB_ICON := preload("res://assets/ui/icons/mechanics/absorb.png")
-const MECHANIC_CLEANSE_ICON := preload("res://assets/ui/icons/mechanics/cleanse.png")
-const MECHANIC_SUPPRESS_ICON := preload("res://assets/ui/icons/mechanics/suppress.png")
-const MECHANIC_SLOW_ICON := preload("res://assets/ui/icons/mechanics/slow.png")
-const MECHANIC_STUN_ICON := preload("res://assets/ui/icons/mechanics/stun.png")
-const MECHANIC_INTERRUPT_ICON := preload("res://assets/ui/icons/mechanics/interrupt.png")
+static var HUD_ARMOR_ICON: Texture2D = GameIcons.icon_for("defense.armor")
+static var HUD_RESISTANCE_ICON: Texture2D = GameIcons.icon_for("defense.resistance")
+static var HUD_POISON_ICON: Texture2D = GameIcons.icon_for("status.poison")
+static var HUD_SHRED_ICON: Texture2D = GameIcons.icon_for("status.shred")
+static var HUD_DECAY_ICON: Texture2D = GameIcons.icon_for("status.decay")
+static var MECHANIC_DODGE_ICON: Texture2D = GameIcons.icon_for("defense.dodge")
+static var MECHANIC_CRIT_NEGATION_ICON: Texture2D = GameIcons.icon_for("defense.crit_negation")
+static var MECHANIC_BLOCK_ICON: Texture2D = GameIcons.icon_for("defense.block")
+static var MECHANIC_ABSORB_ICON: Texture2D = GameIcons.icon_for("defense.absorb")
+static var MECHANIC_CLEANSE_ICON: Texture2D = GameIcons.icon_for("defense.cleanse")
+static var MECHANIC_SUPPRESS_ICON: Texture2D = GameIcons.icon_for("defense.suppress")
+static var MECHANIC_SLOW_ICON: Texture2D = GameIcons.icon_for("defense.slow")
+static var MECHANIC_STUN_ICON: Texture2D = GameIcons.icon_for("defense.stun")
+static var MECHANIC_INTERRUPT_ICON: Texture2D = GameIcons.icon_for("defense.interrupt")
 
 var _failed := false
 var _finished_count := 0
@@ -37,6 +37,7 @@ func _initialize() -> void:
 
 	var view := TrainingRoomCombatView.new()
 	root.add_child(view)
+	view.size = Vector2(1000,600) # Give the isolated panel a real combat area for bounded-popup assertions.
 	await process_frame
 	view.finished.connect(func(): _finished_count += 1)
 
@@ -151,9 +152,9 @@ func _check_initial_practice_target_sprite(view: TrainingRoomCombatView) -> void
 	_require(_has_chip(view._mechanic_row, MECHANIC_SLOW_ICON, "0%"), "Expected Slow icon to be visible at 0%.")
 	_require(_has_chip(view._mechanic_row, MECHANIC_STUN_ICON, "0s"), "Expected Stun icon to be visible at 0s.")
 	var initial_chips: PackedStringArray = []
-	for child in view._status_row.get_children():
+	for child in view._status_row.find_children("*", "HBoxContainer", true, false):
 		initial_chips.append(_status_chip_text(child))
-	_require(initial_chips == PackedStringArray(["x0", "x0", "x0", "0/0"]), "Expected initial Practice Room poison/Shred/Decay/Interrupt chips to be visible at zero.")
+	_require(initial_chips == PackedStringArray(["x0", "x0", "x0", "x0", "x0", "0/0"]), "Expected initial Practice Room Penetration/Potency/Poison/Shred/Decay/Interrupt chips to be visible at zero.")
 	_require(_chip_tooltip(view._status_row, HUD_POISON_ICON, "x0") == "Poison: Deals 8.0 damage every 1.0s", "Expected initial Practice Room Poison tooltip to show base poison damage.")
 	_require(_chip_tooltip(view._status_row, HUD_SHRED_ICON, "x0") == "Shred: Each stack reduces armor by 10", "Expected initial Practice Room Shred tooltip to show base armor reduction.")
 	_require(_chip_tooltip(view._status_row, HUD_DECAY_ICON, "x0") == "Decay: Each stack reduces resistance by 20%", "Expected initial Practice Room Decay tooltip to show base Decay reduction.")
@@ -420,6 +421,11 @@ func _check_skip_bypasses_realtime_outcome_hold(view: TrainingRoomCombatView) ->
 	_require(_finished_count == before_count, "Expected realtime Practice Room playback to be active before skip.")
 	_require(view._controls_row.visible, "Expected controls visible before Practice Room skip.")
 	var before_reaction_count: int = view._combat_stage.practice_dummy_reaction_count
+	view._playback_intro_remaining_sec = 0.0
+	view._process((result.cast_events[0].time_ms + 1.0) / 1000.0)
+	_require(view._combat_stage.practice_dummy_reaction_count > before_reaction_count, "Expected a presented damaging hit to request a training dummy reaction.")
+	_require(view._combat_stage.last_practice_dummy_reaction_frame_count >= 4, "Expected a presented dummy reaction to include multiple frames.")
+	before_reaction_count = view._combat_stage.practice_dummy_reaction_count
 
 	view._skip_button.pressed.emit()
 	_require(_finished_count == before_count + 1, "Expected Practice Room skip to emit finished immediately.")
@@ -427,8 +433,7 @@ func _check_skip_bypasses_realtime_outcome_hold(view: TrainingRoomCombatView) ->
 	_require(view._controls_row.visible, "Expected Practice Room controls to stay visible after skip.")
 	_require(view._combat_stage.outcome_pose == "", "Expected Practice Room skip to return both actors to idle, not a win/loss pose.")
 	_require(view._combat_stage.get_node_or_null("OutcomeFlash") == null, "Expected Practice Room skip to avoid Adventure-style outcome flashes.")
-	_require(view._combat_stage.practice_dummy_reaction_count > before_reaction_count, "Expected damaging Practice Room hits to request a random training dummy reaction.")
-	_require(view._combat_stage.last_practice_dummy_reaction_frame_count >= 4, "Expected the random training dummy reaction to include multiple animation frames.")
+	_require(view._combat_stage.practice_dummy_reaction_count == before_reaction_count, "Skip applies remaining damage without scheduling new dummy reaction animations.")
 	_require(view._combat_stage.enemy_sprite_available(), "Expected the training dummy to stay visible after reaction frames are flushed.")
 	_require(view._combat_stage.enemy_actor_anchor.position == view._combat_stage._enemy_base_position, "Expected training dummy reactions to avoid old humanoid recoil movement.")
 	view._instant_playback = DisplayServer.get_name() == "headless"
@@ -478,7 +483,7 @@ func _check_realtime_status_readout(view: TrainingRoomCombatView) -> void:
 	_require(resist_icon != null and resist_icon.texture == HUD_RESISTANCE_ICON, "Expected the Practice Room combat window's resistance readout to include the resistance icon.")
 
 	var chip_texts: PackedStringArray = []
-	for child in view._status_row.get_children():
+	for child in view._status_row.find_children("*", "HBoxContainer", true, false):
 		chip_texts.append(_status_chip_text(child))
 	print("status chips: %s" % [chip_texts])
 	var has_poison_chip := false
@@ -489,7 +494,7 @@ func _check_realtime_status_readout(view: TrainingRoomCombatView) -> void:
 	var shred_tooltip := ""
 	var has_decay_icon := false
 	var has_interrupt_chip := false
-	for child in view._status_row.get_children():
+	for child in view._status_row.find_children("*", "HBoxContainer", true, false):
 		var icon := child.get_node_or_null("Icon") as TextureRect
 		var text := _status_chip_text(child)
 		if icon != null and icon.texture == HUD_POISON_ICON and text == "x%d" % view._stacks:
@@ -633,7 +638,7 @@ func _status_chip_text(chip: Node) -> String:
 
 
 func _status_chip_font_size(row: Container, icon_texture: Texture2D) -> int:
-	for child in row.get_children():
+	for child in row.find_children("*", "HBoxContainer", true, false):
 		var icon := child.get_node_or_null("Icon") as TextureRect
 		var label := child.get_node_or_null("Text") as Label
 		if icon != null and icon.texture == icon_texture and label != null:
@@ -642,7 +647,7 @@ func _status_chip_font_size(row: Container, icon_texture: Texture2D) -> int:
 
 
 func _has_chip(row: Container, icon_texture: Texture2D, text: String) -> bool:
-	for child in row.get_children():
+	for child in row.find_children("*", "HBoxContainer", true, false):
 		var icon := child.get_node_or_null("Icon") as TextureRect
 		if icon == null or icon.texture != icon_texture:
 			continue
@@ -652,7 +657,7 @@ func _has_chip(row: Container, icon_texture: Texture2D, text: String) -> bool:
 
 
 func _chip_tooltip(row: Container, icon_texture: Texture2D, text: String) -> String:
-	for child in row.get_children():
+	for child in row.find_children("*", "HBoxContainer", true, false):
 		var icon := child.get_node_or_null("Icon") as TextureRect
 		if icon == null or icon.texture != icon_texture:
 			continue
@@ -801,7 +806,7 @@ func _check_popup_for_damaging_poison_ticks(view: TrainingRoomCombatView) -> voi
 
 	view.play(result, monster)
 	var found_poison_popup := false
-	var found_enemy_centered_popup := false
+	var found_bounded_target_popup := false
 	var enemy_local: Vector2 = view._popup_layer.get_global_transform().affine_inverse() * view._combat_stage.enemy_popup_global_position()
 	for child in view._popup_layer.get_children():
 		if child.is_queued_for_deletion():
@@ -811,12 +816,18 @@ func _check_popup_for_damaging_poison_ticks(view: TrainingRoomCombatView) -> voi
 			var font_size: int = child.get_theme_font_size("font_size")
 			if color == UIColors.TEXT_POISON and font_size == view.POPUP_TICK_FONT_SIZE:
 				found_poison_popup = true
-				var popup_center: Vector2 = child.position + child.size * 0.5
-				if popup_center.distance_to(enemy_local) <= 48.0:
-					found_enemy_centered_popup = true
+				# Practice Poison cues sit beside the target's upper body.
+				var popup_rect: Rect2 = child.get_global_rect()
+				var stage_rect: Rect2 = view._combat_stage.play_area_global_rect()
+				var target_global: Vector2 = view._popup_layer.get_global_transform() * enemy_local
+				if stage_rect.grow(1).encloses(popup_rect) and absf(popup_rect.get_center().x - target_global.x) <= 160.0 and absf(popup_rect.get_center().y - target_global.y) <= 160.0:
+					found_bounded_target_popup = true
+				for button in view._content.find_children("*","Button",true,false):
+					if button.visible and button.text in ["Fight","Fight!","Combat Log"]:
+						_require(popup_rect.end.y <= button.get_global_rect().position.y,"Poison text must stay above footer actions.")
 	print("found a green half-size poison popup for damaging poison tick (expect true): %s" % found_poison_popup)
 	_require(found_poison_popup, "A damaging poison tick should spawn green half-size poison text.")
-	_require(found_enemy_centered_popup, "Poison tick text should stay tightly centered on the enemy.")
+	_require(found_bounded_target_popup, "Poison tick text should remain bounded near the target upper body.")
 
 
 func _check_wyvern_kriss_uses_smaller_poison_tick_text(view: TrainingRoomCombatView) -> void:
@@ -903,19 +914,36 @@ func _check_legendary_proc_popup_highlight(view: TrainingRoomCombatView) -> void
 	for child in view._popup_layer.get_children():
 		if child is Label and child.text.ends_with("PROC!"):
 			var color: Color = child.get_theme_color("font_color")
-			if color == UIColors.TEXT_MAGIC:
+			if color == preload("res://scripts/ui/skill_category_preview_style.gd").COLORS[Skill.Category.ATTACK]:
 				found_magic_proc_popup = true
-	print("found a magic-colored PROC! popup (expect true): %s" % found_magic_proc_popup)
-	_require(found_magic_proc_popup, "Expected at least one magic-colored 'PROC!' popup for the guaranteed proc.")
+	print("found a attack-colored PROC! popup (expect true): %s" % found_magic_proc_popup)
+	_require(found_magic_proc_popup, "Expected at least one attack-colored 'PROC!' popup for the guaranteed proc.")
 
-	var log_text := CombatResultFormatter.format(result, monster)
-	print("combat log marks the proc line (expect true): %s" % log_text.contains(">>> "))
-	_require(log_text.contains(">>> "), "Expected the '>>> ' legendary-proc marker in the text log.")
-	_require(log_text.contains("procs at minimum cast speed"), "Expected the proc clause in the text log.")
+	# D042 keeps minimum-cast-speed procs on their original CAST rows;
+	# only actual triggered children receive ancestry indentation.
+	var log_lines := CombatResultFormatter.event_log(result).split("\n", false)
+	_require(log_lines.size() == result.cast_events.size(), "Expected one Event Log row for every minimum-speed cast.")
+	for line in log_lines:
+		_require(line.begins_with("[") and line.contains("] CAST Stab "), "Expected a minimum-speed root to remain an unindented typed CAST.")
+		_require(line.contains("procs at minimum cast speed"), "Expected the minimum-cast-speed clause on each root row.")
+	player.retrigger_chance = 1.0
+	var repeated := CombatResolver.resolve(rotation, player, monster, 1000, 1)
+	var repeated_lines := CombatResultFormatter.event_log(repeated).split("\n", false)
+	var roots := 0
+	var children := 0
+	for cast in repeated.cast_events:
+		if cast.parent_cast_id > 0: children += 1
+		else: roots += 1
+	var root_rows := 0
+	var child_rows := 0
+	for line in repeated_lines:
+		if line.begins_with("[") and line.contains("] CAST Stab "): root_rows += 1
+		elif line.begins_with("    ") and line.contains("-> ") and line.contains("] RETRIGGER Stab "): child_rows += 1
+	_require(children > 0 and root_rows == roots and child_rows == children, "Expected actual retrigger children to have typed, indented ancestry while roots remain CAST.")
 
 
 func _check_crit_popup_highlight(view: TrainingRoomCombatView) -> void:
-	print("-- Crit gets a gold, larger popup without literal CRIT text in Practice Room playback --")
+	print("-- Crit gets a attack-colored, larger popup without literal CRIT text in Practice Room playback --")
 	var stab: Skill = load("res://data/skills/stab.tres")
 	var rotation: Array[Skill] = [stab]
 	var player := PlayerStats.new()
@@ -937,10 +965,10 @@ func _check_crit_popup_highlight(view: TrainingRoomCombatView) -> void:
 			var color: Color = child.get_theme_color("font_color")
 			var font_size: int = child.get_theme_font_size("font_size")
 			var font: Font = child.get_theme_font("font")
-			if color == UIColors.TEXT_GOLD and font_size == view.POPUP_CRIT_FONT_SIZE and font == view.POPUP_FONT:
+			if color == preload("res://scripts/ui/skill_category_preview_style.gd").COLORS[Skill.Category.ATTACK] and font_size == view.POPUP_CRIT_FONT_SIZE and font == view.POPUP_FONT:
 				found_gold_crit_popup = true
-	print("found a gold larger crit popup without literal CRIT text (expect true): %s" % found_gold_crit_popup)
-	_require(found_gold_crit_popup, "Expected at least one gold, larger crit popup using color/size/font instead of literal 'CRIT' text.")
+	print("found a attack-colored larger crit popup without literal CRIT text (expect true): %s" % found_gold_crit_popup)
+	_require(found_gold_crit_popup, "Expected at least one attack-colored, larger crit popup using color/size/font instead of literal 'CRIT' text.")
 
 
 func _check_steal_crit_popup_shows_gold(view: TrainingRoomCombatView) -> void:

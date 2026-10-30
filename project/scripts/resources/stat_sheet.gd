@@ -11,24 +11,62 @@ const StatCatalog := preload("res://scripts/systems/stat_catalog.gd")
 @export var legacy_poison_tick_interval_multiplier: float = 1.0
 
 
+## Raw sums are inspection only for CDR; cooldown_factor is the scheduler input.
+@export var cooldown_contributions: Array[Dictionary] = []
+@export var contribution_sources: Array[Dictionary] = []
+@export var cooldown_factor: float = 1.0
+var validation_error: String = ""
+var _dirty := true
+
+
 func add_gear_collection(equipped_gear: Array) -> void:
-	for gear in equipped_gear:
+	# Display equipment order, independent of caller array order. Do not deduplicate
+	# resources: each authoritative collection occurrence is an owned copy.
+	var ordered := equipped_gear.duplicate()
+	ordered.sort_custom(func(a, b): return a != null and (b == null or GearItem.universal_slot_order().find(a.slot) < GearItem.universal_slot_order().find(b.slot)))
+	for gear in ordered:
 		add_gear(gear)
 
 
-func add_gear(gear: GearItem) -> void:
+func add_gear(gear: GearItem, source_kind: String = "equipped", source_index: int = -1, economy_only: bool = false) -> void:
 	if gear == null:
 		return
-	for modifier in gear.affixes:
-		add_modifier(modifier)
+	for index in range(gear.affixes.size()):
+		var modifier: StatModifier = gear.affixes[index]
+		if modifier == null:
+			continue
+		var id := StatCatalog.canonical_id_for_modifier(modifier)
+		if economy_only and id not in [StatCatalog.INCREASED_GOLD, StatCatalog.SHOP_DISCOUNT, StatCatalog.INCREASED_MAGIC_FIND]:
+			continue
+		add_modifier(modifier, {"source_kind": source_kind, "source_slot": gear.slot,
+			"source_item": gear.id, "source_index": source_index, "affix_index": index})
 
 
-func add_modifier(modifier: StatModifier) -> void:
-	if modifier == null:
+func add_carried_economy(carried_gear: Array) -> void:
+	for index in range(carried_gear.size()):
+		var gear: GearItem = carried_gear[index]
+		if gear == null:
+			continue
+		# Domain validity belongs to owned gear even when its stats are inactive.
+		for modifier in gear.affixes:
+			var problem := StatCatalog.modifier_validation_error(modifier)
+			if problem != "":
+				validation_error = problem
+				return
+		if has_special(StatCatalog.INVENTORY_ECONOMY_STATS):
+			add_gear(gear, "carried", index, true)
+
+
+func add_modifier(modifier: StatModifier, source: Dictionary = {}) -> void:
+	if modifier == null or validation_error != "":
+		return
+	validation_error = StatCatalog.modifier_validation_error(modifier)
+	if validation_error != "":
 		return
 	var stat_id := StatCatalog.canonical_id_for_modifier(modifier)
 	if stat_id == "" or not StatCatalog.has_stat(stat_id):
 		return
+	_dirty = true
 	if StatCatalog.is_binary(stat_id):
 		if not special_stat_ids.has(stat_id):
 			special_stat_ids.append(stat_id)
@@ -36,37 +74,70 @@ func add_modifier(modifier: StatModifier) -> void:
 		return
 	if not StatCatalog.is_numeric(stat_id):
 		return
+	if not is_finite(modifier.value):
+		validation_error = "Non-finite gear contribution: " + stat_id
+		return
 	if _is_legacy_poison_damage_multiplier(modifier):
 		legacy_poison_damage_multiplier *= modifier.value
+		if not is_finite(legacy_poison_damage_multiplier):
+			validation_error = "Non-finite legacy Poison multiplier."
 		modifier_counts[stat_id] = count_for(stat_id) + 1
 		return
 	if _is_legacy_poison_tick_interval_multiplier(modifier):
 		legacy_poison_tick_interval_multiplier *= modifier.value
+		if not is_finite(legacy_poison_tick_interval_multiplier):
+			validation_error = "Non-finite legacy Poison interval."
 		modifier_counts[stat_id] = count_for(stat_id) + 1
 		return
-
 	var contribution := _modifier_contribution(modifier)
-	raw_values[stat_id] = value_for_raw(stat_id) + contribution
+	var raw_sum := value_for_raw(stat_id) + contribution
+	if not is_finite(raw_sum):
+		validation_error = "Non-finite raw stat sum: " + stat_id
+		return
+	raw_values[stat_id] = raw_sum
 	modifier_counts[stat_id] = count_for(stat_id) + 1
+	var record := source.duplicate(true)
+	record.merge({"stat_id": stat_id, "raw_value": contribution, "operation": modifier.operation}, true)
+	contribution_sources.append(record)
+	if stat_id == StatCatalog.COOLDOWN_REDUCTION:
+		cooldown_contributions.append(record.duplicate(true))
 	values.clear()
 
 
 func finalize() -> void:
 	values.clear()
+	cooldown_factor = 1.0
+	if validation_error != "":
+		return
 	var multiplier := all_stats_multiplier()
 	for id in raw_values.keys():
 		var stat_id := String(id)
+		if stat_id == StatCatalog.COOLDOWN_REDUCTION:
+			continue
 		var final_value := float(raw_values[stat_id])
 		var floor_value := StatCatalog.floor_for(stat_id)
 		if floor_value != StatCatalog.FLOOR_NONE:
 			final_value = maxf(final_value, floor_value)
 		if multiplier != 1.0 and StatCatalog.scales_with_all_stats(stat_id):
 			final_value *= multiplier
+		if not is_finite(final_value):
+			validation_error = "Non-finite effective stat: " + stat_id
+			return
 		var cap_value := StatCatalog.cap_for(stat_id)
 		if cap_value != StatCatalog.CAP_NONE:
 			final_value = minf(final_value, cap_value)
 		values[stat_id] = final_value
+	for entry in cooldown_contributions:
+		var raw: float = entry.raw_value
+		# Compare first so arbitrarily large finite raw inputs cannot overflow.
+		var effective := 1.0 if raw >= 1.0 / multiplier else raw * multiplier
+		entry["all_stats_multiplier"] = multiplier
+		entry["effective_reduction"] = effective
+		entry["retained_factor"] = 1.0 - effective
+		cooldown_factor *= 1.0 - effective
+	values[StatCatalog.COOLDOWN_REDUCTION] = 1.0 - cooldown_factor
 	special_stat_ids.sort()
+	_dirty = false
 
 
 func value_for(stat_id: String, default_value: float = 0.0) -> float:
@@ -111,6 +182,7 @@ func special_effect_summary() -> Dictionary:
 			"magical": converts_damage_to_magical(),
 		},
 		"all_stats_increased": has_all_stats_increased(),
+		"inventory_economy_stats": has_special(StatCatalog.INVENTORY_ECONOMY_STATS),
 		"all_stats_multiplier": all_stats_multiplier(),
 		"immunities": {
 			"stun": immune_to_stun(),
@@ -291,12 +363,20 @@ func apply_to_player_stats(stats: PlayerStats) -> void:
 	if stats == null:
 		return
 	_ensure_finalized()
+	if validation_error != "":
+		stats.derivation_error = validation_error
+		return
+	stats.cooldown_factor = cooldown_factor
+	stats.cooldown_reduction = value_for(StatCatalog.COOLDOWN_REDUCTION)
+	stats.increased_buff_duration = value_for(StatCatalog.INCREASED_BUFF_DURATION)
+	stats.crit_applies_penetration = value_for(StatCatalog.CRIT_APPLIES_PENETRATION)
+	stats.crit_applies_potency = value_for(StatCatalog.CRIT_APPLIES_POTENCY)
 	stats.bonus_physical_damage += base_damage()
 	stats.gear_physical_damage_multiplier = stats.gear_physical_damage_multiplier + percent_physical_damage()
 	stats.physical_damage_uses_buckets = true
 	stats.sync_physical_damage_multiplier()
 	stats.attack_speed = stats.attack_speed + increased_attack_speed()
-	stats.crit_chance = clampf(stats.crit_chance + crit_chance(), 0.0, 1.0)
+	stats.crit_chance = maxf(0.0, stats.crit_chance + value_for_raw(StatCatalog.CRIT_CHANCE) * all_stats_multiplier()) if stats.legendary_signet else clampf(stats.crit_chance + crit_chance(), 0.0, 1.0)
 	stats.crit_multiplier = maxf(1.0, stats.crit_multiplier + crit_damage())
 	stats.gear_elemental_damage_multiplier = stats.gear_elemental_damage_multiplier + percent_elemental_damage()
 	stats.sync_elemental_damage_multiplier()
@@ -305,9 +385,13 @@ func apply_to_player_stats(stats: PlayerStats) -> void:
 	stats.sync_poison_damage_per_tick()
 	stats.poison_tick_interval_multiplier = maxf(0.05, stats.poison_tick_interval_multiplier * legacy_poison_tick_interval_multiplier)
 	var stack_bonus := increased_all_stacks()
+	stats.bonus_footwork_stacks = max(0, stats.bonus_footwork_stacks + stack_bonus)
+	stats.bonus_bypass_stacks = max(0, stats.bonus_bypass_stacks + stack_bonus)
 	stats.bonus_armor_reduction = max(0, stats.bonus_armor_reduction + stack_bonus)
 	stats.bonus_poison_stacks = max(0, stats.bonus_poison_stacks + stack_bonus)
 	stats.bonus_decay_stacks = max(0, stats.bonus_decay_stacks + stack_bonus)
+	stats.bonus_penetration_stacks = max(0, stats.bonus_penetration_stacks + stack_bonus)
+	stats.bonus_potency_stacks = max(0, stats.bonus_potency_stacks + stack_bonus)
 	stats.bonus_shred_stacks = max(0, stats.bonus_shred_stacks + stack_bonus)
 	stats.shred_value = max(0, stats.shred_value + shred_value())
 	stats.bonus_shred_stacks = max(0, stats.bonus_shred_stacks + bonus_shred_stacks())
@@ -373,5 +457,5 @@ func _is_legacy_poison_tick_interval_multiplier(modifier: StatModifier) -> bool:
 
 
 func _ensure_finalized() -> void:
-	if values.is_empty() and not raw_values.is_empty():
+	if _dirty:
 		finalize()

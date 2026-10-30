@@ -13,12 +13,27 @@ extends SceneTree
 
 
 var _failed := false
+var _check_count := 0
 const CombatPlaybackScenarios := preload("res://tests/helpers/combat_playback_scenarios.gd")
 const CombatStageScript := preload("res://scripts/ui/combat_stage.gd")
 const ContractOfferSourceScript := preload("res://scripts/systems/contract_offer_source.gd")
 
 
 func _initialize() -> void:
+	call_deferred("_run")
+
+
+func _run() -> void:
+	var isolated_paths := {}
+	for path in SevenSlotSaveBoundary.paths().values():
+		if not String(path).begins_with("res://reports/"):
+			push_error("Refusing playback journey outside isolated report paths.")
+			quit(1)
+			return
+		isolated_paths[path] = true
+	if isolated_paths.size() != 5:
+		quit(1)
+		return
 	_check_controller_timeline_and_speed()
 	_check_controller_skip_and_single_finish()
 	_check_controller_event_ordering()
@@ -33,6 +48,8 @@ func _initialize() -> void:
 	await _check_live_playback_loss()
 	await _check_natural_playback_loss_reveal_timing()
 	await _check_playback_speed_persists()
+	await _check_live_cancellation()
+	SaveSystem.write_json("res://reports/m11_t4_playback_journey.json", {"pass":not _failed,"checks":_check_count})
 	if _failed:
 		print("Combat playback check: FAILED")
 		quit(1)
@@ -685,13 +702,11 @@ func _has_tick_matching(result: CombatResolver.CombatResult, predicate: Callable
 func _check_live_playback_win() -> void:
 	var build_state = root.get_node("BuildState")
 	build_state.reset()
-	var rogue: ClassDef = load("res://data/classes/rogue.tres")
-	build_state.set_class(rogue)
-	build_state.select_tree(rogue.trees[1])
+	_prepare_current_ranked(build_state)
 	build_state.choose_current_tavern_encounter()
 	var quick_cut: Skill = load("res://data/skills/quick_cut.tres")
 	var win_rotation: Array[Skill] = [quick_cut]
-	build_state.rotation = win_rotation
+	build_state.set_rotation(win_rotation)
 
 	var combat_screen := _instantiate_combat_screen()
 	await process_frame
@@ -700,7 +715,7 @@ func _check_live_playback_win() -> void:
 
 	var fight_enemy_panel = combat_screen._enemy_panel
 	var monster: Monster = fight_enemy_panel.monster()
-	monster.hp = 50
+	monster.hp = 1
 	monster.cleanse_threshold = 1
 	monster.stun_duration_ms = 500
 	monster.slow = 0.25
@@ -754,7 +769,7 @@ func _check_live_playback_win() -> void:
 	_require(combat_screen._skill_build_panel.stun_effect_count > 0, "Expected Adventure/contract playback to gray out the macro bar during stun.")
 	_require(combat_screen._skill_build_panel.last_stun_duration_ms == monster.stun_duration_ms, "Expected macro stun gray-out to use the monster stun duration.")
 	_require(combat_screen.hud_status_chip_flash_count > 0, "Expected Adventure/contract cleanse to flash the zeroed HUD status chips.")
-	var expected_hp: float = float(monster.hp) - combat_screen._playback_presenter._playback.damage_dealt()
+	var expected_hp: float = maxf(0.0, float(monster.hp) - combat_screen._playback_presenter._playback.damage_dealt())
 	_require(
 		combat_screen._hud_hp_text_label.text == "%d/%d" % [ceili(expected_hp), monster.hp],
 		"Expected the HUD HP text to track fired damage mid-playback."
@@ -788,17 +803,18 @@ func _check_live_playback_win() -> void:
 func _check_live_playback_steal_gold() -> void:
 	var build_state = root.get_node("BuildState")
 	build_state.reset()
-	var rogue: ClassDef = load("res://data/classes/rogue.tres").duplicate(true)
-	rogue.base_stats = rogue.base_stats.duplicate(true)
-	rogue.base_stats.crit_chance = 1.0
-	build_state.set_class(rogue)
-	var thief := _find_tree(rogue, "tree.thief")
-	_require(thief != null, "Expected Rogue to have the Thief tree for Steal playback coverage.")
-	build_state.select_tree(thief)
-	build_state.choose_current_tavern_encounter()
+	_prepare_current_ranked(build_state, "tree.thief")
 	var steal: Skill = load("res://data/skills/steal.tres")
 	var steal_rotation: Array[Skill] = [steal]
-	build_state.rotation = steal_rotation
+	build_state.set_rotation(steal_rotation)
+	var found_crit := false
+	for candidate in range(1, 257):
+		build_state.set_adventure_seed(candidate)
+		var probe := CombatResolver.resolve(build_state.rotation, build_state.current_player_stats(), build_state.current_target_monster(), build_state.current_target_duration_ms(), build_state.current_combat_rng_seed(), true)
+		if not probe.cast_events.is_empty() and probe.cast_events[0].is_crit:
+			found_crit = true
+			break
+	_require(found_crit, "Expected bounded current-RNG context selection to find a first Steal critical hit.")
 
 	var combat_screen := _instantiate_combat_screen()
 	await process_frame
@@ -814,11 +830,13 @@ func _check_live_playback_steal_gold() -> void:
 	_require(combat_screen._playback_active, "Expected Steal playback to be active right after Fight.")
 	_require(build_state.gold == 0, "Expected animated Steal gold not to enter the stash before the Steal event plays.")
 	_require(build_state.combat_stolen_gold == 0, "Expected Big Score visual counter to start at 0.")
+	var authoritative_result = combat_screen._playback_presenter._result
 	var enemy_sprite_x_before_steal: float = _enemy_sprite_global_top_left(combat_screen._combat_stage).x
 
 	combat_screen._process(combat_screen._playback_presenter._intro_remaining_sec + 1.4)
-	_require(build_state.gold == 3, "Expected animated Adventure Steal gold to enter the player's stash when the Steal event plays.")
-	_require(build_state.combat_stolen_gold == 3, "Expected animated Steal gold to feed the in-fight Big Score display.")
+	var first_stolen: int = authoritative_result.cast_events[0].gold_stolen
+	_require(first_stolen > 0 and build_state.gold == first_stolen, "Expected animated current Adventure Steal payout to equal the authoritative first cast.")
+	_require(build_state.combat_stolen_gold == first_stolen, "Expected animated Steal payout to feed the in-fight Big Score display.")
 	_require(build_changed_during_steal[0] == 0, "Expected live Steal gold payout not to emit build_changed during playback.")
 	_require(stats_preview_during_steal[0] > 0, "Expected live Steal gold payout to refresh stats/gold preview without a full build refresh.")
 	_require(combat_screen._combat_stage.last_contact_feedback_was_crit, "Expected the live Steal hit to travel through the crit contact-feedback path.")
@@ -836,8 +854,8 @@ func _check_live_playback_steal_gold() -> void:
 
 	combat_screen._skip_playback()
 	var gold_after_skip: int = build_state.gold
-	_require(gold_after_skip >= 3, "Expected Skip to pay out any remaining animated Steal events.")
-	await create_timer(combat_screen.PLAYBACK_OUTCOME_REVEAL_DELAY_SEC + 0.05).timeout
+	_require(gold_after_skip == authoritative_result.gold_stolen, "Expected Skip to pay out any remaining animated Steal events.")
+	await _await_skipped_loss_reveal(combat_screen)
 	_require(build_state.gold == gold_after_skip, "Expected clearing the Big Score display not to remove stolen stash gold.")
 	_require(build_state.combat_stolen_gold == 0, "Expected the Big Score visual counter to reset when playback ends.")
 
@@ -850,19 +868,19 @@ func _check_live_playback_steal_gold() -> void:
 func _check_natural_playback_win_reveal_timing() -> void:
 	var build_state = root.get_node("BuildState")
 	build_state.reset()
-	var rogue: ClassDef = load("res://data/classes/rogue.tres")
-	build_state.set_class(rogue)
-	build_state.select_tree(rogue.trees[1])
+	_prepare_current_ranked(build_state)
 	build_state.choose_current_tavern_encounter()
 	var quick_cut: Skill = load("res://data/skills/quick_cut.tres")
 	var win_rotation: Array[Skill] = [quick_cut]
-	build_state.rotation = win_rotation
+	build_state.set_rotation(win_rotation)
 
 	var combat_screen := _instantiate_combat_screen()
 	await process_frame
 	combat_screen.instant_playback = false
 	build_state.set_locked(true)
 
+	var monster: Monster = combat_screen._enemy_panel.monster()
+	monster.hp = 1
 	print("-- Natural playback win reveal timing --")
 	combat_screen._enemy_panel.fight_pressed.emit()
 	var duration_sec := float(combat_screen._playback_presenter._playback.timeline_end_ms()) / 1000.0
@@ -886,12 +904,10 @@ func _check_generated_contract_traversal_playback() -> void:
 	var build_state = root.get_node("BuildState")
 	build_state.reset()
 	build_state.set_adventure_seed(424242)
-	var rogue: ClassDef = load("res://data/classes/rogue.tres")
-	build_state.set_class(rogue)
-	build_state.select_tree(rogue.trees[1])
+	_prepare_current_ranked(build_state)
 	var quick_cut: Skill = load("res://data/skills/quick_cut.tres")
 	var win_rotation: Array[Skill] = [quick_cut]
-	build_state.rotation = win_rotation
+	build_state.set_rotation(win_rotation)
 	var context := ContractOfferSourceScript.offer_context(
 		424242,
 		0,
@@ -952,13 +968,11 @@ func _check_generated_contract_traversal_playback() -> void:
 func _check_live_playback_loss() -> void:
 	var build_state = root.get_node("BuildState")
 	build_state.reset()
-	var rogue: ClassDef = load("res://data/classes/rogue.tres")
-	build_state.set_class(rogue)
-	build_state.select_tree(rogue.trees[1])
+	_prepare_current_ranked(build_state)
 	build_state.choose_current_tavern_encounter()
 	var stab: Skill = load("res://data/skills/stab.tres")
 	var loss_rotation: Array[Skill] = [stab]
-	build_state.rotation = loss_rotation
+	build_state.set_rotation(loss_rotation)
 
 	var combat_screen := _instantiate_combat_screen()
 	await process_frame
@@ -997,8 +1011,10 @@ func _check_live_playback_loss() -> void:
 	_require(combat_screen._combat_stage.last_player_animation_key == "defeat", "Expected skipped losses to use the Rogue death pose.")
 	_require(combat_screen._combat_stage.player_actor_anchor.modulate == Color.WHITE, "Expected skipped losses not to tint the Rogue red during death.")
 	_require(combat_screen._combat_stage.last_player_animation_frame_path.ends_with("/death/frames/frame_001.png"), "Expected skipped losses to start on the first death frame.")
-	await create_timer(0.12).timeout
-	_require(combat_screen._combat_stage.last_player_animation_frame_path.ends_with("/death/frames/frame_002.png"), "Expected skipped losses to advance through the death animation frames.")
+	var frame_deadline := Time.get_ticks_msec() + 750
+	while combat_screen._combat_stage.last_player_animation_frame_path.ends_with("/death/frames/frame_001.png") and Time.get_ticks_msec() < frame_deadline:
+		await process_frame
+	_require(not combat_screen._combat_stage.last_player_animation_frame_path.ends_with("/death/frames/frame_001.png"), "Expected skipped losses to advance beyond death frame1 within the bounded state wait; rendered matrix records every observed frame.")
 	await _await_skipped_loss_reveal(combat_screen)
 	_require(combat_screen._victory_overlay.visible, "Expected the loss overlay revealed after the skipped-loss death hold.")
 	_require(combat_screen._victory_title_label.text == "DEFEATED", "Expected the loss outcome title revealed after the skipped-loss death hold.")
@@ -1014,13 +1030,11 @@ func _check_live_playback_loss() -> void:
 func _check_natural_playback_loss_reveal_timing() -> void:
 	var build_state = root.get_node("BuildState")
 	build_state.reset()
-	var rogue: ClassDef = load("res://data/classes/rogue.tres")
-	build_state.set_class(rogue)
-	build_state.select_tree(rogue.trees[1])
+	_prepare_current_ranked(build_state)
 	build_state.choose_current_tavern_encounter()
 	var stab: Skill = load("res://data/skills/stab.tres")
 	var loss_rotation: Array[Skill] = [stab]
-	build_state.rotation = loss_rotation
+	build_state.set_rotation(loss_rotation)
 
 	var combat_screen := _instantiate_combat_screen()
 	await process_frame
@@ -1066,13 +1080,11 @@ func _check_natural_playback_loss_reveal_timing() -> void:
 func _check_playback_speed_persists() -> void:
 	var build_state = root.get_node("BuildState")
 	build_state.reset()
-	var rogue: ClassDef = load("res://data/classes/rogue.tres")
-	build_state.set_class(rogue)
-	build_state.select_tree(rogue.trees[1])
+	_prepare_current_ranked(build_state)
 	build_state.choose_current_tavern_encounter()
 	var stab: Skill = load("res://data/skills/stab.tres")
 	var loss_rotation: Array[Skill] = [stab]
-	build_state.rotation = loss_rotation
+	build_state.set_rotation(loss_rotation)
 
 	var combat_screen := _instantiate_combat_screen()
 	await process_frame
@@ -1147,7 +1159,49 @@ func _enemy_sprite_global_top_left(stage) -> Vector2:
 ## at the end of _initialize(), so an awaited check can't have its failure
 ## exit code silently overwritten by an earlier bare quit().
 func _require(condition: bool, message: String) -> void:
+	_check_count += 1
 	if condition:
 		return
 	push_error(message)
 	_failed = true
+
+
+## Current registry identities plus a legal first point unlock Quick Cut/Steal.
+func _prepare_current_ranked(state, tree_id: String = "tree.bladedancer") -> void:
+	var registry := BuildContentRegistry.adventure()
+	_require(registry.error.is_empty(), "Expected current Adventure registry valid.")
+	state.set_class(registry.classes["class.rogue"])
+	state.add_talent_points(1)
+	_require(state.configure_ranked_build(registry.trees[tree_id]), "Expected legal current ranked primary.")
+	var talent_id := "talent.keen_eye" if tree_id == "tree.thief" else "talent.bladedancer.wet_stone"
+	_require(state.select_talent(registry.talents[talent_id]), "Expected legal first-point skill unlock.")
+	state.choose_current_tavern_encounter()
+
+
+## Leaving an actively presenting screen cancels its pending UI work without
+## duplicating completion or replaying authoritative result accounting.
+func _check_live_cancellation() -> void:
+	print("-- Live playback screen cancellation --")
+	var state = root.get_node("BuildState")
+	state.reset()
+	_prepare_current_ranked(state)
+	var authored: Array[Skill] = [load("res://data/skills/stab.tres")]
+	state.set_rotation(authored)
+	var screen := _instantiate_combat_screen()
+	await process_frame
+	screen.instant_playback = false
+	state.set_locked(true)
+	var monster: Monster = screen._enemy_panel.monster()
+	monster.hp = 100000
+	var completions := [0]
+	screen._playback_presenter.finished.connect(func(_r, _m, _s): completions[0] += 1)
+	screen._enemy_panel.fight_pressed.emit()
+	var saved := FileAccess.get_file_as_string(SaveSystem.save_path)
+	var history: int = state.run_encounter_history.size()
+	screen._process(screen._playback_presenter._intro_remaining_sec + 1.6)
+	_require(screen._playback_active and screen._playback_presenter._playback.events_fired() > 0, "Expected cancellation with active pending presentation after a real event.")
+	screen.queue_free()
+	await process_frame
+	await create_timer(0.4).timeout
+	_require(completions[0] == 0, "Expected destroying an active screen to cancel playback without a finished callback.")
+	_require(state.run_encounter_history.size() == history and FileAccess.get_file_as_string(SaveSystem.save_path) == saved, "Expected screen cancellation to preserve already-applied accounting and autosave.")

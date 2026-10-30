@@ -1,0 +1,350 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "format": {
+      "const": "faceless-void.tree-lab"
+    },
+    "schema_version": {
+      "const": 1
+    },
+    "tree": {
+      "$ref": "#/$defs/tree"
+    }
+  },
+  "required": [
+    "format",
+    "schema_version",
+    "tree"
+  ],
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Tree Lab design v1",
+  "$defs": {
+    "tree": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[a-z][a-z0-9._-]*$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "subclass": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "string"
+        },
+        "levels": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/level"
+          },
+          "minItems": 5,
+          "maxItems": 5
+        },
+        "talents": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/talent"
+          }
+        },
+        "intrinsic": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string"
+            },
+            "icon_id": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^[a-z][a-z0-9._-]*$"
+            },
+            "values": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/point_value"
+              }
+            }
+          },
+          "required": [
+            "name",
+            "description",
+            "icon_id",
+            "values"
+          ]
+        },
+        "automatic_unlocks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/automatic_unlock"
+          },
+          "minItems": 5,
+          "maxItems": 5
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "subclass",
+        "notes",
+        "levels",
+        "talents",
+        "intrinsic",
+        "automatic_unlocks"
+      ]
+    },
+    "level": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[a-z][a-z0-9._-]*$"
+        },
+        "order": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5
+        },
+        "required_points": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "id",
+        "order",
+        "required_points"
+      ]
+    },
+    "talent": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[a-z][a-z0-9._-]*$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "flavour_text": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "icon_id": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[a-z][a-z0-9._-]*$"
+        },
+        "level_id": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[a-z][a-z0-9._-]*$"
+        },
+        "position": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "x": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            }
+          },
+          "required": [
+            "x"
+          ]
+        },
+        "max_ranks": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "prerequisite_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^[a-z][a-z0-9._-]*$"
+          },
+          "uniqueItems": true
+        },
+        "values": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/rank_value"
+          }
+        },
+        "skill_grant": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/skill"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "flavour_text",
+        "description",
+        "icon_id",
+        "level_id",
+        "position",
+        "max_ranks",
+        "prerequisite_ids",
+        "values",
+        "skill_grant"
+      ]
+    },
+    "rank_value": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[a-z][a-z0-9._-]*$"
+        },
+        "label": {
+          "type": "string"
+        },
+        "unit": {
+          "type": "string"
+        },
+        "rank_1": {
+          "type": "number"
+        },
+        "per_rank": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "id",
+        "label",
+        "unit",
+        "rank_1",
+        "per_rank"
+      ]
+    },
+    "point_value": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[a-z][a-z0-9._-]*$"
+        },
+        "label": {
+          "type": "string"
+        },
+        "unit": {
+          "type": "string"
+        },
+        "base": {
+          "type": "number"
+        },
+        "per_point": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "id",
+        "label",
+        "unit",
+        "base",
+        "per_point"
+      ]
+    },
+    "skill": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[a-z][a-z0-9._-]*$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "description"
+      ]
+    },
+    "automatic_unlock": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[a-z][a-z0-9._-]*$"
+        },
+        "order": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5
+        },
+        "required_points": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "icon_id": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[a-z][a-z0-9._-]*$"
+        },
+        "skill": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/skill"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "values": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/point_value"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "order",
+        "required_points",
+        "icon_id",
+        "skill",
+        "values"
+      ]
+    }
+  }
+}

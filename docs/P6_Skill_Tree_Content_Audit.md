@@ -1,7 +1,9 @@
 # P6 Skill Tree Content Audit
 
+> **Historical record — not an active work plan.** Status labels, next-step instructions and milestone numbering below describe the recorded checkpoint. M8 is closed; consult the current M9 tracker for authorized work. Retained at this path when tooling/manifests depend on it. [Current context](P6_Project_Onboarding_Context.md).
+
 Date: 2026-09-16
-Source baseline: Project Enigma Phase 5 closeout, commit `91c1f2fdfaae7b48aa1e193adfb910956b1d6574`
+Source baseline: Project Enigma audited Phase 5, commit `d0e025ae9ff6b86aa389582443be6382547cb4cc` on `main` (integrated 2026-09-21; original closeout `91c1f2fdfaae7b48aa1e193adfb910956b1d6574`). See `docs/P6_Audited_Baseline_Integration.md`.
 
 ## Purpose
 

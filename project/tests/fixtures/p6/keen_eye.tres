@@ -1,0 +1,82 @@
+[gd_resource type="Resource" script_class="Talent" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/talent.gd" id="talent"]
+[ext_resource type="Script" path="res://scripts/resources/talent_rank.gd" id="rank"]
+[ext_resource type="Script" path="res://scripts/resources/stat_modifier.gd" id="modifier"]
+
+[sub_resource type="Resource" id="m1_0"]
+script = ExtResource("modifier")
+stat_id = "percent_physical_damage"
+value = 0.02000000
+
+[sub_resource type="Resource" id="m1_1"]
+script = ExtResource("modifier")
+stat_id = "percent_elemental_damage"
+value = 0.02000000
+
+[sub_resource type="Resource" id="r1"]
+script = ExtResource("rank")
+stat_modifiers = Array[ExtResource("modifier")]([SubResource("m1_0"), SubResource("m1_1")])
+
+[sub_resource type="Resource" id="m2_0"]
+script = ExtResource("modifier")
+stat_id = "percent_physical_damage"
+value = 0.04000000
+
+[sub_resource type="Resource" id="m2_1"]
+script = ExtResource("modifier")
+stat_id = "percent_elemental_damage"
+value = 0.04000000
+
+[sub_resource type="Resource" id="r2"]
+script = ExtResource("rank")
+stat_modifiers = Array[ExtResource("modifier")]([SubResource("m2_0"), SubResource("m2_1")])
+
+[sub_resource type="Resource" id="m3_0"]
+script = ExtResource("modifier")
+stat_id = "percent_physical_damage"
+value = 0.06000000
+
+[sub_resource type="Resource" id="m3_1"]
+script = ExtResource("modifier")
+stat_id = "percent_elemental_damage"
+value = 0.06000000
+
+[sub_resource type="Resource" id="r3"]
+script = ExtResource("rank")
+stat_modifiers = Array[ExtResource("modifier")]([SubResource("m3_0"), SubResource("m3_1")])
+
+[sub_resource type="Resource" id="m4_0"]
+script = ExtResource("modifier")
+stat_id = "percent_physical_damage"
+value = 0.08000000
+
+[sub_resource type="Resource" id="m4_1"]
+script = ExtResource("modifier")
+stat_id = "percent_elemental_damage"
+value = 0.08000000
+
+[sub_resource type="Resource" id="r4"]
+script = ExtResource("rank")
+stat_modifiers = Array[ExtResource("modifier")]([SubResource("m4_0"), SubResource("m4_1")])
+
+[sub_resource type="Resource" id="m5_0"]
+script = ExtResource("modifier")
+stat_id = "percent_physical_damage"
+value = 0.10000000
+
+[sub_resource type="Resource" id="m5_1"]
+script = ExtResource("modifier")
+stat_id = "percent_elemental_damage"
+value = 0.10000000
+
+[sub_resource type="Resource" id="r5"]
+script = ExtResource("rank")
+stat_modifiers = Array[ExtResource("modifier")]([SubResource("m5_0"), SubResource("m5_1")])
+
+[resource]
+script = ExtResource("talent")
+id = "talent.keen_eye"
+display_name = "Keen Eye"
+max_ranks = 5
+ranks = Array[ExtResource("rank")]([SubResource("r1"), SubResource("r2"), SubResource("r3"), SubResource("r4"), SubResource("r5")])

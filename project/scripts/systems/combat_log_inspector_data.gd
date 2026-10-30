@@ -8,12 +8,20 @@ extends RefCounted
 const KIND_CAST := "cast"
 const KIND_POISON := "poison"
 const KIND_PROC := "proc"
-const POISON_ICON := preload("res://assets/combat_ui_icons/poison_stack.png")
+static var POISON_ICON: Texture2D = GameIcons.icon_for("status.poison")
 
 
 static func build(result: CombatResolver.CombatResult, monster: Monster = null) -> Dictionary:
+	# The log presents all resolved health loss as damage. Native combat and
+	# Balance Lab counters keep health removal separate.
+	var summary := CombatRecap.summarize(result, monster)
+	summary["total_damage"] = result.total_health_loss()
+	summary["actual_dps"] = result.total_health_loss() * 1000.0 / result.duration_ms if result.duration_ms > 0 else 0.0
+	summary["dps"] = summary["actual_dps"]
 	return {
-		"summary": CombatRecap.summarize(result, monster),
+		"is_valid": result.is_valid,
+		"failure": result.failure.duplicate(true),
+		"summary": summary,
 		"duration_ms": result.duration_ms,
 		"is_win": result.is_win,
 		"timeline_rows": _timeline_rows(result),
@@ -25,6 +33,9 @@ static func build(result: CombatResolver.CombatResult, monster: Monster = null) 
 static func _timeline_rows(result: CombatResolver.CombatResult) -> Array[Dictionary]:
 	var rows: Array[Dictionary] = []
 	var row_by_key := {}
+	var consume_by_sequence := {}
+	for record in result.trace.presentation_records:
+		if record.kind == "poison_tick": consume_by_sequence[int(record.sequence)] = bool(record.payload.get("keyword_consume", false))
 	for event in result.cast_events:
 		var skill_name := _skill_name(event.skill)
 		var cast_row: Dictionary = _row_for(row_by_key, rows, skill_name, KIND_CAST, event.skill.icon if event.skill != null else null)
@@ -34,8 +45,9 @@ static func _timeline_rows(result: CombatResolver.CombatResult) -> Array[Diction
 			"start_ms": event.cast_start_ms,
 			"end_ms": event.time_ms,
 			"contact_ms": event.time_ms,
-			"damage": cast_contribution["damage"] if not cast_contribution.is_empty() else event.physical_damage,
+			"damage": (float(cast_contribution["damage"]) if not cast_contribution.is_empty() else event.physical_damage) + event.health_removed,
 			"is_crit": cast_contribution["is_crit"] if not cast_contribution.is_empty() else event.is_crit,
+			"origin_kind": event.origin_kind,
 			"has_armor": int(cast_contribution["armor_reduction_applied"]) > 0 if not cast_contribution.is_empty() else event.armor_reduction_applied > 0,
 			"has_poison_apply": int(cast_contribution["poison_stacks_applied"]) > 0 if not cast_contribution.is_empty() else event.poison_stacks_applied > 0,
 			"min_cast_proc": event.min_cast_time_proc_applied,
@@ -63,7 +75,7 @@ static func _timeline_rows(result: CombatResolver.CombatResult) -> Array[Diction
 	var poison_row: Dictionary = {}
 	var has_poison_row := false
 	for tick in result.tick_events:
-		if tick.damage <= 0.0 and tick.absorbed_amount <= 0.0:
+		if not tick.had_active_stack:
 			continue
 		if not has_poison_row:
 			poison_row = _row_for(row_by_key, rows, "Poison Ticks", KIND_POISON, POISON_ICON)
@@ -72,6 +84,15 @@ static func _timeline_rows(result: CombatResolver.CombatResult) -> Array[Diction
 		poison_events.append({
 			"time_ms": tick.time_ms,
 			"damage": tick.damage,
+			"is_crit": tick.is_crit,
+			"origin_kind": tick.origin_kind,
+			"stacks_before": tick.stacks_before,
+			"stacks_depleted": tick.stacks_consumed,
+			"free_retrigger": tick.origin_kind in ["poison_repeat", "lightning_poison_repeat"],
+			"stacks_preserved": tick.stacks_preserved,
+			"damage_fuel": tick.legendary_fuel,
+			"keyword_consume": bool(consume_by_sequence.get(tick.sequence, false)),
+			"charge_spends": tick.charge_spends.duplicate(true),
 			"stacks_remaining": tick.stacks_remaining,
 		})
 		poison_row["events"] = poison_events
@@ -83,6 +104,14 @@ static func _damage_rows(result: CombatResolver.CombatResult) -> Array[Dictionar
 	var kinds := {}
 	var icons := {}
 	for event in result.cast_events:
+		# Removal is an event total, not an additional damage contribution.
+		# Attribute it exactly once even when a cast has contribution records.
+		if event.health_removed > 0.0:
+			var removal_name := _skill_name(event.skill)
+			totals[removal_name] = float(totals.get(removal_name, 0.0)) + event.health_removed
+			kinds[removal_name] = KIND_CAST
+			if event.skill != null and event.skill.icon != null:
+				icons[removal_name] = event.skill.icon
 		if event.damage_contributions.is_empty():
 			if event.physical_damage <= 0.0:
 				continue
@@ -129,15 +158,9 @@ static func _damage_rows(result: CombatResolver.CombatResult) -> Array[Dictionar
 
 static func _max_event_damage(result: CombatResolver.CombatResult) -> float:
 	var max_damage := 0.0
-	for event in result.cast_events:
-		if event.damage_contributions.is_empty():
-			max_damage = maxf(max_damage, event.physical_damage)
-			continue
-		for contribution in event.damage_contributions:
-			max_damage = maxf(max_damage, float(contribution.get("damage", 0.0)))
-	for tick in result.tick_events:
-		if tick.damage > 0.0 or tick.absorbed_amount > 0.0:
-			max_damage = maxf(max_damage, tick.damage)
+	for row in _timeline_rows(result):
+		for event in row["events"]:
+			max_damage = maxf(max_damage, float(event["damage"]))
 	return max_damage
 
 

@@ -1,5 +1,5 @@
 {
-	"generated_at": "2026-09-09T21:04:42",
+	"generated_at": "2026-10-04T20:40:00",
 	"mechanics": [
 		{
 			"id": "bandit_physical_multiplier",
@@ -456,7 +456,7 @@
 						"safe_boss_approach_seen": true,
 						"safe_intent_node_count": 3,
 						"seed": 4301,
-						"talent_points": 1,
+						"talent_points": 5,
 						"template_display_label": "Five-Way Market",
 						"template_id": "five_way_market",
 						"template_width_summary": {
@@ -534,7 +534,7 @@
 						"safe_boss_approach_seen": true,
 						"safe_intent_node_count": 3,
 						"seed": 4302,
-						"talent_points": 1,
+						"talent_points": 5,
 						"template_display_label": "Elite Orbit",
 						"template_id": "elite_orbit",
 						"template_width_summary": {
@@ -612,7 +612,7 @@
 						"safe_boss_approach_seen": true,
 						"safe_intent_node_count": 3,
 						"seed": 4303,
-						"talent_points": 1,
+						"talent_points": 5,
 						"template_display_label": "Hourglass Detour",
 						"template_id": "hourglass_detour",
 						"template_width_summary": {
@@ -688,7 +688,7 @@
 						"safe_boss_approach_seen": true,
 						"safe_intent_node_count": 3,
 						"seed": 4304,
-						"talent_points": 1,
+						"talent_points": 5,
 						"template_display_label": "Woven Boss Approach",
 						"template_id": "woven_boss_approach",
 						"template_width_summary": {
@@ -763,7 +763,7 @@
 						"safe_boss_approach_seen": false,
 						"safe_intent_node_count": 3,
 						"seed": 4305,
-						"talent_points": 1,
+						"talent_points": 5,
 						"template_display_label": "Braided Sideboard",
 						"template_id": "braided_sideboard",
 						"template_width_summary": {
@@ -837,7 +837,7 @@
 						"safe_boss_approach_seen": false,
 						"safe_intent_node_count": 3,
 						"seed": 4306,
-						"talent_points": 1,
+						"talent_points": 5,
 						"template_display_label": "Braided Sideboard",
 						"template_id": "braided_sideboard",
 						"template_width_summary": {
@@ -911,7 +911,7 @@
 						"safe_boss_approach_seen": true,
 						"safe_intent_node_count": 3,
 						"seed": 4307,
-						"talent_points": 1,
+						"talent_points": 5,
 						"template_display_label": "Elite Orbit",
 						"template_id": "elite_orbit",
 						"template_width_summary": {
@@ -985,7 +985,7 @@
 						"safe_boss_approach_seen": false,
 						"safe_intent_node_count": 3,
 						"seed": 4308,
-						"talent_points": 1,
+						"talent_points": 5,
 						"template_display_label": "Braided Sideboard",
 						"template_id": "braided_sideboard",
 						"template_width_summary": {
@@ -1065,7 +1065,7 @@
 						"safe_boss_approach_seen": false,
 						"safe_intent_node_count": 3,
 						"seed": 4309,
-						"talent_points": 1,
+						"talent_points": 5,
 						"template_display_label": "Braided Sideboard",
 						"template_id": "braided_sideboard",
 						"template_width_summary": {
@@ -1140,7 +1140,7 @@
 						"safe_boss_approach_seen": false,
 						"safe_intent_node_count": 4,
 						"seed": 4310,
-						"talent_points": 1,
+						"talent_points": 5,
 						"template_display_label": "Split Spill Rejoin",
 						"template_id": "split_spill_rejoin",
 						"template_width_summary": {
@@ -1216,7 +1216,7 @@
 						"safe_boss_approach_seen": true,
 						"safe_intent_node_count": 3,
 						"seed": 4311,
-						"talent_points": 1,
+						"talent_points": 5,
 						"template_display_label": "Five-Way Market",
 						"template_id": "five_way_market",
 						"template_width_summary": {
@@ -1291,7 +1291,7 @@
 						"safe_boss_approach_seen": false,
 						"safe_intent_node_count": 4,
 						"seed": 4312,
-						"talent_points": 1,
+						"talent_points": 5,
 						"template_display_label": "Split Spill Rejoin",
 						"template_id": "split_spill_rejoin",
 						"template_width_summary": {
@@ -1366,7 +1366,7 @@
 						"safe_boss_approach_seen": true,
 						"safe_intent_node_count": 3,
 						"seed": 4313,
-						"talent_points": 1,
+						"talent_points": 5,
 						"template_display_label": "Five-Way Market",
 						"template_id": "five_way_market",
 						"template_width_summary": {
@@ -1444,7 +1444,7 @@
 						"safe_boss_approach_seen": true,
 						"safe_intent_node_count": 3,
 						"seed": 4314,
-						"talent_points": 1,
+						"talent_points": 5,
 						"template_display_label": "Five-Way Market",
 						"template_id": "five_way_market",
 						"template_width_summary": {
@@ -1520,7 +1520,7 @@
 						"safe_boss_approach_seen": false,
 						"safe_intent_node_count": 4,
 						"seed": 4315,
-						"talent_points": 1,
+						"talent_points": 5,
 						"template_display_label": "Split Spill Rejoin",
 						"template_id": "split_spill_rejoin",
 						"template_width_summary": {
@@ -1595,7 +1595,7 @@
 						"safe_boss_approach_seen": true,
 						"safe_intent_node_count": 3,
 						"seed": 4316,
-						"talent_points": 1,
+						"talent_points": 5,
 						"template_display_label": "Elite Orbit",
 						"template_id": "elite_orbit",
 						"template_width_summary": {
@@ -1672,7 +1672,7 @@
 						"safe_boss_approach_seen": true,
 						"safe_intent_node_count": 3,
 						"seed": 4317,
-						"talent_points": 1,
+						"talent_points": 5,
 						"template_display_label": "Elite Orbit",
 						"template_id": "elite_orbit",
 						"template_width_summary": {
@@ -1752,7 +1752,7 @@
 						"safe_boss_approach_seen": true,
 						"safe_intent_node_count": 3,
 						"seed": 4318,
-						"talent_points": 1,
+						"talent_points": 5,
 						"template_display_label": "Hourglass Detour",
 						"template_id": "hourglass_detour",
 						"template_width_summary": {
@@ -1827,7 +1827,7 @@
 						"safe_boss_approach_seen": false,
 						"safe_intent_node_count": 4,
 						"seed": 4319,
-						"talent_points": 1,
+						"talent_points": 5,
 						"template_display_label": "Split Spill Rejoin",
 						"template_id": "split_spill_rejoin",
 						"template_width_summary": {
@@ -1904,7 +1904,7 @@
 						"safe_boss_approach_seen": true,
 						"safe_intent_node_count": 3,
 						"seed": 4320,
-						"talent_points": 1,
+						"talent_points": 5,
 						"template_display_label": "Hourglass Detour",
 						"template_id": "hourglass_detour",
 						"template_width_summary": {
@@ -1981,7 +1981,7 @@
 						"safe_boss_approach_seen": false,
 						"safe_intent_node_count": 4,
 						"seed": 4321,
-						"talent_points": 1,
+						"talent_points": 5,
 						"template_display_label": "Split Spill Rejoin",
 						"template_id": "split_spill_rejoin",
 						"template_width_summary": {
@@ -2055,7 +2055,7 @@
 						"safe_boss_approach_seen": true,
 						"safe_intent_node_count": 3,
 						"seed": 4322,
-						"talent_points": 1,
+						"talent_points": 5,
 						"template_display_label": "Hourglass Detour",
 						"template_id": "hourglass_detour",
 						"template_width_summary": {
@@ -2132,7 +2132,7 @@
 						"safe_boss_approach_seen": true,
 						"safe_intent_node_count": 3,
 						"seed": 4323,
-						"talent_points": 1,
+						"talent_points": 5,
 						"template_display_label": "Woven Boss Approach",
 						"template_id": "woven_boss_approach",
 						"template_width_summary": {
@@ -2213,7 +2213,7 @@
 						"safe_boss_approach_seen": true,
 						"safe_intent_node_count": 3,
 						"seed": 4324,
-						"talent_points": 1,
+						"talent_points": 5,
 						"template_display_label": "Woven Boss Approach",
 						"template_id": "woven_boss_approach",
 						"template_width_summary": {
@@ -2293,7 +2293,7 @@
 						"safe_boss_approach_seen": false,
 						"safe_intent_node_count": 3,
 						"seed": 4325,
-						"talent_points": 1,
+						"talent_points": 5,
 						"template_display_label": "Braided Sideboard",
 						"template_id": "braided_sideboard",
 						"template_width_summary": {
@@ -2369,7 +2369,7 @@
 						"safe_boss_approach_seen": true,
 						"safe_intent_node_count": 3,
 						"seed": 4326,
-						"talent_points": 1,
+						"talent_points": 5,
 						"template_display_label": "Hourglass Detour",
 						"template_id": "hourglass_detour",
 						"template_width_summary": {
@@ -2446,7 +2446,7 @@
 						"safe_boss_approach_seen": true,
 						"safe_intent_node_count": 3,
 						"seed": 4327,
-						"talent_points": 1,
+						"talent_points": 5,
 						"template_display_label": "Hourglass Detour",
 						"template_id": "hourglass_detour",
 						"template_width_summary": {
@@ -2527,7 +2527,7 @@
 						"safe_boss_approach_seen": true,
 						"safe_intent_node_count": 3,
 						"seed": 4328,
-						"talent_points": 1,
+						"talent_points": 5,
 						"template_display_label": "Five-Way Market",
 						"template_id": "five_way_market",
 						"template_width_summary": {
@@ -2601,7 +2601,7 @@
 						"safe_boss_approach_seen": true,
 						"safe_intent_node_count": 3,
 						"seed": 4329,
-						"talent_points": 1,
+						"talent_points": 5,
 						"template_display_label": "Five-Way Market",
 						"template_id": "five_way_market",
 						"template_width_summary": {
@@ -2674,7 +2674,7 @@
 						"safe_boss_approach_seen": true,
 						"safe_intent_node_count": 3,
 						"seed": 4330,
-						"talent_points": 1,
+						"talent_points": 5,
 						"template_display_label": "Elite Orbit",
 						"template_id": "elite_orbit",
 						"template_width_summary": {
@@ -2748,7 +2748,7 @@
 						"safe_boss_approach_seen": true,
 						"safe_intent_node_count": 3,
 						"seed": 4331,
-						"talent_points": 1,
+						"talent_points": 5,
 						"template_display_label": "Five-Way Market",
 						"template_id": "five_way_market",
 						"template_width_summary": {
@@ -2822,7 +2822,7 @@
 						"safe_boss_approach_seen": true,
 						"safe_intent_node_count": 3,
 						"seed": 4332,
-						"talent_points": 1,
+						"talent_points": 5,
 						"template_display_label": "Woven Boss Approach",
 						"template_id": "woven_boss_approach",
 						"template_width_summary": {
@@ -2902,7 +2902,7 @@
 						"safe_boss_approach_seen": true,
 						"safe_intent_node_count": 3,
 						"seed": 4333,
-						"talent_points": 1,
+						"talent_points": 5,
 						"template_display_label": "Five-Way Market",
 						"template_id": "five_way_market",
 						"template_width_summary": {
@@ -2980,7 +2980,7 @@
 						"safe_boss_approach_seen": true,
 						"safe_intent_node_count": 3,
 						"seed": 4334,
-						"talent_points": 1,
+						"talent_points": 5,
 						"template_display_label": "Hourglass Detour",
 						"template_id": "hourglass_detour",
 						"template_width_summary": {
@@ -3056,7 +3056,7 @@
 						"safe_boss_approach_seen": true,
 						"safe_intent_node_count": 3,
 						"seed": 4335,
-						"talent_points": 1,
+						"talent_points": 5,
 						"template_display_label": "Woven Boss Approach",
 						"template_id": "woven_boss_approach",
 						"template_width_summary": {
@@ -3135,7 +3135,7 @@
 						"safe_boss_approach_seen": false,
 						"safe_intent_node_count": 3,
 						"seed": 4336,
-						"talent_points": 1,
+						"talent_points": 5,
 						"template_display_label": "Braided Sideboard",
 						"template_id": "braided_sideboard",
 						"template_width_summary": {
@@ -3211,7 +3211,7 @@
 						"safe_boss_approach_seen": true,
 						"safe_intent_node_count": 3,
 						"seed": 4337,
-						"talent_points": 1,
+						"talent_points": 5,
 						"template_display_label": "Woven Boss Approach",
 						"template_id": "woven_boss_approach",
 						"template_width_summary": {
@@ -3287,7 +3287,7 @@
 						"safe_boss_approach_seen": false,
 						"safe_intent_node_count": 4,
 						"seed": 4338,
-						"talent_points": 1,
+						"talent_points": 5,
 						"template_display_label": "Split Spill Rejoin",
 						"template_id": "split_spill_rejoin",
 						"template_width_summary": {
@@ -3360,7 +3360,7 @@
 						"safe_boss_approach_seen": true,
 						"safe_intent_node_count": 3,
 						"seed": 4339,
-						"talent_points": 1,
+						"talent_points": 5,
 						"template_display_label": "Hourglass Detour",
 						"template_id": "hourglass_detour",
 						"template_width_summary": {
@@ -3436,7 +3436,7 @@
 						"safe_boss_approach_seen": true,
 						"safe_intent_node_count": 3,
 						"seed": 4340,
-						"talent_points": 1,
+						"talent_points": 5,
 						"template_display_label": "Five-Way Market",
 						"template_id": "five_way_market",
 						"template_width_summary": {
@@ -3507,7 +3507,7 @@
 						"safe_boss_approach_seen": true,
 						"safe_intent_node_count": 3,
 						"seed": 4341,
-						"talent_points": 1,
+						"talent_points": 5,
 						"template_display_label": "Woven Boss Approach",
 						"template_id": "woven_boss_approach",
 						"template_width_summary": {
@@ -3587,7 +3587,7 @@
 						"safe_boss_approach_seen": true,
 						"safe_intent_node_count": 3,
 						"seed": 4342,
-						"talent_points": 1,
+						"talent_points": 5,
 						"template_display_label": "Woven Boss Approach",
 						"template_id": "woven_boss_approach",
 						"template_width_summary": {
@@ -3666,7 +3666,7 @@
 						"safe_boss_approach_seen": true,
 						"safe_intent_node_count": 3,
 						"seed": 4343,
-						"talent_points": 1,
+						"talent_points": 5,
 						"template_display_label": "Hourglass Detour",
 						"template_id": "hourglass_detour",
 						"template_width_summary": {
@@ -3741,7 +3741,7 @@
 						"safe_boss_approach_seen": true,
 						"safe_intent_node_count": 3,
 						"seed": 4344,
-						"talent_points": 1,
+						"talent_points": 5,
 						"template_display_label": "Five-Way Market",
 						"template_id": "five_way_market",
 						"template_width_summary": {
@@ -3818,7 +3818,7 @@
 						"safe_boss_approach_seen": true,
 						"safe_intent_node_count": 3,
 						"seed": 4345,
-						"talent_points": 1,
+						"talent_points": 5,
 						"template_display_label": "Elite Orbit",
 						"template_id": "elite_orbit",
 						"template_width_summary": {
@@ -3897,7 +3897,7 @@
 						"safe_boss_approach_seen": true,
 						"safe_intent_node_count": 3,
 						"seed": 4346,
-						"talent_points": 1,
+						"talent_points": 5,
 						"template_display_label": "Elite Orbit",
 						"template_id": "elite_orbit",
 						"template_width_summary": {
@@ -3974,7 +3974,7 @@
 						"safe_boss_approach_seen": true,
 						"safe_intent_node_count": 3,
 						"seed": 4347,
-						"talent_points": 1,
+						"talent_points": 5,
 						"template_display_label": "Elite Orbit",
 						"template_id": "elite_orbit",
 						"template_width_summary": {
@@ -4052,7 +4052,7 @@
 						"safe_boss_approach_seen": true,
 						"safe_intent_node_count": 3,
 						"seed": 4348,
-						"talent_points": 1,
+						"talent_points": 5,
 						"template_display_label": "Woven Boss Approach",
 						"template_id": "woven_boss_approach",
 						"template_width_summary": {
@@ -4127,7 +4127,7 @@
 						"safe_boss_approach_seen": true,
 						"safe_intent_node_count": 3,
 						"seed": 4349,
-						"talent_points": 1,
+						"talent_points": 5,
 						"template_display_label": "Five-Way Market",
 						"template_id": "five_way_market",
 						"template_width_summary": {
@@ -4201,7 +4201,7 @@
 						"safe_boss_approach_seen": false,
 						"safe_intent_node_count": 4,
 						"seed": 4350,
-						"talent_points": 1,
+						"talent_points": 5,
 						"template_display_label": "Split Spill Rejoin",
 						"template_id": "split_spill_rejoin",
 						"template_width_summary": {
@@ -4282,7 +4282,7 @@
 						"safe_boss_approach_seen": true,
 						"safe_intent_node_count": 3,
 						"seed": 4351,
-						"talent_points": 1,
+						"talent_points": 5,
 						"template_display_label": "Woven Boss Approach",
 						"template_id": "woven_boss_approach",
 						"template_width_summary": {
@@ -4360,7 +4360,7 @@
 						"safe_boss_approach_seen": true,
 						"safe_intent_node_count": 3,
 						"seed": 4352,
-						"talent_points": 1,
+						"talent_points": 5,
 						"template_display_label": "Five-Way Market",
 						"template_id": "five_way_market",
 						"template_width_summary": {
@@ -4438,7 +4438,7 @@
 						"safe_boss_approach_seen": true,
 						"safe_intent_node_count": 3,
 						"seed": 4353,
-						"talent_points": 1,
+						"talent_points": 5,
 						"template_display_label": "Five-Way Market",
 						"template_id": "five_way_market",
 						"template_width_summary": {
@@ -4688,9 +4688,9 @@
 	],
 	"mechanics_count": 53,
 	"metadata": {
-		"generated_at": "2026-09-09T21:04:42",
+		"generated_at": "2026-10-04T20:40:00",
 		"mechanics_count": 53,
-		"project": "Project Enigma",
+		"project": "FacelessVoid",
 		"scenario_count": 17,
 		"seed_count": 2600,
 		"source": {
@@ -4712,7 +4712,7 @@
 		"tool": "Balance Lab",
 		"version": "0.1.0"
 	},
-	"project": "Project Enigma",
+	"project": "FacelessVoid",
 	"scenario_count": 17,
 	"scenarios": [
 		{
@@ -4848,6 +4848,7 @@
 			"balance_model": {},
 			"duration_ms": 12000,
 			"encounter_preview": {},
+			"foundation_snapshot": {},
 			"gear": [],
 			"generated_monster_metadata": {},
 			"gold": 0,
@@ -5510,6 +5511,7 @@
 			"balance_model": {},
 			"duration_ms": 12000,
 			"encounter_preview": {},
+			"foundation_snapshot": {},
 			"gear": [],
 			"generated_monster_metadata": {},
 			"gold": 0,
@@ -6172,6 +6174,7 @@
 			"balance_model": {},
 			"duration_ms": 12000,
 			"encounter_preview": {},
+			"foundation_snapshot": {},
 			"gear": [
 				"Wyvern Kriss"
 			],
@@ -6837,6 +6840,7 @@
 			"balance_model": {},
 			"duration_ms": 12000,
 			"encounter_preview": {},
+			"foundation_snapshot": {},
 			"gear": [
 				"Bandit Blade"
 			],
@@ -7502,6 +7506,7 @@
 			"balance_model": {},
 			"duration_ms": 30000,
 			"encounter_preview": {},
+			"foundation_snapshot": {},
 			"gear": [
 				"Bejeweled Push Dagger"
 			],
@@ -8167,6 +8172,7 @@
 			"balance_model": {},
 			"duration_ms": 26000,
 			"encounter_preview": {},
+			"foundation_snapshot": {},
 			"gear": [
 				"Wyvern Kriss"
 			],
@@ -8835,6 +8841,7 @@
 			"balance_model": {},
 			"duration_ms": 12000,
 			"encounter_preview": {},
+			"foundation_snapshot": {},
 			"gear": [],
 			"generated_monster_metadata": {},
 			"gold": 0,
@@ -9498,6 +9505,7 @@
 			"balance_model": {},
 			"duration_ms": 12000,
 			"encounter_preview": {},
+			"foundation_snapshot": {},
 			"gear": [],
 			"generated_monster_metadata": {},
 			"gold": 0,
@@ -10162,6 +10170,7 @@
 			"balance_model": {},
 			"duration_ms": 12000,
 			"encounter_preview": {},
+			"foundation_snapshot": {},
 			"gear": [
 				"Bandit Blade"
 			],
@@ -10828,6 +10837,7 @@
 			"balance_model": {},
 			"duration_ms": 12000,
 			"encounter_preview": {},
+			"foundation_snapshot": {},
 			"gear": [
 				"Wyvern Kriss"
 			],
@@ -11497,6 +11507,7 @@
 			"balance_model": {},
 			"duration_ms": 12000,
 			"encounter_preview": {},
+			"foundation_snapshot": {},
 			"gear": [],
 			"generated_monster_metadata": {},
 			"gold": 0,
@@ -12161,6 +12172,7 @@
 			"balance_model": {},
 			"duration_ms": 12000,
 			"encounter_preview": {},
+			"foundation_snapshot": {},
 			"gear": [],
 			"generated_monster_metadata": {},
 			"gold": 0,
@@ -13105,6 +13117,7 @@
 					"tempo_profile": "standard"
 				}
 			},
+			"foundation_snapshot": {},
 			"gear": [],
 			"generated_monster_metadata": {
 				"archetype_ids": [
@@ -14823,6 +14836,7 @@
 					"tempo_profile": "burst"
 				}
 			},
+			"foundation_snapshot": {},
 			"gear": [
 				"Wyvern Kriss"
 			],
@@ -16512,6 +16526,7 @@
 					"tempo_profile": "standard"
 				}
 			},
+			"foundation_snapshot": {},
 			"gear": [
 				"Bandit Blade"
 			],
@@ -18387,6 +18402,7 @@
 					"tempo_profile": "extended"
 				}
 			},
+			"foundation_snapshot": {},
 			"gear": [
 				"Wyvern Kriss"
 			],
@@ -20915,6 +20931,7 @@
 					"tempo_profile": "endurance"
 				}
 			},
+			"foundation_snapshot": {},
 			"gear": [
 				"Wyvern Kriss"
 			],

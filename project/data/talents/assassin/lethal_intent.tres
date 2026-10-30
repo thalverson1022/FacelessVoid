@@ -1,26 +1,26 @@
-[gd_resource type="Resource" script_class="Talent" load_steps=6 format=3]
+[gd_resource type="Resource" script_class="Talent" format=3 uid="uid://ttkg4qtgbdwr"]
 
-[ext_resource type="Script" path="res://scripts/resources/talent.gd" id="1_talent"]
-[ext_resource type="Script" path="res://scripts/resources/stat_modifier.gd" id="2_modifier"]
-[ext_resource type="Script" path="res://scripts/resources/prerequisite_group.gd" id="3_group"]
-[ext_resource type="Resource" path="res://data/talents/assassin/venom_edge.tres" id="4_venom_edge"]
-[ext_resource type="Resource" path="res://data/talents/assassin/precise_cuts.tres" id="5_precise_cuts"]
+[ext_resource type="Script" uid="uid://bq2fx6c5wnwsg" path="res://scripts/resources/talent.gd" id="1_talent"]
+[ext_resource type="Script" uid="uid://m13uapmegxo2" path="res://scripts/resources/stat_modifier.gd" id="2_modifier"]
+[ext_resource type="Script" uid="uid://bpusgj7hvipbl" path="res://scripts/resources/prerequisite_group.gd" id="3_group"]
+[ext_resource type="Resource" uid="uid://djcye6io1ql0j" path="res://data/talents/assassin/venom_edge.tres" id="4_venom_edge"]
+[ext_resource type="Script" uid="uid://evdact12hmik" path="res://scripts/resources/talent_rank.gd" id="5_act7b"]
+[ext_resource type="Resource" uid="uid://20oi7pvo0q6m" path="res://data/talents/assassin/precise_cuts.tres" id="5_precise_cuts"]
+[ext_resource type="Script" uid="uid://c7fj7apjjsn5" path="res://scripts/resources/triggered_skill_effect.gd" id="7_lr2hr"]
+[ext_resource type="Script" uid="uid://d3apprhhvrqum" path="res://scripts/resources/skill.gd" id="8_cgr2f"]
+
+[sub_resource type="Resource" id="Resource_lethal_intent_group"]
+script = ExtResource("3_group")
+options = Array[ExtResource("1_talent")]([ExtResource("4_venom_edge"), ExtResource("5_precise_cuts")])
 
 [sub_resource type="Resource" id="Resource_lethal_intent_mod"]
 script = ExtResource("2_modifier")
 stat = 2
-operation = 0
 value = 0.5
-
-[sub_resource type="Resource" id="Resource_lethal_intent_group"]
-script = ExtResource("3_group")
-options = Array[Talent]([ExtResource("4_venom_edge"), ExtResource("5_precise_cuts")])
 
 [resource]
 script = ExtResource("1_talent")
 id = "talent.lethal_intent"
 display_name = "Lethal Intent"
-cost = 1
-prerequisites = Array[PrerequisiteGroup]([SubResource("Resource_lethal_intent_group")])
-stat_modifiers = Array[StatModifier]([SubResource("Resource_lethal_intent_mod")])
-unlocked_skills = Array[Skill]([])
+prerequisites = Array[ExtResource("3_group")]([SubResource("Resource_lethal_intent_group")])
+stat_modifiers = Array[ExtResource("2_modifier")]([SubResource("Resource_lethal_intent_mod")])

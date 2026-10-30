@@ -1,9 +1,10 @@
-[gd_resource type="Resource" script_class="Skill" load_steps=6 format=3]
+[gd_resource type="Resource" script_class="Skill" format=3 uid="uid://wh23l41m035m"]
 
-[ext_resource type="Script" path="res://scripts/resources/skill.gd" id="1_skill"]
-[ext_resource type="Script" path="res://scripts/resources/physical_damage_effect.gd" id="2_physical"]
-[ext_resource type="Script" path="res://scripts/resources/poison_resistance_reduction_effect.gd" id="3_resist"]
-[ext_resource type="Texture2D" path="res://assets/skill_icons/rogue/beguiling_strike.png" id="4_icon"]
+[ext_resource type="Script" uid="uid://b3jgtul4lne2k" path="res://scripts/resources/skill_effect.gd" id="1_774o7"]
+[ext_resource type="Script" uid="uid://d3apprhhvrqum" path="res://scripts/resources/skill.gd" id="1_skill"]
+[ext_resource type="Script" uid="uid://dlekciyngr6xr" path="res://scripts/resources/physical_damage_effect.gd" id="2_physical"]
+[ext_resource type="Script" uid="uid://dep4fa50v8m6n" path="res://scripts/resources/poison_resistance_reduction_effect.gd" id="3_resist"]
+[ext_resource type="Texture2D" uid="uid://bqgnavy860a27" path="res://assets/skill_icons/rogue/beguiling_strike.png" id="4_icon"]
 
 [sub_resource type="Resource" id="Resource_beguiling_physical"]
 script = ExtResource("2_physical")
@@ -21,4 +22,4 @@ icon = ExtResource("4_icon")
 icon_letter = "B"
 base_execution_ms = 1700
 min_execution_ms = 650
-effects = Array[SkillEffect]([SubResource("Resource_beguiling_physical"), SubResource("Resource_beguiling_resist")])
+effects = Array[ExtResource("1_774o7")]([SubResource("Resource_beguiling_physical"), SubResource("Resource_beguiling_resist")])

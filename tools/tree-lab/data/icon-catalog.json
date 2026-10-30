@@ -1,0 +1,57 @@
+[
+  {
+    "id": "placeholder",
+    "label": "Unassigned",
+    "path": null
+  },
+  {
+    "id": "rogue.stab",
+    "label": "Stab",
+    "path": "../../../project/assets/skill_icons/rogue/stab.png"
+  },
+  {
+    "id": "rogue.heavy_slash",
+    "label": "Heavy Slash",
+    "path": "../../../project/assets/skill_icons/rogue/heavy_slash.png"
+  },
+  {
+    "id": "rogue.quick_cut",
+    "label": "Quick Cut",
+    "path": "../../../project/assets/skill_icons/rogue/quick_cut.png"
+  },
+  {
+    "id": "rogue.venom_jab",
+    "label": "Venom Jab",
+    "path": "../../../project/assets/skill_icons/rogue/venom_jab.png"
+  },
+  {
+    "id": "rogue.poison_strike",
+    "label": "Poison Strike",
+    "path": "../../../project/assets/skill_icons/rogue/poison_strike.png"
+  },
+  {
+    "id": "rogue.rending_slash",
+    "label": "Rending Slash",
+    "path": "../../../project/assets/skill_icons/rogue/rending_slash.png"
+  },
+  {
+    "id": "rogue.beguiling_strike",
+    "label": "Beguiling Strike",
+    "path": "../../../project/assets/skill_icons/rogue/beguiling_strike.png"
+  },
+  {
+    "id": "rogue.death_strike",
+    "label": "Death Strike",
+    "path": "../../../project/assets/skill_icons/rogue/death_strike.png"
+  },
+  {
+    "id": "rogue.steal",
+    "label": "Steal",
+    "path": "../../../project/assets/skill_icons/rogue/steal.png"
+  },
+  {
+    "id": "rogue.hold",
+    "label": "Hold",
+    "path": "../../../project/assets/skill_icons/rogue/hold.png"
+  }
+]

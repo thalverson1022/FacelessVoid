@@ -43,14 +43,14 @@ func _initialize() -> void:
 		bouncer.reward.gold_amount, bouncer.reward.talent_points
 	])
 	assert(bouncer.reward.gold_amount == 24)
-	assert(bouncer.reward.talent_points == 1)
+	assert(bouncer.reward.talent_points == 2)
 
 	assert(goon.reward != null)
 	print("Hired Goon reward: %dg, %d talent point(s)" % [
 		goon.reward.gold_amount, goon.reward.talent_points
 	])
 	assert(goon.reward.gold_amount == 36)
-	assert(goon.reward.talent_points == 1)
+	assert(goon.reward.talent_points == 3)
 
 	print("")
 	print("Encounter reward data check: OK")

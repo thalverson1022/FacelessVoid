@@ -1,26 +1,28 @@
-[gd_resource type="Resource" script_class="Talent" load_steps=6 format=3]
+[gd_resource type="Resource" script_class="Talent" format=3 uid="uid://c8ixr51y88egn"]
 
-[ext_resource type="Script" path="res://scripts/resources/talent.gd" id="1_talent"]
-[ext_resource type="Script" path="res://scripts/resources/stat_modifier.gd" id="2_modifier"]
-[ext_resource type="Script" path="res://scripts/resources/prerequisite_group.gd" id="3_group"]
-[ext_resource type="Resource" path="res://data/talents/assassin/lethal_intent.tres" id="4_lethal_intent"]
-[ext_resource type="Resource" path="res://data/skills/poison_strike.tres" id="5_skill"]
+[ext_resource type="Script" uid="uid://bq2fx6c5wnwsg" path="res://scripts/resources/talent.gd" id="1_talent"]
+[ext_resource type="Script" uid="uid://m13uapmegxo2" path="res://scripts/resources/stat_modifier.gd" id="2_modifier"]
+[ext_resource type="Script" uid="uid://bpusgj7hvipbl" path="res://scripts/resources/prerequisite_group.gd" id="3_group"]
+[ext_resource type="Script" uid="uid://evdact12hmik" path="res://scripts/resources/talent_rank.gd" id="4_g7ugo"]
+[ext_resource type="Resource" uid="uid://ttkg4qtgbdwr" path="res://data/talents/assassin/lethal_intent.tres" id="4_lethal_intent"]
+[ext_resource type="Resource" uid="uid://vwqg3cb7l0ln" path="res://data/skills/poison_strike.tres" id="5_skill"]
+[ext_resource type="Script" uid="uid://c7fj7apjjsn5" path="res://scripts/resources/triggered_skill_effect.gd" id="6_r3kn1"]
+[ext_resource type="Script" uid="uid://d3apprhhvrqum" path="res://scripts/resources/skill.gd" id="7_xout2"]
+
+[sub_resource type="Resource" id="Resource_toxic_technique_group"]
+script = ExtResource("3_group")
+options = Array[ExtResource("1_talent")]([ExtResource("4_lethal_intent")])
 
 [sub_resource type="Resource" id="Resource_toxic_technique_mod"]
 script = ExtResource("2_modifier")
 stat = 3
-operation = 0
 value = 8.0
-
-[sub_resource type="Resource" id="Resource_toxic_technique_group"]
-script = ExtResource("3_group")
-options = Array[Talent]([ExtResource("4_lethal_intent")])
 
 [resource]
 script = ExtResource("1_talent")
 id = "talent.toxic_technique"
 display_name = "Toxic Techniques"
 cost = 2
-prerequisites = Array[PrerequisiteGroup]([SubResource("Resource_toxic_technique_group")])
-stat_modifiers = Array[StatModifier]([SubResource("Resource_toxic_technique_mod")])
-unlocked_skills = Array[Skill]([ExtResource("5_skill")])
+prerequisites = Array[ExtResource("3_group")]([SubResource("Resource_toxic_technique_group")])
+stat_modifiers = Array[ExtResource("2_modifier")]([SubResource("Resource_toxic_technique_mod")])
+unlocked_skills = Array[ExtResource("7_xout2")]([ExtResource("5_skill")])

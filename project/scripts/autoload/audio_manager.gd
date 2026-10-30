@@ -26,14 +26,33 @@ const BIOME_MUSIC_PATHS := {
 }
 const BUTTON_PRESS_SFX_PATH := "res://assets/audio/fx/button_press.mp3"
 const SHOP_CHANGE_SFX_PATH := "res://assets/audio/fx/change.mp3"
+const MAGIC_FIND_SFX_PATH := "res://assets/audio/fx/magic_find.mp3"
+const MAGIC_FIND_SFX_POOL_SIZE := 8
+const MAGIC_FIND_SFX_BASE_VOLUME := 0.36
+const MAGIC_FIND_SFX_VOLUME_VARIATION := 0.04
+const MAGIC_FIND_SFX_PITCH_VARIATION := 0.04
 const FOOTSTEPS_SFX_PATH := "res://assets/audio/fx/footsteps.mp3"
+const DODGE_SFX_PATH := "res://assets/audio/fx/sword/sword_swing.mp3"
+const CATEGORY_SFX_PATHS := {
+	Skill.Category.SELF_BUFF: "res://assets/audio/fx/skills/self_buff.mp3",
+	Skill.Category.DEBUFF: "res://assets/audio/fx/skills/debuff.mp3",
+}
+const EXSANGUINATE_SFX_PATH := "res://assets/audio/fx/skills/exsanguinate.mp3"
+const SKILL_SFX_PATHS := {
+	"skill.poison_vile": "res://assets/audio/fx/skills/poison_vile.mp3",
+	"skill.blinding_powder": "res://assets/audio/fx/skills/blinding_powder.mp3",
+	"skill.pick_pocket": "res://assets/audio/fx/skills/pick_pocket.mp3",
+}
+const GOLD_STEAL_SFX_PATH := "res://assets/audio/fx/skills/gold_steal.mp3"
+const CATEGORY_SFX_BASE_VOLUME := 0.64
+const CATEGORY_SFX_VOLUME_VARIATION := 0.04
+const CATEGORY_SFX_PITCH_VARIATION := 0.04
 const ATTACK_SFX_PATHS := [
 	"res://assets/audio/fx/sword/sword_block.mp3",
 	"res://assets/audio/fx/sword/sword_clash_hit.mp3",
 	"res://assets/audio/fx/sword/sword_cut_1.mp3",
 	"res://assets/audio/fx/sword/sword_cut_2.mp3",
 	"res://assets/audio/fx/sword/sword_slice.mp3",
-	"res://assets/audio/fx/sword/sword_swing.mp3",
 ]
 
 const MUSIC_BUS := "Music"
@@ -95,6 +114,9 @@ var _biome_mood_player: AudioStreamPlayer
 var _biome_music_player: AudioStreamPlayer
 var _button_press_stream: AudioStreamMP3
 var _shop_change_stream: AudioStreamMP3
+var _magic_find_stream: AudioStreamMP3
+var _magic_find_sfx_players: Array[AudioStreamPlayer] = []
+var _magic_find_sfx_player_index := 0
 var _footsteps_stream: AudioStreamMP3
 var _button_sfx_players: Array[AudioStreamPlayer] = []
 var _button_sfx_player_index := 0
@@ -104,6 +126,15 @@ var _footsteps_generation := 0
 var _last_button_sfx_frame_by_instance: Dictionary = {}
 var _button_down_sfx_consumed_by_instance: Dictionary = {}
 var _attack_sfx_streams: Array[AudioStreamMP3] = []
+var _dodge_sfx_stream: AudioStreamMP3
+var _category_sfx_streams: Dictionary = {}
+var _exsanguinate_sfx_stream: AudioStreamMP3
+var _skill_sfx_streams := {}
+var _gold_steal_sfx_stream: AudioStreamMP3
+var skill_sfx_play_counts := {}
+var gold_steal_sfx_play_count := 0
+var exsanguinate_sfx_play_count := 0
+var last_exsanguinate_sfx_pitch_scale := 0.0
 var _attack_sfx_players: Array[AudioStreamPlayer] = []
 var _attack_sfx_player_index := 0
 var _rain_tween: Tween
@@ -116,6 +147,7 @@ var _serpent_theme_tween: Tween
 var _biome_mood_tween: Tween
 var _biome_music_tween: Tween
 var _rng := RandomNumberGenerator.new()
+var _combat_sfx_generation := 0
 var _web_audio_unlocked := true
 var _pending_audio_scene := AUDIO_SCENE_NONE
 var _pending_contract_biome := ""
@@ -123,6 +155,13 @@ var _current_contract_biome := ""
 var _contract_transition_id := 0
 
 var attack_sfx_play_count := 0
+var dodge_sfx_play_count := 0
+var category_sfx_play_count := 0
+var self_buff_sfx_play_count := 0
+var debuff_sfx_play_count := 0
+var last_category_sfx_category := -1
+var last_category_sfx_pitch_scale := 0.0
+var last_category_sfx_volume_db := 0.0
 var last_attack_sfx_pitch_scale := 0.0
 var last_attack_sfx_volume_db := 0.0
 var last_attack_sfx_cast_duration_ms := 0
@@ -131,6 +170,9 @@ var last_attack_sfx_hit_count := 0
 var last_attack_sfx_proc_hit_count := 0
 var button_press_sfx_play_count := 0
 var shop_change_sfx_play_count := 0
+var magic_find_sfx_play_count := 0
+var last_magic_find_sfx_pitch_scale := 0.0
+var last_magic_find_sfx_volume_db := 0.0
 var footsteps_sfx_play_count := 0
 var last_shop_change_pitch_scale := 0.0
 var last_footsteps_duration_sec := 0.0
@@ -320,17 +362,33 @@ func _transition_to_contract_biome_ambience_now(biome: String, fade_seconds: flo
 func play_random_attack_sfx(playback_speed: float, cast_duration_ms: int, suppress: bool = false) -> bool:
 	if suppress or _attack_sfx_streams.is_empty() or _attack_sfx_players.is_empty():
 		return false
+	var stream_index := _rng.randi_range(0, _attack_sfx_streams.size() - 1)
+	if not _play_combat_sfx(_attack_sfx_streams[stream_index], playback_speed, cast_duration_ms):
+		return false
+	attack_sfx_play_count += 1
+	return true
+
+
+func play_dodge_sfx(playback_speed: float, cast_duration_ms: int, suppress: bool = false) -> bool:
+	if suppress or not _play_combat_sfx(_dodge_sfx_stream, playback_speed, cast_duration_ms):
+		return false
+	dodge_sfx_play_count += 1
+	return true
+
+
+func _play_combat_sfx(stream: AudioStreamMP3, playback_speed: float, cast_duration_ms: int) -> bool:
+	if stream == null:
+		return false
 	var player := _next_attack_sfx_player()
 	if player == null:
 		return false
-	var stream_index := _rng.randi_range(0, _attack_sfx_streams.size() - 1)
 	var random_volume := ATTACK_SFX_BASE_VOLUME + _rng.randf_range(-ATTACK_SFX_VOLUME_VARIATION, ATTACK_SFX_VOLUME_VARIATION)
 	var random_pitch := 1.0 + _rng.randf_range(-ATTACK_SFX_PITCH_VARIATION, ATTACK_SFX_PITCH_VARIATION)
 	var timing_factor := _attack_sfx_timing_factor(cast_duration_ms)
 	var speed_factor := maxf(playback_speed, 0.01)
 
 	player.stop()
-	player.stream = _attack_sfx_streams[stream_index]
+	player.stream = stream
 	player.bus = EFFECTS_BUS
 	player.volume_db = linear_to_db(clampf(random_volume, 0.001, 1.0))
 	player.pitch_scale = clampf(
@@ -340,7 +398,6 @@ func play_random_attack_sfx(playback_speed: float, cast_duration_ms: int, suppre
 	)
 	player.play()
 
-	attack_sfx_play_count += 1
 	last_attack_sfx_pitch_scale = player.pitch_scale
 	last_attack_sfx_volume_db = player.volume_db
 	last_attack_sfx_cast_duration_ms = cast_duration_ms
@@ -348,7 +405,76 @@ func play_random_attack_sfx(playback_speed: float, cast_duration_ms: int, suppre
 	return true
 
 
+## Resolved activation only: category cues belong to casts, never their proc hits.
+## Attack chains retain their existing bounded visual-beat contact policy.
+func play_skill_sfx_for_cast(cast: CombatResolver.CastEvent, playback_speed: float, suppress: bool = false, retrigger: bool = false, visual_beat: bool = true) -> int:
+	if suppress or cast == null or cast.was_interrupted or cast.interrupt_skipped or cast.cooldown_blocked or cast.resource_unavailable:
+		return 0
+	if cast.skill != null and cast.skill.id == "skill.hold":
+		return 0
+	# One quiet receipt cue per credited cast, including passive/retrigger theft.
+	# The recorded amount already excludes failed theft and rounded-to-zero gold.
+	var theft_cues := 0
+	if cast.gold_stolen > 0:
+		if _play_varied_skill_sfx(_gold_steal_sfx_stream, 0.40, 0.03) != null:
+			gold_steal_sfx_play_count += 1
+			theft_cues = 1
+	if cast.skill != null and cast.skill.id == "skill.exsanguinate":
+		if cast.was_dodged: return theft_cues
+		var player := _play_varied_skill_sfx(_exsanguinate_sfx_stream)
+		if player == null: return theft_cues
+		exsanguinate_sfx_play_count += 1
+		last_exsanguinate_sfx_pitch_scale = player.pitch_scale
+		return theft_cues + 1
+	if cast.skill != null and _skill_sfx_streams.has(cast.skill.id):
+		if cast.was_dodged: return theft_cues
+		var player := _play_varied_skill_sfx(_skill_sfx_streams[cast.skill.id])
+		if player == null: return theft_cues
+		skill_sfx_play_counts[cast.skill.id] = int(skill_sfx_play_counts.get(cast.skill.id, 0)) + 1
+		return theft_cues + 1
+	if cast.skill != null and CATEGORY_SFX_PATHS.has(cast.skill.category):
+		if cast.was_dodged:
+			return theft_cues
+		return theft_cues + int(_play_category_sfx(cast.skill.category))
+	if retrigger:
+		return theft_cues + (play_retrigger_sfx(cast, playback_speed) if visual_beat else 0)
+	return theft_cues + play_attack_sfx_for_cast(cast, playback_speed)
+
+
+func _play_category_sfx(category: int) -> bool:
+	var stream: AudioStreamMP3 = _category_sfx_streams.get(category)
+	var player := _play_varied_skill_sfx(stream)
+	if player == null: return false
+	category_sfx_play_count += 1
+	if category == Skill.Category.SELF_BUFF: self_buff_sfx_play_count += 1
+	if category == Skill.Category.DEBUFF: debuff_sfx_play_count += 1
+	last_category_sfx_category = category
+	last_category_sfx_pitch_scale = player.pitch_scale
+	last_category_sfx_volume_db = player.volume_db
+	return true
+
+
+func _play_varied_skill_sfx(stream: AudioStreamMP3, base_volume: float = CATEGORY_SFX_BASE_VOLUME, volume_variation: float = CATEGORY_SFX_VOLUME_VARIATION) -> AudioStreamPlayer:
+	if stream == null:
+		return null
+	var player := _next_attack_sfx_player()
+	if player == null:
+		return null
+	player.stop()
+	player.stream = stream
+	player.bus = EFFECTS_BUS
+	player.volume_db = linear_to_db(base_volume + _rng.randf_range(-volume_variation, volume_variation))
+	# Playback speed changes cadence; subtle variation preserves the cue's pitch.
+	player.pitch_scale = 1.0 + _rng.randf_range(-CATEGORY_SFX_PITCH_VARIATION, CATEGORY_SFX_PITCH_VARIATION)
+	player.play()
+	return player
+
+
 func play_attack_sfx_for_cast(cast: CombatResolver.CastEvent, playback_speed: float, suppress: bool = false) -> int:
+	if cast != null and cast.was_dodged:
+		last_attack_sfx_hit_count = 0
+		last_attack_sfx_proc_hit_count = 0
+		return 1 if play_dodge_sfx(playback_speed, maxi(cast.time_ms - cast.cast_start_ms, 1), suppress) else 0
 	var hit_count := attack_sfx_hit_count_for_cast(cast)
 	last_attack_sfx_hit_count = hit_count
 	last_attack_sfx_proc_hit_count = maxi(hit_count - 1, 0)
@@ -360,7 +486,7 @@ func play_attack_sfx_for_cast(cast: CombatResolver.CastEvent, playback_speed: fl
 		scheduled_count += 1
 	for hit_index in range(1, hit_count):
 		var delay_sec := ATTACK_SFX_PROC_OFFSET_SEC * float(hit_index) / maxf(playback_speed, 0.01)
-		get_tree().create_timer(delay_sec).timeout.connect(_play_delayed_attack_sfx.bind(playback_speed, cast_duration_ms))
+		get_tree().create_timer(delay_sec).timeout.connect(_play_delayed_attack_sfx.bind(playback_speed, cast_duration_ms, _combat_sfx_generation))
 		scheduled_count += 1
 	return scheduled_count
 
@@ -395,6 +521,30 @@ func play_shop_change_sfx() -> bool:
 	return true
 
 
+## One cue per visible Magic Find tier upgrade; callers omit skipped reveal beats.
+func play_magic_find_sfx() -> bool:
+	if _magic_find_stream == null or _magic_find_sfx_players.is_empty():
+		return false
+	var player := _magic_find_sfx_players[_magic_find_sfx_player_index]
+	_magic_find_sfx_player_index = (_magic_find_sfx_player_index + 1) % _magic_find_sfx_players.size()
+	player.stop()
+	player.stream = _magic_find_stream
+	player.bus = EFFECTS_BUS
+	player.volume_db = linear_to_db(MAGIC_FIND_SFX_BASE_VOLUME + _rng.randf_range(-MAGIC_FIND_SFX_VOLUME_VARIATION, MAGIC_FIND_SFX_VOLUME_VARIATION))
+	player.pitch_scale = 1.0 + _rng.randf_range(-MAGIC_FIND_SFX_PITCH_VARIATION, MAGIC_FIND_SFX_PITCH_VARIATION)
+	player.play()
+	magic_find_sfx_play_count += 1
+	last_magic_find_sfx_pitch_scale = player.pitch_scale
+	last_magic_find_sfx_volume_db = player.volume_db
+	return true
+
+
+## Stop reveal tails when skipping, closing, or replacing a reward/shop reveal.
+func cancel_magic_find_sfx() -> void:
+	for player in _magic_find_sfx_players:
+		player.stop()
+
+
 func play_footsteps_sfx(duration_sec: float) -> bool:
 	if duration_sec <= 0.0 or _footsteps_stream == null or _footsteps_player == null:
 		return false
@@ -422,7 +572,7 @@ func stop_footsteps_sfx() -> void:
 
 
 func attack_sfx_hit_count_for_cast(cast: CombatResolver.CastEvent) -> int:
-	if cast == null or (cast.physical_damage <= 0.0 and cast.blocked_amount <= 0.0):
+	if cast == null or cast.was_dodged or (cast.physical_damage <= 0.0 and cast.blocked_amount <= 0.0):
 		return 0
 	var hit_count := 1
 	for contribution in cast.damage_contributions:
@@ -465,6 +615,13 @@ func _build_music_players() -> void:
 
 
 func _build_attack_sfx_pool() -> void:
+	_exsanguinate_sfx_stream = _load_mp3_stream(EXSANGUINATE_SFX_PATH)
+	for id in SKILL_SFX_PATHS:
+		_skill_sfx_streams[id] = _load_mp3_stream(SKILL_SFX_PATHS[id])
+	_gold_steal_sfx_stream = _load_mp3_stream(GOLD_STEAL_SFX_PATH)
+	_dodge_sfx_stream = _load_mp3_stream(DODGE_SFX_PATH)
+	for category in CATEGORY_SFX_PATHS:
+		_category_sfx_streams[category] = _load_mp3_stream(CATEGORY_SFX_PATHS[category])
 	_attack_sfx_streams.clear()
 	for path in ATTACK_SFX_PATHS:
 		var stream := _load_mp3_stream(path)
@@ -482,6 +639,14 @@ func _build_attack_sfx_pool() -> void:
 func _build_ui_sfx_players() -> void:
 	_button_press_stream = _load_mp3_stream(BUTTON_PRESS_SFX_PATH)
 	_shop_change_stream = _load_mp3_stream(SHOP_CHANGE_SFX_PATH)
+	_magic_find_stream = _load_mp3_stream(MAGIC_FIND_SFX_PATH)
+	_magic_find_sfx_players.clear()
+	for index in range(MAGIC_FIND_SFX_POOL_SIZE):
+		var player := AudioStreamPlayer.new()
+		player.name = "MagicFindSfxPlayer%d" % index
+		player.bus = EFFECTS_BUS
+		add_child(player)
+		_magic_find_sfx_players.append(player)
 	_footsteps_stream = _load_mp3_stream(FOOTSTEPS_SFX_PATH)
 	if _footsteps_stream != null:
 		_footsteps_stream.loop = true
@@ -574,8 +739,16 @@ func _attack_sfx_timing_factor(cast_duration_ms: int) -> float:
 	)
 
 
-func _play_delayed_attack_sfx(playback_speed: float, cast_duration_ms: int) -> void:
+func _play_delayed_attack_sfx(playback_speed: float, cast_duration_ms: int, generation: int = -1) -> void:
+	if generation >= 0 and generation != _combat_sfx_generation: return
 	play_random_attack_sfx(playback_speed, cast_duration_ms, false)
+
+
+func cancel_combat_sfx(stop_active: bool = true) -> void:
+	_combat_sfx_generation += 1
+	if stop_active:
+		for player in _attack_sfx_players:
+			player.stop()
 
 
 func _next_contract_transition_id() -> int:
@@ -795,3 +968,11 @@ func _save_settings() -> void:
 	config.set_value("audio", "music_volume", music_volume)
 	config.set_value("audio", "effects_volume", effects_volume)
 	config.save(SETTINGS_PATH)
+
+
+## One bounded contact per visible chain beat, with no queued proc echoes.
+func play_retrigger_sfx(cast: CombatResolver.CastEvent, playback_speed: float) -> int:
+	if cast == null or cast.was_interrupted or cast.resource_unavailable or cast.cooldown_blocked: return 0
+	if cast.was_dodged: return int(play_dodge_sfx(playback_speed, 180))
+	if cast.physical_damage <= 0.0 and cast.blocked_amount <= 0.0: return 0
+	return int(play_random_attack_sfx(playback_speed, 180))

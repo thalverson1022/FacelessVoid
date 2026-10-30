@@ -1,5 +1,5 @@
 extends Control
-## Secondary Rogue tree choice, shown after accepting the Gilded Serpent
+## Secondary Rogue tree choice, earned after completing the first
 ## contract. Extracted from combat_screen.gd's inline overlay builder
 ## (docs/Phase_3_Technical_Debt_Architecture_Cleanup.md Phase 3) -- gates a
 ## real decision (Choose) with no defined "cancel" behavior, so it stays
@@ -9,7 +9,7 @@ extends Control
 signal tree_chosen(tree: SubclassTree)
 
 const CARD_TITLE_FONT_SIZE := 20
-const CONTRACT_SUBCLASS_PROMPT_TEXT := "This type of work may require a little extra skill."
+const CONTRACT_SUBCLASS_PROMPT_TEXT := "First contract complete! Choose a second subclass."
 const SECONDARY_TREE_CHOICE_COUNT := 2
 const SECONDARY_TREE_RNG_CONTEXT := "secondary_tree_choices"
 
@@ -67,21 +67,7 @@ func _refresh_options() -> void:
 
 
 func _secondary_tree_choices() -> Array[SubclassTree]:
-	var options: Array[SubclassTree] = []
-	if BuildState.selected_class == null:
-		return options
-	for tree in BuildState.selected_class.trees:
-		if BuildState.selected_trees.has(tree):
-			continue
-		options.append(tree)
-	if options.size() <= SECONDARY_TREE_CHOICE_COUNT:
-		return options
-	var sampled: Array[SubclassTree] = []
-	var pool: Array[SubclassTree] = options.duplicate()
-	var rng := RunRng.rng_for_context(BuildState.adventure_seed, SECONDARY_TREE_RNG_CONTEXT, _secondary_tree_choice_parts())
-	while sampled.size() < SECONDARY_TREE_CHOICE_COUNT and not pool.is_empty():
-		sampled.append(pool.pop_at(rng.randi_range(0, pool.size() - 1)))
-	return sampled
+	return BuildState.secondary_subclass_choices()
 
 
 func _secondary_tree_choice_parts() -> Array:

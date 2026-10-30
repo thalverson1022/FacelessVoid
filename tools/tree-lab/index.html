@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Tree Lab · Project Faceless Void</title><link rel="stylesheet" href="styles.css"></head>
+<body><main>
+<header><div><p class="eyebrow">PROJECT FACELESS VOID / DESIGN LABS</p><h1>Tree Lab</h1></div><div class="actions"><button id="new">New tree</button><button id="example">Assassin example</button><button id="import">Import JSON</button><button id="export">Export JSON</button><input id="file" type="file" accept=".json,application/json" hidden></div></header>
+<p class="notice">Sketch talent ideas and explore progression. Values describe your design; they do not simulate combat.</p>
+<section id="recovery" hidden aria-label="Draft recovery"><p id="recovery-message"></p><div class="actions"><button id="restore">Restore draft</button><button id="download-draft">Download saved draft</button><button id="use-current">Keep current tree instead</button></div></section>
+<nav aria-label="Tree controls"><button id="tree-name">Untitled tree</button><button disabled>+ Second tree · later</button><span id="save-status" role="status"></span></nav>
+<div class="workspace"><section class="canvas-panel" aria-label="Talent canvas">
+<div class="toolbar"><div class="actions"><button id="edit" aria-pressed="true">Edit</button><button id="allocate" aria-pressed="false">Allocate</button><button id="add">+ Add talent</button></div><div class="actions"><label>Budget <input id="budget" type="number" min="0" max="10000" step="1" value="15"></label><button id="reset">Reset points</button></div></div>
+<div class="summary"><strong id="points"></strong><span id="mode-help"></span></div>
+<div id="grid-controls" class="grid-toolbar"><label class="check"><input id="snap-grid" type="checkbox" checked> Snap to grid · 21 columns</label><button id="align-grid">Align all to grid</button><span class="small">Existing positions stay unchanged until moved or aligned.</span></div>
+<div class="canvas-scroll"><div id="canvas"><svg id="connections" aria-label="Prerequisite connections"></svg><div id="levels"></div></div></div>
+<button id="intrinsic" class="intrinsic"></button><div class="track-heading"><h2>Automatic skill unlocks</h2><span>Free rewards from tree investment</span></div><div id="unlocks"></div>
+</section><aside aria-label="Inspector"><p class="eyebrow" id="inspector-kicker">TREE SETTINGS</p><h2 id="selected-name"></h2><form id="inspector"></form></aside></div>
+<footer><div id="status" role="status">Ready.</div><div class="actions"><button id="undo">Undo</button><button id="redo">Redo</button></div></footer>
+<details id="warnings"><summary id="warning-count">Design notes</summary><ul id="warning-list"></ul></details>
+</main><div id="tooltip" role="tooltip" hidden></div>
+<script src="data/bundle.js"></script><script src="model.js"></script><script src="app.js"></script></body></html>

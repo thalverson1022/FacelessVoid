@@ -45,7 +45,10 @@ func _initialize() -> void:
 	assert(back_button.tooltip_text == "Back to Title")
 	assert(back_button.custom_minimum_size == Vector2(56, 56))
 	assert(back_button.icon != null)
-	var reserved_space := back_button.get_parent().get_child(back_button.get_index() + 1) as Control
+	var header := back_button.get_parent()
+	var save_setup := header.get_child(back_button.get_index() + 1) as Button
+	assert(save_setup != null and save_setup.text == "Save Setup")
+	var reserved_space := header.get_child(header.get_child_count() - 1) as Control
 	assert(reserved_space != null)
 	assert(reserved_space.custom_minimum_size.x >= 50.0)
 

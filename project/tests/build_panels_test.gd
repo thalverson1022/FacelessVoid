@@ -1,9 +1,9 @@
 extends SceneTree
-## Focused P2:R7:T4 check for the five build-facing dashboard panels (talent,
+## M11 T4 current ranked Adventure build-panel journey. Original preserved in work/m11_t4_panels.
+## Focused check for the five build-facing dashboard panels (talent,
 ## available skills, skill build/rotation, character stats, gear). Drives the
 ## real combat_screen.tscn scene against BuildState, same pattern as
-## dashboard_header_test.gd. Same headless-only caveat as every prior UI
-## milestone -- no rendered click-through available in this environment.
+## dashboard_header_test.gd. Optional --visual captures inspect the actual1600x900 viewport.
 
 
 func _initialize() -> void:
@@ -15,13 +15,23 @@ func _initialize() -> void:
 	root.add_child(combat_screen)
 	await process_frame
 
-	var rogue: ClassDef = load("res://data/classes/rogue.tres")
-	var bladedancer: SubclassTree = rogue.trees[1]
+	root.size = Vector2i(1600, 900)
+	root.gui_embed_subwindows = true
+	var registry := BuildContentRegistry.adventure()
+	_require(registry.error == "", "Current registry validates")
+	var rogue: ClassDef = registry.classes["class.rogue"]
+	var bladedancer: SubclassTree = registry.trees["tree.bladedancer"]
 	build_state.set_class(rogue)
-	build_state.select_tree(bladedancer)
+	_require(build_state.configure_ranked_build(bladedancer), "Current ranked Adventure primary")
 	await process_frame
-
-	var talent_panel = combat_screen.find_child("TalentPanel", true, false)
+	await process_frame
+	# Panel-isolated preparation fixture: normal entry/story/map flow is covered by T2/T3.
+	# Dismiss those unrelated modal contexts before driving panel controls.
+	for field in ["_story_overlay", "_map_overlay", "_contract_overlay", "_secondary_subclass_overlay"]:
+		var overlay: Control = combat_screen.get(field)
+		if overlay != null: overlay.hide()
+	_require(not combat_screen._story_overlay.visible, "Panel fixture clears story modal")
+	var talent_panel = combat_screen._talent_overlay._talent_panel
 	var active_talents_panel = combat_screen.find_child("ActiveTalentsPanel", true, false)
 	var available_skills_panel = combat_screen.find_child("AvailableSkillsPanel", true, false)
 	var skill_build_panel = combat_screen.find_child("SkillBuildPanel", true, false)
@@ -29,40 +39,18 @@ func _initialize() -> void:
 	var gear_panel = combat_screen.find_child("GearPanel", true, false)
 	_require(talent_panel != null and active_talents_panel != null and available_skills_panel != null and skill_build_panel != null and character_stats_panel != null and gear_panel != null, "Expected all build panels to be found.")
 
-	# -- 1. Talent lock reason: Opportunity Strikes requires Practiced Rhythm,
-	# which is unselected at 0 earned points, so its unmet prerequisite
-	# should be named explicitly, not just "disabled". --
-	var opportunity_strikes: Talent = bladedancer.talents[3]
-	_require(opportunity_strikes.display_name == "Opportunity Strikes", "Expected bladedancer.talents[3] to be Opportunity Strikes.")
-	var reason: String = talent_panel._talent_lock_reason(opportunity_strikes)
-	print("Opportunity Strikes lock reason (expect prereq): %s" % reason)
-	_require(reason == "Requires Practiced Rhythm", "Expected an unmet-prerequisite reason, got: %s" % reason)
-	var node_buttons := {}
-	for node in talent_panel.find_children("*", "Button", true, false):
-		if node.has_meta("talent_id"):
-			node_buttons[node.get_meta("talent_id")] = node
-	_require(node_buttons["talent.opportunity_strikes"].tooltip_text.contains("Locked: Requires Practiced Rhythm"), "Expected the lock reason inside the talent's tooltip, got: %s" % node_buttons["talent.opportunity_strikes"].tooltip_text)
-	# P2:R7 playtest feedback (2026-07-18): the lock reason no longer also
-	# renders as an always-visible caption Label under the node -- tooltip
-	# only. There should be no descendant Label carrying the reason text.
-	var found_visible_reason_label := false
-	for descendant in node_buttons["talent.opportunity_strikes"].find_children("*", "Label", true, false):
-		if descendant.text == reason:
-			found_visible_reason_label = true
-	_require(not found_visible_reason_label, "Expected no always-visible lock-reason Label under a locked talent node.")
-
-	# A no-prereq talent (Quick Hands) is still locked at 0 earned points, for
-	# budget reasons rather than a prerequisite -- confirms the two reason
-	# kinds are distinguishable, not just a blanket "locked" string.
-	var budget_reason: String = talent_panel._talent_lock_reason(bladedancer.talents[0])
-	print("Quick Hands lock reason at 0 points (expect budget): %s" % budget_reason)
-	_require(budget_reason.contains("Needs"), "Expected a budget-based reason for a no-prereq talent with no points, got: %s" % budget_reason)
-
+	# 1. Current ranked allocation distinguishes budget from lower-tier gates.
+	var view = talent_panel._ranked_view
+	var foundational: Talent = registry.talents["talent.bladedancer.weakness"]
+	var gated: Talent = registry.talents["talent.bladedancer.precision_attacks"]
+	_require(view.reason(foundational, "buy") == "No unspent points.", "Zero budget explains lock")
+	view.actions["buy:" + foundational.id].pressed.emit()
+	_require(build_state.ranked_build.points_spent() == 0, "Blocked budget click changes nothing")
 	# -- 2. Points budget display: star icon + "spent/earned", kept stable
 	# even when points are unspent so the warning state comes from
 	# color/button treatment instead of changing sentence structure. --
 	_require(not _talent_panel_text(talent_panel).contains(": 0/0"), "Expected Talent Trees overlay to omit the duplicate points footer.")
-	_require(_talent_panel_text(talent_panel).contains("Second Subclass"), "Expected one-tree Talent panel to explain the future second subclass slot.")
+	_require(_talent_panel_text(talent_panel).contains("Secondary"), "Expected one-tree Talent panel to explain the future second subclass slot.")
 	_require(_talent_panel_text(talent_panel).contains("Primary"), "Expected Talent Trees overlay to frame the chosen tree as the Primary column.")
 	_require(_talent_panel_text(talent_panel).contains("Secondary"), "Expected Talent Trees overlay to frame the future second tree as the Secondary column.")
 	_require(active_talents_panel._points_label.text == ": 0/0", "Expected active talent summary to show zero points, got: %s" % active_talents_panel._points_label.text)
@@ -71,45 +59,39 @@ func _initialize() -> void:
 	_require(points_header is HBoxContainer, "Expected Active Talents points badge to live in a header row beside the title.")
 	_require(points_header.get_child_count() == 2 and points_header.get_child(1) == active_talents_panel._points_badge, "Expected Active Talents points badge to be right-aligned in the top header row.")
 	_require(active_talents_panel._points_label.get_parent().find_child("Icon", true, false) != null, "Expected Active Talents points readout to include the talent-point star icon.")
-	var active_talents_scroll: ScrollContainer = active_talents_panel.find_child("ActiveTalentsScroll", true, false)
-	_require(active_talents_scroll != null, "Expected Active Talents summary content to live inside a scroll area so the Talent Trees button stays reachable late-game.")
-	_require(active_talents_scroll.horizontal_scroll_mode == ScrollContainer.SCROLL_MODE_DISABLED, "Expected Active Talents summary to scroll vertically only.")
-	_require(active_talents_panel._open_button.get_parent() != active_talents_scroll, "Expected the Talent Trees button to remain pinned outside the scrolling summary.")
-	_require(_active_talents_text(active_talents_panel).contains("Bladedancer"), "Expected active talent summary to show the selected tree name.")
-	_require(active_talents_panel.find_child("Icon", true, false) != null, "Expected active talent summary to show the selected tree icon.")
-	_require(_active_talents_text(active_talents_panel).contains("Intrinsic: Unlocks Quick Cut"), "Expected active talent summary to show the selected tree intrinsic.")
-	_require(_active_talents_text(active_talents_panel).contains("Bladedancer Talents"), "Expected active talent summary to show tree-specific talent heading.")
-	_require(_active_talents_text(active_talents_panel).contains("No Bladedancer talents selected."), "Expected active talent summary to show empty state for the selected tree.")
+	_require(points_header.get_child(0).text == "Subclass", "Expected compact Subclass title.")
+	_require(active_talents_panel.find_children("*", "ScrollContainer", true, false).is_empty(), "Expected the fixed inline Subclass card to need no scroll area.")
+	_require(active_talents_panel._talents_box.get_child_count() == 3, "Expected inline primary, divider and secondary groups.")
+	_require(active_talents_panel._talents_box.get_child(0).get_node("SubclassName").text == "Bladedancer", "Expected primary subclass name.")
+	var secondary_row: HBoxContainer = active_talents_panel._talents_box.get_child(2)
+	_require(secondary_row.get_node("SubclassName").text == "none", "Expected missing secondary subclass to read none.")
+	_require(secondary_row.get_node("EmptySubclassIcon") is ColorRect, "Expected gray square for missing secondary subclass.")
+	_require(not _active_talents_text(active_talents_panel).contains("Intrinsic:"), "Expected intrinsic information only in Talent Trees.")
+	var subclass_height: float = active_talents_panel.size.y
 	build_state.add_talent_points(1)
 	await process_frame
+	await process_frame
+	_require(view.reason(gated, "buy").contains("5 points in lower tiers"), "Current gate distinguishes lower-tier requirement from budget")
+	_require(view.talent_tooltip(gated).contains(gated.display_name), "Ranked hover identifies gated talent")
 	_require(not _talent_panel_text(talent_panel).contains(": 0/1"), "Expected Talent Trees overlay to keep omitting the duplicate points footer after earning a point.")
 	_require(active_talents_panel._points_label.text == ": 0/1", "Expected active talent summary to show unspent point budget, got: %s" % active_talents_panel._points_label.text)
 	_require(active_talents_panel._open_button.text == "Talent Trees", "Expected Active Talents button copy to stay stable when points are unspent.")
 	_require(active_talents_panel._open_button.custom_minimum_size == active_talents_panel.OPEN_BUTTON_SIZE, "Expected Talent Trees button to keep a fixed minimum size.")
 	_require(active_talents_panel._button_blink_tween != null and active_talents_panel._button_blink_tween.is_running(), "Expected Active Talents button to blink when points are unspent.")
 	_require(not active_talents_panel._open_button.has_theme_stylebox_override("normal"), "Expected unspent-points alert to avoid stylebox overrides that can change button layout.")
-	var quick_hands: Talent = bladedancer.talents[0]
-	_require(quick_hands.display_name == "Quick Hands", "Expected bladedancer.talents[0] to be Quick Hands.")
-	_require(build_state.select_talent(quick_hands), "Expected Quick Hands to be selectable with 1 earned point.")
+	view.actions["buy:" + foundational.id].pressed.emit()
+	_require(build_state.ranked_build.rank_of(foundational.id) == 1, "Actual ranked node buys rank1")
 	await process_frame
 	_require(active_talents_panel._points_label.text == ": 1/1", "Expected active talent summary to update spent points, got: %s" % active_talents_panel._points_label.text)
 	_require(active_talents_panel._open_button.text == "Talent Trees", "Expected Active Talents button to return to neutral copy when all points are spent.")
 	_require(active_talents_panel._button_blink_tween == null, "Expected Active Talents button blink to stop when all points are spent.")
-	_require(_active_talents_text(active_talents_panel).contains("Quick Hands"), "Expected active talent summary to list Quick Hands.")
+	_require(not _active_talents_text(active_talents_panel).contains("Weakness"), "Expected allocated talent information to remain in Talent Trees.")
+	_require(is_equal_approx(active_talents_panel.size.y, subclass_height), "Expected allocation to preserve compact Subclass height.")
 	_require(not combat_screen._talent_overlay.visible, "Expected Talent Trees overlay hidden by default.")
 	active_talents_panel._open_button.pressed.emit()
 	await process_frame
 	_require(combat_screen._talent_overlay.visible, "Expected Active Talents button to open the Talent Trees overlay.")
 	combat_screen._talent_overlay.visible = false
-
-	# Now that Practiced Rhythm's OR-group (Quick Hands or Piercing Blades) is
-	# satisfied, its remaining lock reason should be about the point budget
-	# (0 of 1 earned points left), not the prerequisite.
-	var practiced_rhythm: Talent = bladedancer.talents[2]
-	_require(practiced_rhythm.display_name == "Practiced Rhythm", "Expected bladedancer.talents[2] to be Practiced Rhythm.")
-	reason = talent_panel._talent_lock_reason(practiced_rhythm)
-	print("Practiced Rhythm lock reason after Quick Hands (expect budget): %s" % reason)
-	_require(reason.contains("Needs"), "Expected a budget-based lock reason once prereqs are satisfiable, got: %s" % reason)
 
 	# -- 3. Skill effect summary text is derived from the skill's own
 	# SkillEffect resources. P2:R7 playtest feedback (2026-07-18) found T4's
@@ -125,12 +107,12 @@ func _initialize() -> void:
 	_require(heavy_slash.display_name == "Heavy Slash", "Expected rogue.base_skills[2] to be Heavy Slash.")
 	var summary: String = available_skills_panel._skill_effect_summary(stab)
 	print("Stab effect summary (expect dynamic damage range): %s" % summary)
-	_require(summary == "16-20 physical dmg", "Expected Stab's summary text to use resolved weapon damage, got: %s" % summary)
+	_require(summary == "%d-%d physical dmg" % [build_state.current_player_stats().weapon_damage_min, build_state.current_player_stats().weapon_damage_max], "Expected Stab's summary text to use resolved weapon damage, got: %s" % summary)
 	var hold_button: Button = available_skills_panel._skills_box.get_child(0)
 	_require(hold_button is Button, "Expected each available-skills child to be a bare Button (no always-visible caption wrapper).")
-	_require(hold_button.tooltip_text.contains("Holds for 1.0s"), "Expected the first available skill button to be Hold, got tooltip: %s" % hold_button.tooltip_text)
+	_require(hold_button._get_tooltip(Vector2.ZERO).contains("Wait without attacking."), "Expected the first available skill button to be Hold, got tooltip: %s" % hold_button.tooltip_text)
 	var stab_button: Button = available_skills_panel._skills_box.get_child(1)
-	_require(stab_button.tooltip_text.contains(summary), "Expected Stab's tooltip to contain its effect summary, got: %s" % stab_button.tooltip_text)
+	_require(stab_button._get_tooltip(Vector2.ZERO).contains(preload("res://scripts/ui/skill_hover_formatter.gd").model(build_state.unlocked_skills()[1],build_state).damage), "Expected Stab's tooltip to contain its effect summary, got: %s" % stab_button.tooltip_text)
 	var hold_summary: String = available_skills_panel._skill_effect_summary(hold)
 	_require(hold_summary == "Holds for 1.0s", "Expected Hold's summary text to explain the no-action wait, got: %s" % hold_summary)
 	# -- 4. Rotation order + explicit remove control --
@@ -143,9 +125,9 @@ func _initialize() -> void:
 	for skill in build_state.unlocked_skills():
 		available_skills_panel._on_skill_pressed(skill)
 	await process_frame
-	_require(build_state.rotation.size() == 4, "Expected 4 unlocked skills in rotation (Hold, Stab, Heavy Slash, Quick Cut).")
-	_require(build_state.rotation.map(func(skill: Skill): return skill.display_name) == ["Hold", "Stab", "Heavy Slash", "Quick Cut"], "Expected macro order to follow the Hold-first UI order.")
-	_require(skill_build_panel._slot_count_label.text == "Slots: 4/10", "Expected Skill Build count to update after adding skills, got: %s" % skill_build_panel._slot_count_label.text)
+	_require(build_state.rotation.size() == build_state.unlocked_skills().size(), "Every current unlocked skill enters rotation.")
+	_require(build_state.rotation.map(func(skill: Skill): return skill.display_name) == build_state.unlocked_skills().map(func(skill: Skill): return skill.display_name), "Expected macro order to follow the Hold-first UI order.")
+	_require(skill_build_panel._slot_count_label.text == "Slots: %d/10" % build_state.rotation.size(), "Expected Skill Build count to update after adding skills, got: %s" % skill_build_panel._slot_count_label.text)
 	_require(skill_build_panel._lock_button.text == "", "Expected lock toggle button to be icon-only, got: %s" % skill_build_panel._lock_button.text)
 	_require(skill_build_panel._lock_button.custom_minimum_size == skill_build_panel.LOCK_BUTTON_SIZE, "Expected lock toggle to keep a large fixed button size.")
 	_require(skill_build_panel._lock_button.icon == null, "Expected Lock Build button to use the custom child icon, not Button.icon.")
@@ -165,15 +147,15 @@ func _initialize() -> void:
 	await process_frame
 	_require(not build_state.build_locked, "Expected the lock button to unlock normally after combat ends.")
 	var first_slot: Button = skill_build_panel._slots_box.get_child(0)
-	_require(first_slot.custom_minimum_size == skill_build_panel.SLOT_SIZE, "Expected macro slots to use the larger fixed M3 slot size.")
+	_require(first_slot.custom_minimum_size == skill_build_panel.SLOT_SIZE, "Expected macro slots to use the approved shared macro slot size.")
 	print("first slot tooltip (expect position 1 of 4): %s" % first_slot.tooltip_text)
 	_require(first_slot.tooltip_text.contains("Hold"), "Expected the first macro slot to be Hold after the Hold-first Rogue order, got: %s" % first_slot.tooltip_text)
-	_require(first_slot.tooltip_text.contains("cast position 1 of 4"), "Expected the slot tooltip to state its cast order, got: %s" % first_slot.tooltip_text)
+	_require(not first_slot._get_tooltip(Vector2.ZERO).contains("Slot 1"), "Expected the minimal skill tooltip to omit slot instruction clutter, got: %s" % first_slot.tooltip_text)
 	var has_remove_badge := false
 	for child in first_slot.get_children():
 		if child is Label and child.text == "x":
 			has_remove_badge = true
-	_require(has_remove_badge, "Expected an explicit 'x' remove badge on an unlocked rotation slot.")
+	_require(not has_remove_badge, "Minimal macro slots omit an x badge; selection and Remove handle removal.")
 	skill_build_panel.highlight_rotation_index(1)
 	var highlighted_slot: Button = skill_build_panel._slots_box.get_child(1)
 	var highlighted_style: StyleBoxFlat = highlighted_slot.get_theme_stylebox("normal")
@@ -265,16 +247,12 @@ func _initialize() -> void:
 
 	var rotation_before: int = build_state.rotation.size()
 	skill_build_panel._on_slot_pressed(0)
+	_require(build_state.rotation.size() == rotation_before, "Selecting preserves rotation")
+	skill_build_panel._remove_selected()
 	_require(build_state.rotation.size() == rotation_before - 1, "Expected removing a rotation slot to shrink the rotation.")
 
 	# -- 5. Stat delta from base: Piercing Blades now improves the universal
 	# Shred value instead of physical damage. --
-	var piercing_blades: Talent = bladedancer.talents[1]
-	_require(piercing_blades.display_name == "Piercing Blades", "Expected bladedancer.talents[1] to be Piercing Blades.")
-	build_state.add_talent_points(1)
-	await process_frame
-	_require(build_state.select_talent(piercing_blades), "Expected Piercing Blades to be selectable.")
-	await process_frame
 	var stats_text: String = character_stats_panel._stats_label.text
 	print("")
 	print("-- Character stats panel raw text (expect requested compact stat list) --")
@@ -292,6 +270,11 @@ func _initialize() -> void:
 	_require(character_stats_panel._stat_delta_text(0.0, "%") == "", "Expected a ~zero delta to produce no note.")
 
 	# -- 6. Equipped vs inventory gear clarity --
+	# This layout fixture needs exactly two inventory items and one free slot.
+	# Class selection now grants a starter dagger; exclude it from this fixture
+	# so swapping weapons does not add an unintended third inventory item.
+	build_state.equipped_weapon = null
+	build_state.inventory.clear()
 	var dagger: GearItem = load("res://data/gear/placeholder_dagger.tres")
 	var lucky_coin: GearItem = load("res://data/gear/lucky_coin.tres")
 	var test_inventory_weapon := GearItem.new()
@@ -352,17 +335,23 @@ func _initialize() -> void:
 	_require(inventory_compare_slot is GearCompareButton, "Expected filled inventory slots to use the same custom comparison tooltip button as shop/reward gear.")
 	var inventory_compare_tooltip: Control = inventory_compare_slot._make_custom_tooltip("")
 	_require(inventory_compare_tooltip is HBoxContainer, "Expected the inventory comparison tooltip to be a compact HBox.")
-	_require(inventory_compare_tooltip.get_child_count() == 2, "Expected inventory comparison tooltip to show item and Equipped boxes.")
-	var equipped_tooltip_box: Control = inventory_compare_tooltip.get_child(1)
-	var equipped_tooltip_body: String = _labels_text(equipped_tooltip_box)
-	_require(equipped_tooltip_body.contains(dagger.display_name), "Expected the inventory weapon tooltip to compare against the currently equipped dagger, got: %s" % equipped_tooltip_body)
+	_require(inventory_compare_tooltip.get_child_count() == 1, "D055 shows only hovered item box")
+	var hover_text := _labels_text(inventory_compare_tooltip)
+	_require(hover_text.contains(test_inventory_weapon.display_name), "Hover identifies carried item")
+	_require(not hover_text.contains("Equipped") and not hover_text.contains("On equip"), "D055 omits equipped comparison and projection")
+	if "--visual" in OS.get_cmdline_user_args():
+		combat_screen.add_child(inventory_compare_tooltip)
+		inventory_compare_tooltip.position = Vector2(930, 350)
+		await _capture(combat_screen, "inventory_hover_d055")
 	inventory_compare_tooltip.free()
 
 	var right_click_event := InputEventMouseButton.new()
 	right_click_event.button_index = MOUSE_BUTTON_RIGHT
 	right_click_event.pressed = true
-	gear_panel._on_inventory_slot_gui_input(right_click_event, lucky_coin)
+	inventory_slot.gui_input.emit(right_click_event)
 	await process_frame
+	gear_panel._inventory_action_menu.position = Vector2i(1370, 700)
+	await _capture(combat_screen, "inventory_actions")
 	_require(gear_panel._pending_inventory_action_item == lucky_coin, "Expected right-click to target the clicked inventory item.")
 	_require(gear_panel._inventory_action_menu.get_item_count() == 3, "Expected inventory action menu to contain Equip, Sell, and Destroy.")
 	_require(gear_panel._inventory_action_menu.get_item_text(0) == "Equip", "Expected first inventory action to be Equip.")
@@ -378,14 +367,13 @@ func _initialize() -> void:
 	_require(gold_header.get_child_count() == 2 and gold_header.get_child(1) == gear_panel._gold_badge, "Expected the Gear-panel gold stash badge to be right-aligned in the top header row.")
 	_require(gear_panel._gold_row.find_child("Icon", true, false) != null, "Expected the Gear-panel gold stash readout to include the gold icon.")
 	_require(gear_panel._gold_icon != null and gear_panel._gold_icon.is_inside_tree(), "Expected reward/sale gold motion to target the visible gold icon, not the stretched gold row.")
-	var equipment_doll := gear_panel._helm_slot.get_parent() as VBoxContainer
-	_require(equipment_doll != null and equipment_doll.alignment == BoxContainer.ALIGNMENT_END, "Expected the equipment doll to sit near the inventory instead of leaving a large blank gap below it.")
-	var equipment_middle_row := equipment_doll.get_child(1) as HBoxContainer
-	_require(equipment_middle_row != null and equipment_middle_row.get_child_count() == 3, "Expected the equipment doll middle row to contain weapon, armor, and right stack.")
-	var equipment_right_stack := equipment_middle_row.get_child(2) as VBoxContainer
-	_require(equipment_right_stack != null and equipment_right_stack.get_child_count() == 2, "Expected the equipment doll right stack to contain exactly Charm and Trinket.")
-	_require(equipment_right_stack.get_child(0) == gear_panel._charm_slot, "Expected Charm/Necklace to be the upper right equipment slot.")
-	_require(equipment_right_stack.get_child(1) == gear_panel._trinket_slot, "Expected Trinket/Ring to be the lower right equipment slot.")
+	var equipment_doll := gear_panel._helm_slot.get_parent().get_parent() as HBoxContainer
+	_require(equipment_doll != null and equipment_doll.get_child_count() == 3, "Seven-slot doll has three columns")
+	_require(gear_panel._hands_slot.get_parent().get_child(0) == gear_panel._weapon_slot, "Gloves below weapon")
+	_require(gear_panel._legs_slot.get_parent().get_child(1) == gear_panel._armor_slot, "Pants below chest")
+	_require(gear_panel._charm_slot.get_parent().get_child(1) == gear_panel._trinket_slot, "Charm above trinket")
+	_require(gear_panel._equipped_panel_for_slot(GearItem.SlotType.HANDS) == gear_panel._hands_slot, "Gloves route")
+	_require(gear_panel._equipped_panel_for_slot(GearItem.SlotType.LEGS) == gear_panel._legs_slot, "Pants route")
 	_require(gear_panel._equipped_panel_for_slot(GearItem.SlotType.HELM) == gear_panel._helm_slot, "Expected Helm slot routing to target the live Helm panel.")
 	_require(gear_panel._equipped_panel_for_slot(GearItem.SlotType.ARMOR) == gear_panel._armor_slot, "Expected Armor slot routing to target the live Armor panel.")
 	_require(gear_panel._equipped_panel_for_slot(GearItem.SlotType.CHARM) == gear_panel._charm_slot, "Expected Charm slot routing to target the live Charm panel.")
@@ -395,7 +383,7 @@ func _initialize() -> void:
 	gear_panel._show_inventory_action_menu(null)
 	_require(gear_panel._pending_inventory_action_item == null, "Expected empty inventory slots to leave the action-menu target unset.")
 
-	gear_panel._on_inventory_slot_pressed(lucky_coin)
+	gear_panel._inventory_button_for_item(lucky_coin).pressed.emit()
 	await process_frame
 	_require(build_state.equipped_trinket == lucky_coin, "Expected left-clicking an inventory item to equip it outside the shop.")
 	_require(not build_state.has_inventory_item(lucky_coin), "Expected equipped Lucky Coin to leave inventory after left-click equip.")
@@ -403,9 +391,9 @@ func _initialize() -> void:
 	var bandit_blade: GearItem = load("res://data/gear/bandit_blade.tres")
 	build_state.equip(bandit_blade)
 	await process_frame
-	_require(gear_panel._weapon_slot.tooltip_text.contains("+1 physical damage per 10 gold in stash"), "Expected equipped Bandit Blade tooltip to include Legendary flavor text, got: %s" % gear_panel._weapon_slot.tooltip_text)
+	_require(gear_panel._weapon_slot.tooltip_text.contains("+1 Base Physical Damage (max +100) per 10g in stash"), "Expected equipped Bandit Blade tooltip to include Legendary flavor text, got: %s" % gear_panel._weapon_slot.tooltip_text)
 
-	gear_panel._on_equipped_slot_gui_input(right_click_event, GearItem.SlotType.WEAPON)
+	gear_panel._weapon_slot.gui_input.emit(right_click_event)
 	await process_frame
 	_require(gear_panel._pending_equipped_action_slot == GearItem.SlotType.WEAPON, "Expected right-click to target the equipped weapon slot.")
 	_require(gear_panel._equipped_action_menu.get_item_count() == 3, "Expected equipped action menu to contain Unequip, Sell, and Destroy.")
@@ -423,67 +411,56 @@ func _initialize() -> void:
 	var click_event := InputEventMouseButton.new()
 	click_event.button_index = MOUSE_BUTTON_LEFT
 	click_event.pressed = true
-	gear_panel._on_equipped_slot_gui_input(click_event, GearItem.SlotType.WEAPON)
+	gear_panel._weapon_slot.gui_input.emit(click_event)
 	await process_frame
 	print("weapon after unequip click (expect null): %s" % build_state.equipped_weapon)
 	_require(build_state.equipped_weapon == null, "Expected clicking the equipped weapon slot to unequip it.")
+	_require(build_state.has_inventory_item(bandit_blade), "Clicked equipped Bandit Blade returns to inventory")
 	_require(build_state.has_inventory_item(dagger), "Expected the unequipped dagger to land back in the inventory.")
 	_require(gear_panel._inventory_button_for_item(dagger) != null, "Expected the freshly unequipped dagger to have a stable destination inventory button for movement feedback.")
 
-	# -- 7. Talent dependency visual language: selected talents that support
-	# selected dependents keep the normal selected look, but pulse the
-	# dependent chain on a blocked deselect click. --
-	build_state.reset()
-	build_state.set_class(rogue)
-	build_state.select_tree(bladedancer)
-	build_state.add_talent_points(4)
-	_require(build_state.select_talent(quick_hands), "Expected Quick Hands to be selectable.")
-	_require(build_state.select_talent(practiced_rhythm), "Expected Practiced Rhythm to be selectable.")
-	_require(build_state.select_talent(opportunity_strikes), "Expected Opportunity Strikes to be selectable.")
+	# 7. Tier dependency replaces retired legacy OR graph/pulse contract.
+	build_state.set_locked(false)
+	build_state.add_talent_points(5)
+	for rank_index in range(4):
+		view.actions["buy:" + foundational.id].pressed.emit()
+		await process_frame
+		await process_frame
+	_require(build_state.ranked_build.rank_of(foundational.id) == 5, "Five legal foundational ranks")
+	view.actions["buy:" + gated.id].pressed.emit()
+	await process_frame
+	await process_frame
+	_require(build_state.ranked_build.rank_of(gated.id) == 1, "Tier gate opens after five supporting ranks")
+	var refund := InputEventMouseButton.new()
+	refund.button_index = MOUSE_BUTTON_RIGHT
+	refund.pressed = true
+	view.actions["buy:" + foundational.id].gui_input.emit(refund)
+	_require(build_state.ranked_build.rank_of(foundational.id) == 5, "Dependency blocks supporting-rank refund")
+	_require(view.reason(foundational, "refund") != "", "Blocked refund has explanatory hover reason")
+	view.actions["buy:" + gated.id].gui_input.emit(refund)
+	await process_frame
+	await process_frame
+	_require(build_state.ranked_build.rank_of(gated.id) == 0, "Right-click refunds dependent first")
+	view.actions["buy:" + foundational.id].gui_input.emit(refund)
+	await process_frame
+	await process_frame
+	_require(build_state.ranked_build.rank_of(foundational.id) == 4, "Supporting rank refunds after dependency removed")
+	await _capture(combat_screen, "dashboard")
+	active_talents_panel._open_button.pressed.emit()
+	await _capture(combat_screen, "ranked_talents")
+	combat_screen.queue_free()
 	await process_frame
 
-	node_buttons = _talent_node_buttons(talent_panel)
-	var quick_hands_button: Button = node_buttons["talent.quick_hands"]
-	var practiced_rhythm_button: Button = node_buttons["talent.practiced_rhythm"]
-	var opportunity_button: Button = node_buttons["talent.opportunity_strikes"]
-	_require(quick_hands_button.get_meta("dependency_protected") == true, "Expected Quick Hands to carry the protected-selected marker while Practiced Rhythm depends on it.")
-	_require(practiced_rhythm_button.get_meta("dependency_protected") == true, "Expected Practiced Rhythm to carry the protected-selected marker while Opportunity Strikes depends on it.")
-	_require(opportunity_button.get_meta("dependency_protected") == false, "Expected the top selected talent without dependents to stay normally selected.")
-	var protected_style: StyleBoxFlat = quick_hands_button.get_theme_stylebox("normal")
-	_require(protected_style.border_color == UIColors.TEXT_POISON, "Expected protected selected talents to keep the normal selected border color until clicked.")
-
-	talent_panel._on_node_pressed(quick_hands)
-	_require(build_state.selected_talents.has(quick_hands), "Expected blocked deselect to leave Quick Hands selected.")
-	_require(talent_panel._last_dependency_blocked_talent == quick_hands, "Expected the clicked protected talent to be recorded as the blocked pulse source.")
-	_require(talent_panel._last_dependency_pulse_talents.has(practiced_rhythm), "Expected blocked deselect to pulse the direct dependent.")
-	_require(talent_panel._last_dependency_pulse_talents.has(opportunity_strikes), "Expected blocked deselect to pulse the selected chain above the direct dependent.")
-	_require(talent_panel._last_dependency_pulse_talents.size() == 2, "Expected only the selected dependent chain to pulse.")
-
-	build_state.add_talent_points(1)
-	_require(build_state.select_talent(piercing_blades), "Expected Piercing Blades to provide an alternate OR prerequisite.")
-	await process_frame
-	node_buttons = _talent_node_buttons(talent_panel)
-	quick_hands_button = node_buttons["talent.quick_hands"]
-	_require(quick_hands_button.get_meta("dependency_protected") == false, "Expected Quick Hands to stop reading as protected once Piercing Blades also satisfies the OR prerequisite.")
-	talent_panel._on_node_pressed(quick_hands)
-	_require(not build_state.selected_talents.has(quick_hands), "Expected Quick Hands to be removable once the selected chain has another support.")
-
-	build_state.reset()
-	build_state.set_class(rogue)
-	build_state.select_tree(rogue.trees[0])
-	await process_frame
-	var assassin_summary := _active_talents_text(active_talents_panel)
-	_require(assassin_summary.contains("Assassin"), "Expected active talent summary to show Assassin.")
-	_require(assassin_summary.contains("Intrinsic: x20% Poison Damage"), "Expected active talent summary to show Assassin's intrinsic.")
-	_require(assassin_summary.contains("Assassin Talents"), "Expected active talent summary to show the Assassin talents section.")
-	_require(assassin_summary.contains("No Assassin talents selected."), "Expected active talent summary to show Assassin's empty talent state.")
 
 	print("")
-	print("P2:R7:T4 build panels test passed.")
+	print("M11 T4 build panels PASS: %d checks" % checks)
 	quit()
 
 
+var checks := 0
+
 func _require(condition: bool, message: String) -> void:
+	checks += 1
 	if not condition:
 		push_error(message)
 		assert(condition, message)
@@ -518,4 +495,12 @@ func _talent_node_buttons(talent_panel) -> Dictionary:
 		if node.has_meta("talent_id"):
 			buttons[node.get_meta("talent_id")] = node
 	return buttons
+
+
+func _capture(_screen: Node, label: String) -> void:
+	if not "--visual" in OS.get_cmdline_user_args(): return
+	await process_frame
+	await process_frame
+	await RenderingServer.frame_post_draw
+	_require(root.get_texture().get_image().save_png("res://reports/m11_t4_panels_capture/" + label + ".png") == OK, "Actual1600x900 capture")
 

@@ -1,0 +1,7 @@
+# Sharpened Edge
+
+Created using built-in image_gen on 2026-10-01 with the Rogue sheet as a style reference. Subject: a dagger with light glinting off the blade. Master: `../../variant-sources/sharpened_edge.png`. Library icon: `sharpened_edge.png`, sampled to 32×32 using nearest-neighbor pixel centers with alpha preserved.
+
+## Prompt
+
+Use case: stylized-concept. Create ONE fantasy RPG talent icon for Sharpened Edge: a short steel dagger with light glinting off its razor-sharp blade. Supplied Rogue icon sheet is a STYLE reference only. Single dagger tilted diagonally from lower-left brown leather hilt to upper-right point, broad enough blade to read clearly at 32x32. Crisp silver and steel-blue blade, dark contour and muted blue outer edging, simple brown grip and small metal crossguard. One prominent small four-point white glint with pale warm highlights anchored directly on the upper cutting edge; a bright thin edge highlight reinforces freshly sharpened metal. Match reference pack's chunky native 32x32 hand-placed pixel art and limited palette. Genuine transparent background, 2 logical pixels margin, single centered icon. No background tile, text, extra daggers, hands, blood, poison, magical aura or decorative particles. Keep the glint compact so the dagger remains the subject. Uniform logical 32x32 grid enlarged as needed; no smooth gradients or antialiasing. Designed to remain legible when reduced to 32x32.

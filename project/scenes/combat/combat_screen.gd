@@ -44,20 +44,20 @@ const FLOW_TEXT := preload("res://scripts/ui/adventure_flow_text.gd")
 const COMBAT_STATUS_ICON_SIZE := Vector2(22, 22)
 const COMBAT_STATUS_FONT_SIZE := 24
 const HUD_HEALTH_ICON := preload("res://assets/combat_ui_icons/enemy_health.png")
-const HUD_ARMOR_ICON := preload("res://assets/combat_ui_icons/enemy_armor.png")
-const HUD_RESISTANCE_ICON := preload("res://assets/combat_ui_icons/resistance.png")
-const HUD_POISON_ICON := preload("res://assets/combat_ui_icons/poison_stack.png")
-const HUD_SHRED_ICON := preload("res://assets/combat_ui_icons/shred.png")
-const HUD_DECAY_ICON := preload("res://assets/combat_ui_icons/decay.png")
-const MECHANIC_DODGE_ICON := preload("res://assets/ui/icons/mechanics/dodge.png")
-const MECHANIC_CRIT_NEGATION_ICON := preload("res://assets/ui/icons/mechanics/crit_negation.png")
-const MECHANIC_BLOCK_ICON := preload("res://assets/ui/icons/mechanics/block.png")
-const MECHANIC_ABSORB_ICON := preload("res://assets/ui/icons/mechanics/absorb.png")
-const MECHANIC_CLEANSE_ICON := preload("res://assets/ui/icons/mechanics/cleanse.png")
-const MECHANIC_SUPPRESS_ICON := preload("res://assets/ui/icons/mechanics/suppress.png")
-const MECHANIC_SLOW_ICON := preload("res://assets/ui/icons/mechanics/slow.png")
-const MECHANIC_STUN_ICON := preload("res://assets/ui/icons/mechanics/stun.png")
-const MECHANIC_INTERRUPT_ICON := preload("res://assets/ui/icons/mechanics/interrupt.png")
+static var HUD_ARMOR_ICON: Texture2D = GameIcons.icon_for("defense.armor")
+static var HUD_RESISTANCE_ICON: Texture2D = GameIcons.icon_for("defense.resistance")
+static var HUD_POISON_ICON: Texture2D = GameIcons.icon_for("status.poison")
+static var HUD_SHRED_ICON: Texture2D = GameIcons.icon_for("status.shred")
+static var HUD_DECAY_ICON: Texture2D = GameIcons.icon_for("status.decay")
+static var MECHANIC_DODGE_ICON: Texture2D = GameIcons.icon_for("defense.dodge")
+static var MECHANIC_CRIT_NEGATION_ICON: Texture2D = GameIcons.icon_for("defense.crit_negation")
+static var MECHANIC_BLOCK_ICON: Texture2D = GameIcons.icon_for("defense.block")
+static var MECHANIC_ABSORB_ICON: Texture2D = GameIcons.icon_for("defense.absorb")
+static var MECHANIC_CLEANSE_ICON: Texture2D = GameIcons.icon_for("defense.cleanse")
+static var MECHANIC_SUPPRESS_ICON: Texture2D = GameIcons.icon_for("defense.suppress")
+static var MECHANIC_SLOW_ICON: Texture2D = GameIcons.icon_for("defense.slow")
+static var MECHANIC_STUN_ICON: Texture2D = GameIcons.icon_for("defense.stun")
+static var MECHANIC_INTERRUPT_ICON: Texture2D = GameIcons.icon_for("defense.interrupt")
 const UI_MAP_ICON := preload("res://assets/ui/icons/map.png")
 const UI_MONSTER_MANUAL_ICON := preload("res://assets/ui/icons/monster_manual.png")
 const UI_GOLD_ICON := preload("res://assets/ui/icons/gold.png")
@@ -194,10 +194,12 @@ var _monster_manual_button: Button
 var _retry_button: Button
 var _restart_adventure_button: Button
 var _combat_content: VBoxContainer
+var _category_preview
 var _log_overlay
 var _map_overlay
 var _monster_manual_overlay
 var _talent_overlay
+var _contract_offer_after_talents := false
 var _story_overlay
 var _contract_overlay
 var _victory_overlay: Control
@@ -259,6 +261,7 @@ var _contract_route_player_entered := false
 var _playback_presenter: CombatPlaybackPresenter
 var _playback_controls: PlaybackControls
 var hud_status_chip_flash_count := 0
+var _effect_icons: CombatEffectIcons
 var _skip_playback_on_fight := false
 var _skill_build_panel
 var _gear_panel
@@ -299,6 +302,7 @@ var _last_inventory_blocked_source: Control = null
 var _reward_choice_reveal_active := false
 var _reward_choice_reveal_generation := 0
 var _reward_choice_reveal_buttons: Array[Button] = []
+var _reward_upgrade_effects: Array[Control] = []
 
 
 func _ready() -> void:
@@ -368,6 +372,8 @@ func _ready() -> void:
 	top_bar.add_child(_monster_manual_button)
 	var save_quit_button := Button.new()
 	_configure_top_icon_button(save_quit_button, "SaveQuitButton", _icon_texture_from_path(UI_SAVE_QUIT_ICON_PATH), "Save & Quit")
+	if BuildState.is_test_mode:
+		save_quit_button.tooltip_text = "Exit Test Mode (session progress is discarded)"
 	save_quit_button.pressed.connect(_on_save_and_quit_pressed)
 	top_bar.add_child(save_quit_button)
 	var menu_button := Button.new()
@@ -396,10 +402,11 @@ func _ready() -> void:
 	# Character Stats shrinks to its content; Subclass absorbs the leftover
 	# column height (room for a second tree row once that's added).
 	var character_stats_panel = CHARACTER_STATS_SCENE.instantiate()
+	character_stats_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	left_column.add_child(character_stats_panel)
 
 	_active_talents_panel = ACTIVE_TALENTS_SCENE.instantiate()
-	_active_talents_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_active_talents_panel.size_flags_vertical = Control.SIZE_FILL
 	_active_talents_panel.open_talents_pressed.connect(_show_talent_overlay)
 	left_column.add_child(_active_talents_panel)
 
@@ -416,6 +423,8 @@ func _ready() -> void:
 	center_column.add_child(_skill_build_panel)
 
 	_playback_presenter = CombatPlaybackPresenter.new()
+	_playback_presenter.clock_frost = _fight_timer_badge.get_node("ArcticClockAura")
+	_playback_presenter.effect_icons = _effect_icons
 	_playback_presenter.set_combat_stage(_combat_stage)
 	_playback_presenter.set_skill_build_panel(_skill_build_panel)
 	_playback_presenter.set_popup_layer(_popup_layer)
@@ -430,7 +439,7 @@ func _ready() -> void:
 	right_column.add_theme_constant_override("separation", PANEL_SEPARATION)
 	columns.add_child(right_column)
 
-	# Enemy Stats shrinks to its content; Gear absorbs the leftover column
+	# Enemy Stats keeps a fixed viewport and scrolls overflow; Gear absorbs the leftover column
 	# height.
 	_enemy_panel = ENEMY_SCENE.instantiate()
 	_enemy_panel.fight_pressed.connect(_on_fight_pressed)
@@ -463,9 +472,18 @@ func _ready() -> void:
 	_shop_overlay.reroll_pressed.connect(_on_shop_reroll_pressed)
 	_shop_overlay.continue_pressed.connect(_on_shop_continue_pressed)
 	add_child(_shop_overlay)
+	_shop_overlay._focus_dimmer.clear_control = _gear_panel
+	preload("res://scripts/ui/play_area_focus.gd").fit_below(_shop_overlay, columns)
 	_reward_choice_overlay = REWARD_CHOICE_OVERLAY_SCENE.instantiate()
 	_reward_choice_overlay.skip_pressed.connect(_on_reward_choice_skip_pressed)
 	add_child(_reward_choice_overlay)
+	_reward_choice_overlay.visibility_changed.connect(func():
+		if not _reward_choice_overlay.visible:
+			_cancel_reward_upgrade_effects()
+			_reward_choice_reveal_generation += 1
+			_reward_choice_reveal_active = false
+			AudioManager.cancel_magic_find_sfx()
+	)
 	_map_overlay = MAP_OVERLAY_SCENE.instantiate()
 	_map_overlay.tavern_proceed_pressed.connect(_on_tavern_proceed_pressed)
 	_map_overlay.contract_offer_pressed.connect(_on_contract_map_pressed)
@@ -478,8 +496,10 @@ func _ready() -> void:
 	_monster_manual_overlay.z_index = TOP_MODAL_OVERLAY_Z_INDEX
 	_talent_overlay = TALENT_OVERLAY_SCENE.instantiate()
 	_talent_overlay.secondary_tree_chosen.connect(_on_talent_secondary_tree_chosen)
+	_talent_overlay.visibility_changed.connect(_on_talent_overlay_visibility_changed)
 	add_child(_talent_overlay)
 	_talent_overlay.z_index = TOP_MODAL_OVERLAY_Z_INDEX
+	preload("res://scripts/ui/play_area_focus.gd").fit_below(_talent_overlay, columns)
 	_story_overlay = STORY_OVERLAY_SCENE.instantiate()
 	_story_overlay.proceed_pressed.connect(_on_intro_story_proceed_pressed)
 	add_child(_story_overlay)
@@ -493,7 +513,11 @@ func _ready() -> void:
 	_log_overlay = LOG_OVERLAY_SCENE.instantiate()
 	add_child(_log_overlay)
 	_log_overlay.z_index = TOP_MODAL_OVERLAY_Z_INDEX
+	preload("res://scripts/ui/play_area_focus.gd").fit_below(_log_overlay, columns)
 	_log_overlay.set_run_history(BuildState.run_encounter_history)
+	_category_preview = preload("res://scripts/ui/skill_category_preview.gd").new()
+	_category_preview.screen = self
+	add_child(_category_preview)
 	BuildState.build_changed.connect(_on_build_state_changed)
 	BuildState.run_state_changed.connect(_on_run_state_changed)
 	BuildState.lock_changed.connect(_update_header_status)
@@ -684,6 +708,8 @@ func _build_fight_timer_badge() -> PanelContainer:
 	badge_style.content_margin_bottom = 6
 	badge.add_theme_stylebox_override("panel", badge_style)
 	_fight_timer_badge = badge
+	var frost := preload("res://scripts/ui/combat_clock_frost.gd").new()
+	badge.add_child(frost)
 
 	var row := HBoxContainer.new()
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -929,6 +955,14 @@ func _build_enemy_hud() -> VBoxContainer:
 	_hud_status_row.add_theme_constant_override("h_separation", 8)
 	_hud_status_row.add_theme_constant_override("v_separation", 2)
 	_enemy_hud.add_child(_hud_status_row)
+	_effect_icons = CombatEffectIcons.new()
+	_effect_icons.name = "TemporaryEffectIcons"
+	var effects_layer := Control.new()
+	effects_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	effects_layer.z_index = RESULT_OVERLAY_Z_INDEX - 1
+	_combat_play_area.add_child(effects_layer)
+	effects_layer.add_child(_effect_icons)
+	_effect_icons.position = Vector2(8, 104)
 	return _enemy_hud
 
 
@@ -965,6 +999,7 @@ func _refresh_enemy_hud() -> void:
 	_set_enemy_hud_display(enemy.display_name, float(enemy.hp), enemy.hp, enemy.armor, enemy.poison_resistance)
 	_refresh_enemy_effect_chips(enemy)
 	_clear_hud_status_chips()
+	COMBAT_STATUS_ICONS.add_timed_defense_chips(null, _add_hud_status_chip)
 	_add_hud_status_chip("x0", UIColors.TEXT_POISON, HUD_POISON_ICON)
 	_add_hud_status_chip("x0", UIColors.TEXT_WARNING, HUD_SHRED_ICON, _shred_status_tooltip())
 	_add_hud_status_chip("x0", UIColors.TEXT_MAGIC, HUD_DECAY_ICON)
@@ -1004,6 +1039,7 @@ func _render_enemy_hud_post_fight() -> void:
 	_set_enemy_hud_display(monster.display_name, remaining, monster.hp, final_armor, final_resist)
 	_refresh_enemy_effect_chips(monster)
 	_clear_hud_status_chips()
+	COMBAT_STATUS_ICONS.add_timed_defense_chips(null, _add_hud_status_chip)
 	_add_hud_status_chip("x%d" % peak_stacks, UIColors.TEXT_POISON, HUD_POISON_ICON)
 	_add_hud_status_chip("x%d" % shred_stacks, UIColors.TEXT_WARNING, HUD_SHRED_ICON, _shred_status_tooltip())
 	_add_hud_status_chip("x%d" % decay_stacks, UIColors.TEXT_MAGIC, HUD_DECAY_ICON)
@@ -1103,7 +1139,7 @@ func _refresh_fight_timer_badge() -> void:
 func _update_fight_timer_countdown(elapsed_ms: float, window_ms: int) -> void:
 	if _fight_timer_badge == null or _fight_timer_label == null:
 		return
-	var remaining_ms := maxf(0.0, float(window_ms) - elapsed_ms)
+	var remaining_ms := _playback_presenter.countdown_remaining_ms() if _playback_presenter != null else maxf(0.0, float(window_ms) - elapsed_ms)
 	_fight_timer_label.text = _format_fight_timer_ms(roundi(remaining_ms), true)
 	_set_fight_timer_visible(true)
 
@@ -1126,11 +1162,11 @@ func _clear_hud_status_chips() -> void:
 		child.queue_free()
 
 
-func _add_hud_status_chip(text: String, color: Color, icon: Texture2D = null, tooltip: String = "") -> void:
+func _add_hud_status_chip(text: String, color: Color, icon: Texture2D = null, tooltip: String = "", countdown: float = -1.0) -> void:
 	if tooltip == "":
 		tooltip = _status_chip_tooltip(icon)
 	if icon != null:
-		var icon_chip: HBoxContainer = COMBAT_STATUS_ICONS.add_icon_label(_hud_status_row, icon, text, color, "StatusChip")
+		var icon_chip: HBoxContainer = COMBAT_STATUS_ICONS.add_status_icon_label(_hud_status_row, icon, text, color, countdown)
 		if tooltip != "":
 			icon_chip.tooltip_text = tooltip
 		return
@@ -1176,13 +1212,7 @@ func _current_shred_value() -> int:
 func _current_player_stats() -> PlayerStats:
 	if BuildState.selected_class == null:
 		return PlayerStats.new()
-	return BuildResolver.resolve_stats(
-		BuildState.selected_class,
-		BuildState.selected_trees,
-		BuildState.selected_talents,
-		BuildState.equipped_gear(),
-		BuildState.gold
-	)
+	return BuildState.current_player_stats()
 
 
 func _interrupt_status_tooltip(monster: Monster) -> String:
@@ -1219,7 +1249,7 @@ func _flash_hud_status_chips() -> void:
 func _flash_status_chip_row(row: Container) -> void:
 	if row == null:
 		return
-	for child in row.get_children():
+	for child in row.find_children("*", "HBoxContainer", true, false):
 		var icon := child.get_node_or_null("Icon") as TextureRect
 		if icon == null or not [HUD_POISON_ICON, HUD_SHRED_ICON, HUD_DECAY_ICON].has(icon.texture):
 			continue
@@ -1326,7 +1356,7 @@ func _should_stage_generated_contract_enemy_only() -> bool:
 func _hud_post_fight_hp(result: CombatResolver.CombatResult, monster: Monster) -> float:
 	if monster == null or result == null:
 		return 0.0
-	return clampf(float(monster.hp) - result.total_damage, 0.0, float(monster.hp))
+	return clampf(float(monster.hp) - result.total_health_loss(), 0.0, float(monster.hp))
 
 
 ## Active armor reduction at fight end, replaying cleanse resets from the
@@ -1595,6 +1625,10 @@ func _position_victory_center_over_combat_window() -> void:
 	_victory_center.set_anchors_preset(Control.PRESET_TOP_LEFT)
 	_victory_center.position = target_rect.position - overlay_origin
 	_victory_center.size = target_rect.size
+	# Keep result actions above the independently raised Fight/Log row.
+	var content_center := _victory_center.get_node("VictoryContentCenter") as Control
+	var button_top := _fight_button_row.get_global_rect().position.y
+	content_center.offset_bottom = -maxf(0.0, target_rect.end.y - button_top + PANEL_SEPARATION)
 	if _victory_combat_dim != null:
 		_victory_combat_dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	if _victory_overlay != null:
@@ -1638,8 +1672,15 @@ func _play_victory_reveal_animation() -> void:
 func _build_recap_lines(result: CombatResolver.CombatResult, monster: Monster) -> PackedStringArray:
 	var lines: PackedStringArray = []
 	var summary := CombatRecap.summarize(result, monster)
-	lines.append("Total Damage: %.1f (needed %d)" % [summary["total_damage"], summary["damage_required"]])
-	lines.append("DPS: %.1f (needed %.1f)" % [summary["actual_dps"], summary["required_dps"]])
+	lines.append("Elapsed combat: %ss" % LegendaryCatalog.number_text(result.duration_ms / 1000.0))
+	if result.countdown_rate != 1.0:
+		lines.append("Encounter countdown: %ss at %.0f%% speed" % [LegendaryCatalog.number_text(result.nominal_duration_ms / 1000.0), result.countdown_rate * 100.0])
+	if result.total_health_removed > 0:
+		lines.append("Health lost: %.1f (needed %d)" % [result.total_health_loss(), monster.hp])
+		lines.append("Damage: %.1f; health removed: %.1f" % [result.total_damage, result.total_health_removed])
+	else:
+		lines.append("Total Damage: %.1f (needed %d)" % [summary["total_damage"], summary["damage_required"]])
+	lines.append("DPS: %.1f (damage only)" % summary["actual_dps"] if result.total_health_removed > 0 else "DPS: %.1f (needed %.1f)" % [summary["actual_dps"], summary["required_dps"]])
 	lines.append(_biggest_hit_text(summary))
 	lines.append(_damage_split_text(summary))
 	lines.append(_crit_count_text(summary))
@@ -1658,7 +1699,11 @@ func _build_recap_lines(result: CombatResolver.CombatResult, monster: Monster) -
 func _build_victory_recap_lines(result: CombatResolver.CombatResult, monster: Monster) -> PackedStringArray:
 	var lines: PackedStringArray = []
 	var summary := CombatRecap.summarize(result, monster)
-	lines.append("Total Damage: %.1f (needed %d)" % [summary["total_damage"], summary["damage_required"]])
+	if result.total_health_removed > 0:
+		lines.append("Health lost: %.1f (needed %d)" % [result.total_health_loss(), monster.hp])
+		lines.append("Damage: %.1f; health removed: %.1f" % [result.total_damage, result.total_health_removed])
+	else:
+		lines.append("Total Damage: %.1f (needed %d)" % [summary["total_damage"], summary["damage_required"]])
 	lines.append(_biggest_hit_text(summary))
 	lines.append(_damage_split_text(summary))
 	return lines
@@ -1882,6 +1927,14 @@ func _build_modal_shell(dismissable: bool) -> Dictionary:
 	return {"overlay": overlay, "panel": panel}
 
 
+func _on_talent_overlay_visibility_changed() -> void:
+	if _talent_overlay.visible or not _contract_offer_after_talents:
+		return
+	_contract_offer_after_talents = false
+	# Defer until the dismissal input and talent focus restoration finish.
+	_show_contract_offer_overlay.call_deferred()
+
+
 func _show_talent_overlay() -> void:
 	if _talent_overlay == null:
 		return
@@ -1901,6 +1954,9 @@ func _show_talent_overlay() -> void:
 ## none of these steps persist their own "which screen was showing" state,
 ## so this reconstructs it from the BuildState fields that do persist.
 func _show_initial_map_if_needed() -> void:
+	if not BuildState.is_test_mode and BuildState.needs_secondary_subclass_choice():
+		_secondary_subclass_overlay.show_overlay()
+		return
 	if BuildState.run_phase == BuildState.RunPhase.CONTRACT_OFFER:
 		_show_contract_offer_overlay()
 		return
@@ -1929,6 +1985,10 @@ func _is_awaiting_contract_choice() -> bool:
 
 
 func _show_contract_offer_overlay() -> void:
+	if not BuildState.is_test_mode and BuildState.needs_secondary_subclass_choice():
+		_contract_overlay.visible = false
+		_secondary_subclass_overlay.show_overlay()
+		return
 	if _should_show_contract_intro_before_generated_offers():
 		_contract_overlay.show_greeting()
 	elif BuildState.pending_contract_offers.size() > 1:
@@ -2078,6 +2138,8 @@ func _show_shop_overlay() -> void:
 
 
 func _show_reward_choice_overlay() -> void:
+	_cancel_reward_upgrade_effects()
+	AudioManager.cancel_magic_find_sfx()
 	if _map_overlay != null:
 		_map_overlay.visible = false
 	_status_label.visible = false
@@ -2127,7 +2189,7 @@ func _populate_reward_choice_button(item_box: Button, gear: GearItem) -> void:
 	for child in item_box.get_children():
 		child.queue_free()
 	item_box.tooltip_text = _reward_choice_text(gear)
-	item_box.tooltip_builder = func(): return CardStyle.build_gear_compare_tooltip(self, _reward_choice_text(gear), BuildState.equipped_item_for_slot(gear.slot), gear)
+	item_box.tooltip_builder = func(): return CardStyle.build_gear_tooltip(self, gear, _reward_choice_text(gear))
 	if not bool(item_box.get_meta("reward_choice_configured", false)):
 		item_box.pressed.connect(_on_reward_choice_pressed.bind(gear, item_box))
 		item_box.set_meta("reward_choice_configured", true)
@@ -2155,15 +2217,16 @@ func _play_reward_choice_reveal(generation: int) -> void:
 			if generation != _reward_choice_reveal_generation or not _reward_choice_reveal_active:
 				return
 			_apply_reward_choice_visual_tier(button, gear, int(steps[step_index]))
-			_show_reward_choice_upgrade_text(button, gear.reward_magic_find_upgraded)
-			_pulse_reward_choice_button(button)
-			await get_tree().create_timer(0.28).timeout
+			_play_reward_choice_upgrade(button, int(steps[step_index]))
+			await get_tree().create_timer(0.42).timeout
 		await get_tree().create_timer(0.12).timeout
 	if generation == _reward_choice_reveal_generation:
 		_complete_reward_choice_reveal()
 
 
 func _finish_reward_choice_reveal() -> void:
+	_cancel_reward_upgrade_effects()
+	AudioManager.cancel_magic_find_sfx()
 	_reward_choice_reveal_generation += 1
 	for i in BuildState.pending_reward_choices.size():
 		if i >= _reward_choice_reveal_buttons.size():
@@ -2224,48 +2287,24 @@ func _apply_reward_choice_visual_tier(button: Button, gear: GearItem, tier: int)
 		icon.texture = GearIcons.icon_for(display_gear)
 
 
-func _show_reward_choice_upgrade_text(button: Button, magic_find: bool) -> void:
-	var label := Label.new()
-	label.name = "MagicFindUpgradeText"
-	label.text = "Magic Find!" if magic_find else "Upgrade!"
-	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	label.add_theme_font_size_override("font_size", 15)
-	label.add_theme_color_override("font_color", UIColors.TEXT_GOLD if magic_find else UIColors.TEXT_MAGIC)
-	label.add_theme_color_override("font_outline_color", UIColors.TEXT_OUTLINE_STRONG)
-	label.add_theme_constant_override("outline_size", 3)
-	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	label.anchor_left = 0.0
-	label.anchor_right = 1.0
-	label.anchor_top = 0.0
-	label.anchor_bottom = 0.0
-	label.offset_left = -14.0
-	label.offset_right = 14.0
-	label.offset_top = -24.0
-	label.offset_bottom = 0.0
-	button.add_child(label)
-	var tween := create_tween()
-	tween.tween_property(label, "position:y", label.position.y - 18.0, 0.36).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	tween.parallel().tween_property(label, "modulate:a", 0.0, 0.36)
-	tween.tween_callback(label.queue_free)
+func _play_reward_choice_upgrade(button: Button, tier: int) -> void:
+	_reward_upgrade_effects.append(preload("res://scripts/ui/gear_upgrade_effect.gd").play(button, tier))
 
 
-func _pulse_reward_choice_button(button: Button) -> void:
-	button.scale = Vector2(1.0, 1.0)
-	var tween := create_tween()
-	tween.tween_property(button, "scale", Vector2(1.12, 1.12), 0.08).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	tween.tween_property(button, "scale", Vector2.ONE, 0.16).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+func _cancel_reward_upgrade_effects() -> void:
+	for effect in _reward_upgrade_effects:
+		if is_instance_valid(effect): effect.cancel()
+	_reward_upgrade_effects.clear()
 
 
-## The reward-choice gear box's regular tooltip text: slot/name, tier,
-## affixes, triggered skills, and the click hint. Rendered inside the first
-## of CardStyle.build_gear_compare_tooltip()'s two tooltip-styled boxes, and
-## kept on Button.tooltip_text as the plain-text fallback/accessibility copy. The
-## T6-era appended stat-diff comparison line was removed in the P2:R7
-## second playtest-feedback pass -- the "Equipped" box beside this tooltip
-## replaces it.
+## Reward item details and the current choice/capacity hint share one card.
+## Button.tooltip_text also retains this plain-text accessibility fallback.
 func _reward_choice_text(gear: GearItem) -> String:
 	var lines := CardStyle.gear_tooltip_lines(gear)
-	if BuildState.pending_reward_choices.has(gear) and not BuildState.can_choose_pending_reward_gear(gear):
+	var reason: String = preload("res://scripts/ui/gear_action_feedback.gd").legendary_reason(BuildState, gear)
+	if reason != "":
+		lines.append(reason)
+	elif BuildState.pending_reward_choices.has(gear) and not BuildState.can_choose_pending_reward_gear(gear):
 		lines.append("Inventory full -- make space before choosing.")
 	else:
 		lines.append("Click to choose.")
@@ -2304,6 +2343,8 @@ func _build_confirm_dialog() -> void:
 	_confirm_dialog = ConfirmationDialog.new()
 	_confirm_dialog.title = "Abandon Run"
 	_confirm_dialog.dialog_text = "Are you sure you want to abandon this run? Any saved progress will be deleted."
+	if BuildState.is_test_mode:
+		_confirm_dialog.dialog_text = "End this Test Mode session? Adventure and Practice saves will be preserved."
 	_confirm_dialog.confirmed.connect(_on_abandon_confirmed)
 	add_child(_confirm_dialog)
 
@@ -2334,14 +2375,18 @@ func _on_fight_pressed() -> void:
 		return
 	if _map_overlay != null:
 		_map_overlay.close()
-	var stats := BuildResolver.resolve_stats(
-		BuildState.selected_class, BuildState.selected_trees, BuildState.selected_talents, BuildState.equipped_gear(), BuildState.gold
-	)
+	var stats := BuildState.current_player_stats()
 	var rotation := BuildResolver.resolve_rotation(BuildState.rotation, BuildState.unlocked_skills())
 	_apply_shadow_export_fallback(rotation)
 	var monster: Monster = _enemy_panel.monster()
 	var duration_ms: int = _enemy_panel.duration_ms()
 	var result: CombatResolver.CombatResult = CombatResolver.resolve(rotation, stats, monster, duration_ms, BuildState.current_combat_rng_seed())
+	if not result.is_valid:
+		BuildState.cancel_invalid_fight(result)
+		_log_overlay.set_result(result, monster, CombatResultFormatter.format(result, monster))
+		_status_label.text = CombatResultFormatter.invalid_simulation_message(result)
+		_view_log_button.disabled = false
+		return
 	_current_playback_slow = CombatResolver.effective_enemy_slow(stats, monster)
 	if instant_playback and result.gold_stolen > 0:
 		BuildState.record_combat_stolen_gold(result.gold_stolen)
@@ -2379,6 +2424,10 @@ func _on_fight_pressed() -> void:
 
 
 func _apply_shadow_export_fallback(rotation: Array[Skill]) -> void:
+	# Ranked content supplies its own intrinsic and talent augments. The old
+	# guaranteed-Poison export fallback belongs only to legacy binary builds.
+	if BuildState.ranked_build != null:
+		return
 	if not _has_selected_tree("tree.shadow"):
 		return
 	for skill in rotation:
@@ -2452,6 +2501,7 @@ func _begin_playback(result: CombatResolver.CombatResult, monster: Monster) -> v
 	_set_enemy_hud_display(monster.display_name, float(monster.hp), monster.hp, monster.armor, monster.poison_resistance)
 	_refresh_enemy_effect_chips(monster)
 	_clear_hud_status_chips()
+	COMBAT_STATUS_ICONS.add_timed_defense_chips(null, _add_hud_status_chip)
 	_add_hud_status_chip("x0", UIColors.TEXT_POISON, HUD_POISON_ICON)
 	_add_hud_status_chip("x0", UIColors.TEXT_WARNING, HUD_SHRED_ICON, _shred_status_tooltip())
 	_add_hud_status_chip("x0", UIColors.TEXT_MAGIC, HUD_DECAY_ICON)
@@ -2520,7 +2570,7 @@ func _update_playback_time_label() -> void:
 	var elapsed_ms := _playback_presenter.elapsed_ms()
 	var window_ms := _playback_presenter.window_ms()
 	if _playback_controls != null:
-		_playback_controls.set_time_text("%.1fs / %.0fs" % [elapsed_ms / 1000.0, window_ms / 1000.0])
+		_playback_controls.set_time_text("%.1fs / %ss" % [elapsed_ms / 1000.0, LegendaryCatalog.number_text(window_ms / 1000.0)])
 	_update_fight_timer_countdown(elapsed_ms, window_ms)
 
 
@@ -2579,6 +2629,8 @@ func _on_continue_pressed() -> void:
 		reward_gold_source_rect = _global_rect_for(_reward_gold_icon)
 		reward_talent_source_rect = _global_rect_for(_reward_talent_icon)
 	var claimed := BuildState.claim_current_reward(true)
+	if claimed:
+		reward_gold = BuildState.committed_reward_gold
 	if not claimed:
 		_pulse_inventory_blocked_control(_continue_button)
 		_continue_button.tooltip_text = _claim_reward_tooltip()
@@ -2616,7 +2668,7 @@ func _on_continue_pressed() -> void:
 func _deposit_talent_reward_after_animation(source_rect: Rect2, amount: int, pending_reward_deposits: Array) -> void:
 	if _active_talents_panel != null:
 		await _active_talents_panel.animate_talent_points_from_rect(source_rect, amount, true)
-	BuildState.add_talent_points(amount)
+	# Talent points were committed atomically by claim_current_reward().
 	pending_reward_deposits[0] -= 1
 
 
@@ -2634,6 +2686,8 @@ func _global_rect_for(node: Control) -> Rect2:
 
 
 func _on_shop_buy_pressed(offer: GearItem, source: Control = null) -> void:
+	if not _shop_overlay.visible or _shop_overlay.is_busy():
+		return
 	if BuildState.buy_shop_offer(offer):
 		_shop_overlay.set_status_text("")
 		AudioManager.play_shop_change_sfx()
@@ -2650,6 +2704,8 @@ func _on_shop_buy_pressed(offer: GearItem, source: Control = null) -> void:
 
 
 func _on_shop_reroll_pressed() -> void:
+	if not _shop_overlay.visible or _shop_overlay.is_busy():
+		return
 	if not BuildState.can_reroll_shop_offers():
 		_shop_overlay.refresh()
 		_shop_overlay.set_status_text("Not enough gold.")
@@ -2657,22 +2713,23 @@ func _on_shop_reroll_pressed() -> void:
 		return
 	var reroll_cost := BuildState.shop_reroll_cost
 	var reroll_target_rect: Rect2 = _shop_overlay.reroll_action_rect()
-	_shop_overlay.set_reroll_enabled(false)
+	var generation: int = _shop_overlay.begin_reroll()
 	if _gear_panel != null:
 		await _gear_panel.animate_gold_to_rect(reroll_target_rect, reroll_cost, true)
-	await _shop_overlay.play_reroll_offers_out()
+	if not is_instance_valid(_shop_overlay) or not _shop_overlay.is_reroll_current(generation):
+		return
 	if BuildState.reroll_shop_offers():
 		_autosave()
 		_shop_overlay.refresh()
-		_shop_overlay.set_status_text("New offers.")
-		await get_tree().process_frame
-		await _shop_overlay.play_reroll_offers_in()
 	else:
 		_shop_overlay.refresh()
+	_shop_overlay.end_reroll(generation)
 
 
 func _on_shop_continue_pressed() -> void:
-	BuildState.close_shop_round()
+	_shop_overlay.skip_reveal()
+	if not BuildState.close_shop_round():
+		return
 	_shop_overlay.visible = false
 	_set_result_button_layer_active(false)
 	_status_label.visible = false
@@ -2687,7 +2744,7 @@ func _on_secondary_tree_pressed(tree: SubclassTree) -> void:
 		_recap_label.visible = false
 		_reset_enemy_hud()
 		_status_label.text = "Second tree chosen: %s." % tree.display_name
-		_contract_overlay.show_contract_choice()
+		_show_initial_map_if_needed()
 		_autosave()
 
 
@@ -2717,7 +2774,8 @@ func _on_reward_choice_pressed(gear: GearItem, source: Control = null) -> void:
 		_advance_after_reward_or_shop()
 	else:
 		_pulse_inventory_blocked_control(source)
-		_reward_choice_overlay.set_status_text("Inventory full -- make space before choosing.")
+		var reason: String = preload("res://scripts/ui/gear_action_feedback.gd").legendary_reason(BuildState, gear)
+		_reward_choice_overlay.set_status_text(reason if reason != "" else "Inventory full -- make space before choosing.")
 
 
 func _on_reward_choice_skip_pressed() -> void:
@@ -2794,7 +2852,11 @@ func _advance_after_reward_or_shop() -> void:
 	_reset_enemy_hud()
 	var advanced := BuildState.continue_after_win()
 	if BuildState.run_phase == BuildState.RunPhase.CONTRACT_OFFER:
-		_show_contract_offer_overlay()
+		if BuildState.is_test_mode:
+			_show_contract_offer_overlay()
+		else:
+			_contract_offer_after_talents = true
+			_show_talent_overlay()
 	elif BuildState.run_phase == BuildState.RunPhase.CONTRACT_ROUTE:
 		_status_label.text = FLOW_TEXT.NEXT_ROUTE_ON_MAP
 		_show_map_overlay(false)
@@ -2807,6 +2869,8 @@ func _advance_after_reward_or_shop() -> void:
 
 
 func _seed_label_text() -> String:
+	if BuildState.is_test_mode:
+		return "Test Mode | Seed: %d" % BuildState.adventure_seed
 	return "Seed: %d" % BuildState.adventure_seed
 
 
@@ -2931,6 +2995,8 @@ func _build_lock_text() -> String:
 ## action is easy to reason about and test in isolation (P2:R7:T3), separate
 ## from _apply_outcome_presentation()'s richer loss/victory body text.
 func _next_action_text() -> String:
+	if not BuildState.is_test_mode and BuildState.needs_secondary_subclass_choice():
+		return "Choose your earned second subclass."
 	if BuildState.shop_round_pending:
 		return FLOW_TEXT.NEXT_BUY_OR_LEAVE_SHOP
 	if BuildState.has_pending_reward_choice():
@@ -2939,9 +3005,9 @@ func _next_action_text() -> String:
 		BuildState.RunPhase.RUN_ENDED:
 			match BuildState.run_outcome:
 				BuildState.RunOutcome.CONTRACT_FAILED, BuildState.RunOutcome.ADVENTURE_RESTART_REQUIRED:
-					return FLOW_TEXT.NEXT_RESTART_ADVENTURE
+					return "Restart Test Mode." if BuildState.is_test_mode else FLOW_TEXT.NEXT_RESTART_ADVENTURE
 				BuildState.RunOutcome.ALL_BOSSES_DEFEATED, BuildState.RunOutcome.CONTRACT_VICTORY, BuildState.RunOutcome.FIGHT_WIN:
-					return FLOW_TEXT.NEXT_START_NEW_ADVENTURE
+					return "Start a fresh Test Mode session." if BuildState.is_test_mode else FLOW_TEXT.NEXT_START_NEW_ADVENTURE
 			return FLOW_TEXT.NEXT_CHOOSE_NEXT_STEP
 		BuildState.RunPhase.RESULT:
 			if BuildState.last_fight_won:
@@ -3062,6 +3128,9 @@ func _make_outcome_presentation(
 	show_restart: bool,
 	restart_text: String
 ) -> Dictionary:
+	if BuildState.is_test_mode and show_restart:
+		restart_text = "Restart Test Mode"
+		body = "Restart begins a fresh Test Mode session and preserves Seed %d. Adventure and Practice saves are preserved." % BuildState.adventure_seed
 	return {
 		"title": title,
 		"color": color,

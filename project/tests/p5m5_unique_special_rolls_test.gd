@@ -110,6 +110,7 @@ func _check_impossible_unique_special_plans_fail_cleanly() -> void:
 		GearGenerator._roll_spec(StatCatalog.CATEGORY_SPECIAL),
 		GearGenerator._roll_spec(StatCatalog.CATEGORY_SPECIAL),
 		GearGenerator._roll_spec(StatCatalog.CATEGORY_SPECIAL),
+		GearGenerator._roll_spec(StatCatalog.CATEGORY_SPECIAL),
 	]
 	var result := GearGenerator._affixes_for_rolls(GearItem.SlotType.WEAPON, GearItem.Tier.UNIQUE, too_many_weapon_specials, rng)
 	_require((result["affixes"] as Array).is_empty(), "Expected impossible Unique Special plan to return no affixes.")

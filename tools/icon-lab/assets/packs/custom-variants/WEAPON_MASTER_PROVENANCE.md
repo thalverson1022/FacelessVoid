@@ -1,0 +1,7 @@
+# Weapon Master
+
+Created using built-in image_gen on 2026-10-01 with the Rogue sheet as a style reference. Subject: crossed sword and dagger with gold accents as a weapon mastery emblem. Master: `../../variant-sources/weapon_master.png`. Library icon: `weapon_master.png`, sampled to 32×32 using nearest-neighbor pixel centers with alpha preserved.
+
+## Prompt
+
+Use case: stylized-concept. Create ONE fantasy RPG passive talent icon named Weapon Master, increasing all physical weapon damage. Supplied Rogue sprite sheet is STYLE REFERENCE only. Subject: two different weapons, a sturdy short sword and a compact dagger, crossed in a balanced X as an emblem of weapon mastery. Tips point up, grips down. Silver steel-blue blades with bright edges, brown grips, restrained gold crossguards and one small gold diamond-shaped rivet at the crossing to suggest mastery. Clearly distinct broad sword versus narrower dagger. Static heraldic arrangement, no motion trails or strike effects: should read as expertise, not a double attack. Match the reference pack's chunky hand-placed 32x32 pixel-art language, near-black outlines, muted blue edging, limited palette and crisp hard square pixels. Simple clean silhouette readable at 32x32, uniform logical pixel grid, enlarged output as needed. Genuine transparent background with a 2 logical pixel margin. No text, crown, shield, circular frame, hands, magic glow, blood, extra weapons or particles. Avoid smooth gradients, antialiasing and fine subpixel detail.

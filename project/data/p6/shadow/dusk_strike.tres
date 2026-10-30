@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="Talent" format=3]
+[ext_resource type="Script" path="res://scripts/resources/talent.gd" id="talent"]
+[ext_resource type="Script" path="res://scripts/resources/talent_rank.gd" id="rank"]
+
+[ext_resource type="Script" path="res://scripts/resources/stat_modifier.gd" id="modifier"]
+
+[sub_resource type="Resource" id="shred"]
+script = ExtResource("modifier")
+stat_id = "shred_value"
+value = 10.0
+
+[sub_resource type="Resource" id="rank1"]
+script = ExtResource("rank")
+dusk_strike_enabled = true
+stat_modifiers = Array[ExtResource("modifier")]([SubResource("shred")])
+
+[resource]
+script = ExtResource("talent")
+id = "talent.shadow.dusk_strike"
+display_name = "Dusk Strike"
+max_ranks = 1
+required_tree_points = 15
+ranks = Array[ExtResource("rank")]([SubResource("rank1")])

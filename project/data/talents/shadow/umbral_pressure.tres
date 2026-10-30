@@ -1,19 +1,21 @@
-[gd_resource type="Resource" script_class="Talent" load_steps=6 format=3]
+[gd_resource type="Resource" script_class="Talent" format=3 uid="uid://c5brq8vtan4km"]
 
-[ext_resource type="Script" path="res://scripts/resources/talent.gd" id="1_talent"]
-[ext_resource type="Script" path="res://scripts/resources/prerequisite_group.gd" id="2_group"]
-[ext_resource type="Resource" path="res://data/talents/shadow/nightblade_rhythm.tres" id="3_nightblade"]
-[ext_resource type="Script" path="res://scripts/resources/stat_modifier.gd" id="4_modifier"]
+[ext_resource type="Script" uid="uid://bq2fx6c5wnwsg" path="res://scripts/resources/talent.gd" id="1_talent"]
+[ext_resource type="Script" uid="uid://bpusgj7hvipbl" path="res://scripts/resources/prerequisite_group.gd" id="2_group"]
+[ext_resource type="Resource" uid="uid://d4b6kt3cy2s5i" path="res://data/talents/shadow/nightblade_rhythm.tres" id="3_nightblade"]
+[ext_resource type="Script" uid="uid://evdact12hmik" path="res://scripts/resources/talent_rank.gd" id="4_cf8ka"]
+[ext_resource type="Script" uid="uid://m13uapmegxo2" path="res://scripts/resources/stat_modifier.gd" id="4_modifier"]
+[ext_resource type="Script" uid="uid://c7fj7apjjsn5" path="res://scripts/resources/triggered_skill_effect.gd" id="6_f5hjd"]
+[ext_resource type="Script" uid="uid://d3apprhhvrqum" path="res://scripts/resources/skill.gd" id="7_dho44"]
 
 [sub_resource type="Resource" id="Resource_umbral_group"]
 script = ExtResource("2_group")
-options = Array[Talent]([ExtResource("3_nightblade")])
+options = Array[ExtResource("1_talent")]([ExtResource("3_nightblade")])
 
 [sub_resource type="Resource" id="Resource_umbral_poison_cap"]
 script = ExtResource("4_modifier")
 stat_id = "poison_stack_cap_40"
 category = 2
-operation = 0
 value = 1.0
 
 [resource]
@@ -21,6 +23,5 @@ script = ExtResource("1_talent")
 id = "talent.umbral_pressure"
 display_name = "Umbral Presence"
 cost = 3
-prerequisites = Array[PrerequisiteGroup]([SubResource("Resource_umbral_group")])
-stat_modifiers = Array[StatModifier]([SubResource("Resource_umbral_poison_cap")])
-unlocked_skills = Array[Skill]([])
+prerequisites = Array[ExtResource("2_group")]([SubResource("Resource_umbral_group")])
+stat_modifiers = Array[ExtResource("4_modifier")]([SubResource("Resource_umbral_poison_cap")])

@@ -1,0 +1,7 @@
+# Toxic Tradeoff
+
+Created using built-in image_gen on 2026-10-01, using the purchased Rogue sheet as a style reference. Subject: a steel dagger dissolving into green poison. Master: `../../variant-sources/toxic_tradeoff.png`. Library icon: `toxic_tradeoff.png`, sampled to 32×32 using nearest-neighbor pixel centers with alpha preserved.
+
+## Prompt
+
+Use case: stylized-concept. Create ONE new fantasy RPG talent icon called Toxic Trade-Off. Supplied Rogue sprite sheet is a STYLE REFERENCE only, do not reproduce the sheet. Subject: a single steel dagger diagonally from lower left hilt to upper right blade, with the upper portion of the metal blade visibly dissolving into luminous green poison droplets. Convey sacrificing physical weapon strength for stronger poison: retain a recognizable dark-handled dagger and silver lower blade, but give the upper blade an eroded, missing edge breaking into 3 chunky green droplets. Clear silhouette and simple composition. Match reference pack's hand-drawn native 32x32 pixel art: hard square pixels, chunky near-black outline, subdued blue outer edging, silver/steel-blue highlights, small brown grip, emerald and lime poison. No hand, skull, text, arrows, frame or additional weapons. Genuine transparent background; small transparent margin on all sides. Uniform logical 32x32 grid, enlarged output if necessary, must read well when reduced to 32x32. No smooth painting or gradients. Make the blade visibly consumed by poison, not merely coated in it.

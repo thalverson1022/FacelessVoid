@@ -1,112 +1,92 @@
-# P6 Project Onboarding Context
+# Phase 6 Project Onboarding
 
-Date: 2026-09-16
-Source baseline: Project Enigma Phase 5 closeout, commit `91c1f2fdfaae7b48aa1e193adfb910956b1d6574` on `phase-5-gear-redesign`
+Last updated: 2026-10-30.
 
-## Purpose
+## Current state
 
-Use this document as the first prompt/context handoff for the next phase of the project. Phase 6 is the Rogue skill-tree redesign. The goal is to keep the phase scoped, readable, and separate from the completed Phase 5 gear redesign.
+**M1–M10 are Complete within their recorded scopes. M9 T1–T12 are Complete under D057, following T11 user playtest acceptance under D056. [M10 T1–T4 are Complete](P6M10_Integrated_Playtest_And_Refinement_Tracker.md) under P6M10-D006: integrated acceptance, evidence review, user risk dispositions and the M11 handoff are recorded. Resale policy is deferred to the user's planned next-phase economic audit; broader trigger investigation is deferred with existing protections unchanged under D004. [M11 Regression and Closeout](P6M11_Regression_And_Closeout_Tracker.md) is Complete under D012: T1 Complete under D002 and T2 Complete under D003: 39 selected functional/rendered suites pass with fixture-only repairs and unchanged runtime. T3 persistence/reset/replay is Complete under D005: six fresh suites pass plus two reused T2 results, with runtime unchanged. T4 Complete under D008: repaired legacy journeys and a one-file skipped-loss death-clock fix verified with rendered/native checks. T5 engine/environment qualification is Complete under D010: four rendered lifecycle controls/55 checks, three main-scene exits and explicit diagnostic limitations; runtime unchanged. T6 is Complete under D012 following explicit user acceptance on 2026-10-30; M11 and Phase 6 are Complete within the recorded limits.** Seven-slot pools,20 authored Legendaries, accepted artwork, Adventure v5 / Practice v4 and epoch1 reset policy remain. M10 closeout adds no runtime change or new test execution and does not qualify engine/export readiness.
 
-Phase 6 should start from the closed Phase 5 baseline. Do not reopen gear, generated routes, shop economy, publishing, or broad combat architecture unless a Phase 6 task explicitly promotes that work into scope.
+Read only what the current task needs:
 
-## Read These Documents First
+1. [M11 tracker and agreed execution plan](P6M11_Regression_And_Closeout_Tracker.md): current task scope, selected checks, isolation/pass criteria and known fixture gaps. T1–T6, M11 and Phase 6 are Complete under D012 following explicit user acceptance of the scoped outcome and documented limitations. [Closed M10 tracker and M11 handoff](P6M10_Integrated_Playtest_And_Refinement_Tracker.md): T1–T4 Complete, scoped user acceptance, retained risk dispositions and bounded M11 entry scope. Use the closed M11 record for evidence and scope; begin new work only when requested. The [M9 tracker](P6M9_Gear_Slot_Expansion_And_Progression_Pacing_Tracker.md) retains the closed T1–T12 record and confirmed pools; the [T12 closeout/M10 handoff](P6M9_T12_Regression_And_M10_Handoff.md) supplies historical evidence and triage.
+2. [T3 specification](P6M9_T3_Stat_Pool_Specification.md): approved exact pools/category order under D007, equal Basic weight amendment D008 and retained mechanics; runtime pools/acquisition are implemented under D016.
+3. [T2 source audit](P6M9_T2_Gear_System_And_Pacing_Audit.md): dependency inventory, mechanic/pacing baseline, save-reset surfaces and downstream risks.
+4. [M8 final handoff](P6M8_T12_Closeout_And_M9_Handoff.md): accepted baseline, evidence and retained risks.
+5. [Phase roadmap](P6_Milestone_Tracker.md): milestone boundaries and downstream owners.
+6. [Documentation guide](README.md): current references, archived material and maintenance rules.
 
-Read these Phase 6 handoff documents in order:
+## M9 boundary
 
-1. `docs/P6_Skill_Tree_Redesign_Brief.md`
-2. `docs/P6_Current_Player_Build_System_Map.md`
-3. `docs/P6_Skill_Tree_Content_Audit.md`
-4. `docs/P6_Implementation_And_Test_Handoff.md`
+Add Legs/Pants and Hands/Gloves in all applicable modes. Place Gloves below the weapon and Pants below the chest, following the user's screenshot. The user supplies slot/rarity icons and new Legendary artwork. D010–D012 record the supplied effects; D013 confirms the full four-item roster. The [T4 specification](P6M9_T4_Legendary_Mechanics_Specification.md) is approved under D014, including Arctic’s visibly slowed75% nominal countdown while combat timing stays normal. D015 confirms Crude Dagger-only fresh Adventures, with Pants/Gloves empty. [T5 implementation and verification](P6M9_T5_Foundation_And_Save_Reset_Verification.md) completes seven-slot ownership and the reset boundary. [T6 verification](P6M9_T6_Stat_Pools_And_Acquisition_Verification.md) records implemented pools, equal eligible-slot selection and preserved acquisition rules. [T7 layouts and verification](P6M9_T7_Equipment_UI_And_Practice_Verification.md) are accepted under D018 after four passing isolated suites and actual1600×900 renders in all three modes; T7 is Complete. [T8 integration and review pack](P6M9_T8_Artwork_And_Legendary_Integration_Verification.md) records the four signatures, catalog20, supplied artwork, raw Overkill resume basis, nine passing isolated suites and thirty1600×900 renders; user item/visual acceptance and T8 completion are recorded under D025.
 
-Then read these Phase 5/current-baseline documents as supporting context:
+The confirmed pools are recorded once in the M9 tracker. D008 gives every Basic stat equal weight within its slot; Rare/Special weights remain unchanged. Reuse existing roll/aggregation rules. Reset all old **FacelessVoid** saves at the seven-slot transition; no migration is required. The reset is implemented and verified using isolated saves; real profiles were preserved during validation. The next normal game entry applies the shared boundary. Protect sibling Enigma data and use isolated saves for validation.
 
-5. `docs/Project_Overview.md`
-6. `docs/Project_Onboarding_Context.md`
-7. `docs/P5_Phase_5_Closeout_Handoff.md`
-8. `docs/P5M12_Phase_5_Regression_Smoke_And_Closeout_Tracker.md`
-9. `docs/New_Gear_Overview.md`
-10. `docs/P5_Gear_Redesign_Overview.md`
+Keep current gold amounts, reward frequency and rarity rules as the comparison baseline. More slots may slow replacement while increasing total power; this is a hypothesis to assess in the approved focused review. **Do not automatically restart D099's deferred expanded balance matrix.** No broad economy/loot/route redesign, new classes, crafting, consumables, endless progression or resolver replacement is authorized by M9. Record genuine scope changes in M9 before implementation.
 
-Use the Phase 6 docs as the current scope boundary. Use the Phase 5 docs as baseline evidence for what already exists.
+## Retained playable baseline
 
-## Current Phase 6 Goal
+| Area | Accepted state |
+| --- | --- |
+| Content | Assassin, Bladedancer, Shadow and Thief; 44 talents / 140 ranks. Adventure `p6.adventure.1`; Practice/Test `p6.playable.shadow.1`. |
+| Progression | Shared 45-point budget; Tavern rewards 1/0/2/3; three points per completed contract, cap after C13. |
+| Roles | Primary plus a distinct secondary earned after first contract from two saved random choices. Both trees receive intrinsics/unlocks; primary alone gets per-point scaling. Practice/Test role selection unrestricted. |
+| Preparation | Tavern and between-contract refunds; active-contract refund locks. Normal reward/shop progression precedes secondary selection. Talent Trees open before first/later contract offers. Test Mode and map Archetype guide remain hidden in normal UI. |
+| Current gear | Seven-slot ownership/save and ordinary acquisition implemented; 148 positive pool entries/47 drawbacks with equal eligible-slot selection. Fresh Adventure equips only Crude Dagger. Fixed catalog20 and supplied ordinary/Legendary art integrated under D019. T7 layout accepted under D018; T8 items/visuals accepted and Complete under D025. Four new signatures implemented; scoped evidence is in the T8 verification. |
+| Adopted tuning | Steal 1100 ms base / 650 ms minimum; Drunk Buddy armor 140. Current Exsanguinate, Signet, Wingjammer and Crown values are summarized in the M8 handoff and specified in the Legendary reference. No experimental Bandit curve. |
+| Difficulty | Optimization, synergy, preparation and informed matchup choices matter. Weak builds may fail; severe counters can be intentional. Finite 30-boss catalog/C30 plateau retained. |
+| Persistence | Current Adventure uses `user://adventure_p6_m6.json`; Practice isolated. Adventure v5 / Practice v4 with shared epoch1 reset guard. Old gameplay files reset at normal entry; malformed/future data preserved and blocked where incompatible. Validation used isolated saves. |
 
-Redesign the Rogue skill trees so Assassin, Bladedancer, Shadow, and Thief each have clear mechanical identity, readable progression, meaningful gear synergies, useful matchup roles, and deterministic validation through Practice Room and Balance Lab.
+## References and working rules
 
-The current tree system is functional but not final. It already supports subclass trees, talents, prerequisites, stat modifiers, unlocked skills, skill augments, triggered skill effects, skill tooltips, Practice Room build testing, and Balance Lab simulation. Phase 6 should improve the design using those foundations where possible.
+- D057 closes T12 and M9: the Virulent Poison release/weapon handoff, speed-change and cancellation edges are fixed;21 scoped regression suites and versioned animation checks pass. [Closeout/M10 handoff](P6M9_T12_Regression_And_M10_Handoff.md) records independent review, current hashes, repaired/deferred legacy tests and M10/M11 risk ownership. D056 remains the explicit T11 playtest acceptance.
 
-## Initial Prompt To Paste Into A New Conversation
+- D054 speeds up shop rollout, strengthens the shared shop/reward gold shimmer and replaces temporary Skip Reveal with a compact **skip** toggle matching the talent reset button. Latest user refinement makes skip default OFF on each launch, retaining the selection only between shops within that session; older disk preferences are ignored. Toggling preserves in-flight reroll payment/token rules. [T11 verification](P6M9_T11_Playtest_Refinement.md#d054--faster-shop-reveal-and-persistent-skip-toggle). User acceptance is recorded under D056; follow-ups and verification are reconciled in the T12/M10 handoff.
 
-```text
-Please read `F:\Data\Claude Projects\Project-FacelessVoid\docs\P6_Project_Onboarding_Context.md` to get the starting context for this conversation.
+- D053 coordinates initial shop/reroll offers one at a time from base rarity through the shared upgrade shimmer/cue, with Skip Reveal and no replay on price/inventory refresh. Buying/reroll waits for completion; Gear selling/Leave/system bar remain usable. [T11 evidence](P6M9_T11_Playtest_Refinement.md#d053--sequential-shop-rollout): four rendered suites, stable geometry/identity and guarded cancellation; no roll/economy/save change. User acceptance is recorded under D056; follow-ups and verification are reconciled in the T12/M10 handoff.
 
-Then read these docs, in order:
+- D050–D052 share a stationary F1→F2→F3(linger)→F2(cast)→F1 gesture across Self Buff/Debuff casts. Current D052 uses brief first/second poses, holds F3 for75% of windup and releases on returning F2 at actual activation; existing colors/sounds remain. [T11 evidence](P6M9_T11_Playtest_Refinement.md#d052--linger-on-f3-release-on-returning-f2) covers all9skills/bothmodes/1×4×. User acceptance is recorded under D056; follow-ups and verification are reconciled in the T12/M10 handoff.
 
-1. `F:\Data\Claude Projects\Project-FacelessVoid\docs\P6_Skill_Tree_Redesign_Brief.md`
-2. `F:\Data\Claude Projects\Project-FacelessVoid\docs\P6_Current_Player_Build_System_Map.md`
-3. `F:\Data\Claude Projects\Project-FacelessVoid\docs\P6_Skill_Tree_Content_Audit.md`
-4. `F:\Data\Claude Projects\Project-FacelessVoid\docs\P6_Implementation_And_Test_Handoff.md`
-5. `F:\Data\Claude Projects\Project-Enigma\docs\Project_Overview.md`
-6. `F:\Data\Claude Projects\Project-Enigma\docs\Project_Onboarding_Context.md`
-7. `F:\Data\Claude Projects\Project-Enigma\docs\P5_Phase_5_Closeout_Handoff.md`
-8. `F:\Data\Claude Projects\Project-Enigma\docs\P5M12_Phase_5_Regression_Smoke_And_Closeout_Tracker.md`
-9. `F:\Data\Claude Projects\Project-Enigma\docs\New_Gear_Overview.md`
-10. `F:\Data\Claude Projects\Project-Enigma\docs\P5_Gear_Redesign_Overview.md`
+- D049 shares one gold shimmer/rarity-border upgrade effect between shop and rewards, with peak-synchronized sound, staggered shop cards, reduced-motion border fade and cancellation/no-replay handling. [T11 evidence/previews](P6M9_T11_Playtest_Refinement.md#d049--shared-shopreward-upgrade-shimmer). Five focused suites pass; T11 user acceptance is recorded under D056, with subsequent D053/D054 shop refinements retained.
 
-After reading, treat Phase 6 as the Rogue skill-tree redesign phase. Keep the scope separate from the completed Phase 5 gear redesign. Start by summarizing the Phase 6 goal, current baseline, key systems, and recommended first milestone before suggesting or making changes.
-```
+- D048 fixes a separate critical-Steal downward recoil jump after gold-driven layout, enables the supplied cue for all visible rarity upgrades, and fits full Practice talent trees at1600×900 using the space below the system bar. [T11 record and seven passing focused suites](P6M9_T11_Playtest_Refinement.md#d048--critical-steal-ordinary-upgrade-audio-and-practice-tree-fit). No tuning; T11 user acceptance is recorded under D056.
 
-## Scope Guardrails
+- D045–D047 continue T11 refinements: remove Practice point-budget/Swap Trees toolbar, stop backdrop focus style doubling dimming, and fix the reproduced Adventure/Tavern vertical enemy jump by tweening intro offsets against current layout bases. [T11 findings and evidence](P6M9_T11_Playtest_Refinement.md). User acceptance is recorded under D056; follow-ups and verification are reconciled in the T12/M10 handoff.
 
-In scope for Phase 6:
+- D044 starts [T11 feedback/refinement](P6M9_T11_Playtest_Refinement.md): Magic Find shop/reward cue with outcome-preserving shop provenance; shop/Talent Tree/Combat Log focus layers leave the upper bar clear and shop Gear usable; redundant shop hover removed; reproduced Pick Pocket snap smoothed. Nine focused suites pass; T11 user acceptance is recorded under D056 and broader playback-test limitations are triaged in the T12/M10 handoff.
 
-- Rogue skill-tree redesign.
-- Assassin, Bladedancer, Shadow, and Thief identity cleanup.
-- Talent costs, prerequisites, and progression structure.
-- Active skill unlocks and tree-specific skill behavior.
-- Skill/talent tooltip readability.
-- Practice Room support for redesigned builds.
-- Balance Lab scenarios for tree identities and mixed-tree builds.
-- Save/load compatibility for changed talent and skill IDs.
-- Focused regression and closeout docs.
+- D043 completes the [T10 focused review](P6M9_T10_Focused_Progression_Review.md): twelve isolated paths / 262 actual combat attempts, no tuning. Keep gold/reward/rarity rules for T11; new-slot fills and power are variable by build/seed. Discount/resale profit is legal and observed as quoted spreads in earned five-slot play; current sample root maximum10/1024 does not clear known endpoint risk. Human pacing acceptance remains T11.
 
-Out of scope unless explicitly promoted:
+- D041–D042 reorganize the shared Combat Log into Damage Breakdown, Event Log and Run Log with independent scrolling and a compact actual Damage/DPS/Elapsed summary. Original casts remain labelled CAST, with triggered children indented by ancestry; the old outgoing-trigger label could disguise the root. Long skill lists cannot crowd out events; damage percentages, existing timelines and encounter history remain available. Practice shares the layout and explains its empty Run Log. [Combat Log verification](P6M9_Combat_Log_Tabs_Verification.md).
+- D040 extends the light-blue name/effect format to all Self Buff skills; Dance of Death now says `Guaranteed Retriggers` instead of a damage number. Consumption-dependent buffs distinguish successful grants from no stacks consumed. [Self-buff UI checks](../project/reports/m9_self_buff_feedback_verified/summary.json).
+- D038–D039 apply purple two-line name/effect popups to every Debuff-category skill, including future ones. Pick Pocket shows actual `+X` with the gold icon replacing `Gold Stolen`; Exsanguinate shows health removed while retaining Nightkiss's red swoosh. Initial and echo popups follow the same convention; tooltip/log selection remains separate. [UI and Legendary checks](../project/reports/m9_all_debuff_feedback_20261027/summary.json), [gold icon checks](../project/reports/m9_debuff_gold_icon/summary.json).
+- D035–D037 refine skill feedback: Blinding Powder shows actual `+X Potency Stacks`; Exsanguinate, Poison Vile, Blinding Powder and Pick Pocket use dedicated subtly varied sounds. Pick Pocket is shorter/softer, and actual credited theft gets a quiet Gold Steal cue. [Thief and skill audio verification](P6M9_Thief_And_Skill_Audio_Verification.md). Combat math and save formats remain unchanged.
+- D033–D034 address combat feedback: Blinding Powder uses purple name/effect text; the eight user-approved Legendary cues include purple/red slashes, a Poison Consume burst, Locket countdown pulses, poison-animation repeat ghosts, Arctic clock frost, and Scales' brief wiggle/glow with no added words. Critical Poison retains its larger text and punch. See [Legendary feedback scope and verification](P6M9_Legendary_Feedback_Verification.md). These are presentation amendments; the subsequent T10 review is recorded under D043.
+- D032 fixes Practice Chaos editing: each of four rows independently selects Positive Basic, Positive Rare or Negative Basic; its stat list and seeded value follow that type. Repeated/opposite-sign stats remain legal, saved categories/manual values survive reopening and same-rarity selection, and other rarity shapes stay fixed. Newly converted Chaos defaults to four positive Basic rows for manual editing. Actual generation weights/rules and save versions are unchanged. [Checks and renders](../project/reports/m9_chaos_editor/verification.json).
+- D031 adds processed Self Buff/Debuff combat cues from the supplied Sounds folder: trimmed/softened, down3semitones, subtle±4% pitch and gain variation on successful category activations. Adventure/Test/Practice use the shared Effects/cancellation policy; cast duration and playback speed do not raise these cues' pitch. [Audio previews and evidence](P6M9_Buff_And_Debuff_Audio_Verification.md). This is a presentation amendment after T9; the subsequent T10 review is recorded under D043.
+- D028–D029 refine the shared presentation: blank lines between character-sheet sections, Poison-specific rows green, Base Tick Rate at one decimal. Poison critical damage popups stay green and gain a larger font, **!** and brief crit punch in Adventure/Test and Practice; Wyvern keeps its relatively smaller ticks. Scoped evidence is in the M9 tracker; mechanics are unchanged.
+- D026–D027 implement user playtest presentation feedback, pending visual review. **Subclass** now shows both32px icon/name groups on one line separated by **|**, retaining gray **none**, points and Talent Trees. Character Stats uses the user's exact four sections/order: Physical Damage, Elemental Damage, Utility and Rewards; detailed special/Legendary sources remain in the detail view. Practice removes Carried Gear button, Generated Target heading, corner logo and Equipment caption; Poison damage sits beside the target clear of status icons. Empty secondary tree uses its dropdown plus “Secondary / Choose a secondary subclass”; slot right-click clears gear outside playback; slot editor titles omit Gear and Legendary display omits duplicate icon/header. Scoped checks/renders and retained limitations are recorded in the M9 tracker. T9 is Complete under D030; T10 is Complete under D043.
+- [Combat mechanics](Combat_Mechanics_Reference.md), [gear stat specification](P6M8_T3_Gear_Stat_Implementation_Specification.md) and [Legendary specification](P6M8_T5_Legendary_Mechanics_Specification.md) describe retained rules. Current resources/code and adopted decisions take precedence over historical candidates.
+- Preserve original artwork and accepted M7 minimal hovers, gold scaling values, cyan named Buffs and charcoal frames. D055 hides equipped-reference boxes and **On equip** projected comparisons everywhere, including inventory and Test shop; hovered-item stats, effects and action/capacity hints remain. This supersedes D009/D022's narrower visibility rules. D022 removes talent-refund/Lucky Coin status notices and fixes Enemy Stats at230px with internal overflow scrolling. Available Skills retain 32×32 art; macro uses exact 2× enlargement and reserved grid spacing. Consult [accepted tooltip conventions](P6M7_T5_Closeout_And_Accepted_Conventions.md), [keyword reference](P6M7_T5_Presentation_Keyword_Reference.md) and [full-tree UI](P6M4_T10_Full_Tree_UI_UX_Plan.md) when relevant.
+- D023 fixes an obsolete combat-screen fallback that added guaranteed Poison to zero-point Shadow Stab/Heavy Slash. Current ranked combat uses only the approved critical-hit intrinsic and selected talent/gear sources; legacy fixture behavior is retained.
+- Distinguish defects, presentation issues and intentional counters before proposing balance changes. Use focused checks and actual-size UI inspection appropriate to the change. Preserve unresolved discount/resale and proc-budget risks from the M8 handoff.
+- Record future work in the agreed active milestone tracker; add a separate document only for substantial specifications or evidence. Update current status in place. Historical instructions and old milestone numbering do not authorize work.
+- M10 owns integrated full-run/unusual-build review; M11 owns bounded regression and certificate/shader/engine-teardown qualification; export/package work is conditional on a separate request. No power-loss durability claim follows from ordinary save/load tests.
 
-- New playable classes.
-- A new gear-system redesign.
-- New generated route-node systems.
-- Crafting, consumables, transmutation, scouting, boss bargains, or hidden events.
-- Broad generated-monster architecture changes.
-- Replacing the combat resolver wholesale.
-- Full final balance or commercial polish.
-- Publishing work beyond a scoped new playtest package if Phase 6 needs one.
+## Model routing
 
-## Most Important Current Files
+Use `$facelessvoid-model-routing` at `%USERPROFILE%/.codex/skills/facelessvoid-model-routing/SKILL.md`. Default Sol / Medium; handle tiny edits directly and delegate substantial bounded work according to the skill. User authorization covers project subagents, not separate user chats, publishing or external messages. The skill does not switch the active parent model.
 
-Start implementation research with:
+## Project locations
 
-- `project/scripts/systems/build_resolver.gd`
-- `project/scripts/resources/subclass_tree.gd`
-- `project/scripts/resources/talent.gd`
-- `project/scripts/resources/skill.gd`
-- `project/scripts/resources/player_stats.gd`
-- `project/scripts/systems/combat_resolver.gd`
-- `project/scripts/ui/skill_tooltip_formatter.gd`
-- `project/scenes/combat/talent_panel.gd`
-- `project/scenes/training_room/training_room.gd`
-- `project/data/subclass_trees/assassin.tres`
-- `project/data/subclass_trees/bladedancer.tres`
-- `project/data/subclass_trees/shadow.tres`
-- `project/data/subclass_trees/thief.tres`
+Godot project: `project/project.godot`, **FacelessVoid**. User data: `%APPDATA%/FacelessVoid/`, separate from Enigma. No publication is implied.
 
-## Current Watch Items
+| Work | Locations |
+| --- | --- |
+| Equipment | `project/scripts/resources/gear_item.gd`; `project/scripts/systems/gear_generator.gd`, `stat_catalog.gd`, `save_system.gd`; `project/scenes/combat/gear_panel.gd` |
+| Build/combat | `project/scripts/systems/build_resolver.gd`, `combat_resolver.gd`; `project/data/subclass_trees/` |
+| Skill UI/feedback | `project/scenes/combat/`; `project/scripts/ui/` |
+| Practice | `project/scenes/training_room/` |
+| Validation | `project/tests/`, `tools/p6/`, `project/reports/`; use task-specific isolated procedures |
+| Art tools | `tools/icon-lab/`, approved mappings linked from the documentation guide |
 
-- `bladedancer_contract_watchmen` ended Phase 5 above the old win-rate watch threshold and should be reviewed during Phase 6.
-- Chance for Retrigger should stay below 100% in normal legal builds.
-- Poison, shred, and decay all interact with Bonus Stacks, so new tree effects can accidentally over-scale multiple mechanics.
-- Thief economy-combat scaling must be tested against reward gold, stolen gold, current gold, Increased Gold, Overkill Gold, and shop spending pressure.
-- Save/load and Practice Room can break if talent or skill IDs are renamed without migration.
-
-## Working Rule For New Conversations
-
-Use this onboarding document as the first file. Then read the four Phase 6 handoff docs before proposing a milestone plan. If implementation begins, keep changes small, update a Phase 6 tracker as work completes, and verify with focused tests before broad balance work.
+For a new conversation: read this guide and the closed M10 tracker's M11 handoff, then consult the T12/M10 evidence as needed and continue only the requested task. M9/M10 are closed; M11 T1–T6, M11 and Phase 6 are Complete under D012 following explicit user acceptance of the scoped outcome and documented limitations. M11 and Phase 6 are Complete within the accepted limits. Do not reopen accepted playtesting, the deferred economic audit or expanded balance work from historical candidate checklists. Read archived evidence on demand.

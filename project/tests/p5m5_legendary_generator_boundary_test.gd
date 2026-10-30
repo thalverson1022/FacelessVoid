@@ -42,14 +42,17 @@ func _check_legendary_is_not_procedural() -> void:
 
 func _check_fixed_legendary_catalog_integrity() -> void:
 	var paths := LegendaryCatalog.all_paths()
-	_require(paths.size() == 5, "Expected retained Rogue Legendary catalog to expose five items.")
+	# Integrated M9 T8 roster: retained sixteen plus four new fixed identities.
+	var expected_slots := {"gear.legendary.wyvern_kriss": 0, "gear.legendary.mithril_karambit": 0, "gear.legendary.bandit_blade": 0, "gear.legendary.umbral_stiletto": 0, "gear.legendary.bejeweled_push_dagger": 0, "gear.legendary.decrepit_blade": 0, "gear.legendary.nightkiss_kitana": 0, "gear.legendary.crown_of_concertation": 3, "gear.legendary.helm_of_the_samurai": 3, "gear.legendary.cloak_of_speed": 4, "gear.legendary.deaths_door": 4, "gear.legendary.signet_of_the_old_kings": 2, "gear.legendary.lolzorzs_locket": 2, "gear.legendary.serpents_coil": 1, "gear.legendary.wingjammer": 1, "gear.legendary.mysterious_lucky_coin": 1}
+	expected_slots.merge({"gear.legendary.serpents_scales": 5, "gear.legendary.golden_greeves": 5, "gear.legendary.arctic_mittens": 6, "gear.legendary.hands_of_the_lightning_lord": 6})
+	_require(paths.size() == 20, "Expected integrated twenty-item Legendary catalog.")
 	var ids := {}
 	for path in paths:
 		var item: GearItem = load(path)
 		_require(item != null, "Expected Legendary catalog path to load: %s." % path)
 		_require(item.tier == GearItem.Tier.LEGENDARY, "Expected catalog item to stay Legendary tier: %s." % item.display_name)
 		_require(item.source_kind == GearItem.SourceKind.LEGENDARY, "Expected catalog item to use LEGENDARY source kind: %s." % item.display_name)
-		_require(item.slot == GearItem.SlotType.WEAPON, "Expected retained Rogue Legendary to remain Weapon slot: %s." % item.display_name)
+		_require(expected_slots.has(item.id) and item.slot == expected_slots.get(item.id), "Expected exact retained Legendary identity/slot: %s." % item.display_name)
 		_require(item.id.begins_with("gear.legendary."), "Expected catalog Legendary ID namespace: %s." % item.id)
 		_require(not ids.has(item.id), "Expected Legendary catalog IDs to be unique: %s." % item.id)
 		_require(LegendaryCatalog.effect_text(item) != "", "Expected fixed Legendary effect text for %s." % item.display_name)

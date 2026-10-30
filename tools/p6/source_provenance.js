@@ -1,0 +1,22 @@
+'use strict';
+const fs = require('node:fs');
+const path = require('node:path');
+const crypto = require('node:crypto');
+const assert = require('node:assert/strict');
+const root = path.resolve(__dirname, '../..');
+const read = p => JSON.parse(fs.readFileSync(path.join(root, p), 'utf8'));
+module.exports = function validateSource(file, expected, raw) {
+  const actual = crypto.createHash('sha256').update(raw).digest('hex');
+  if (actual === expected) return 'unchanged';
+  const entry = read('tools/p6/approved_source_successors.json')[file];
+  assert(entry, 'Unreviewed source drift: '+file);
+  assert.equal(expected, entry.original);
+  assert.equal(actual, entry.successor);
+  const release = read(entry.release);
+  assert.equal(release.balance_authority, entry.authority);
+  assert.equal(release.source_sha256[file], actual);
+  const evidence = read(entry.evidence);
+  assert.equal(evidence.original_sha256, expected);
+  assert.equal(evidence.current_sha256, actual);
+  return entry.authority;
+};

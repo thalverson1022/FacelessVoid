@@ -1,0 +1,840 @@
+{
+  "schema_version": 1,
+  "purpose": "Presentation only; never allocate or resolve this catalog.",
+  "trees": [
+    {
+      "id": "tree.bladedancer",
+      "name": "Bladedancer",
+      "source": "docs/talent_tree_drafts/Bladedancer.json",
+      "source_sha256": "8c33a60060ad7e42c45f254b2c24515c217f22f94fe68dfec819ae183242cbc2",
+      "talents": [
+        {
+          "id": "talent.bladedancer.weakness",
+          "name": "Weakness",
+          "position": {
+            "x": 0.35
+          },
+          "tier": 1,
+          "required_points": 0,
+          "max_ranks": 5,
+          "prerequisites": [],
+          "draft_description": "Increase armor shred by 5 per point",
+          "icon_path": "res://assets/ui/assigned/talents/bladedancer/weakness.png",
+          "skill_grant": null
+        },
+        {
+          "id": "talent.bladedancer.wet_stone",
+          "name": "Whetstone",
+          "position": {
+            "x": 0.5
+          },
+          "tier": 1,
+          "required_points": 0,
+          "max_ranks": 5,
+          "prerequisites": [],
+          "draft_description": "Increase base physical damage by 1 per point",
+          "icon_path": "res://assets/ui/assigned/talents/bladedancer/whetstone.png",
+          "skill_grant": null
+        },
+        {
+          "id": "talent.bladedancer.opportunity",
+          "name": "Opportunity",
+          "position": {
+            "x": 0.7
+          },
+          "tier": 3,
+          "required_points": 10,
+          "max_ranks": 3,
+          "prerequisites": [
+            "talent.bladedancer.rending_slash"
+          ],
+          "draft_description": "Quick Cut has a chance to trigger rending slash",
+          "icon_path": "res://assets/ui/assigned/talents/bladedancer/opportunity.png",
+          "skill_grant": null
+        },
+        {
+          "id": "talent.bladedancer.virulent_corruption",
+          "name": "Virulent Corruption",
+          "position": {
+            "x": 0.5
+          },
+          "tier": 5,
+          "required_points": 20,
+          "max_ranks": 1,
+          "prerequisites": [],
+          "draft_description": "Increased armor shred by 100. Increase Shred stacks by +2. Shred can no longer be cleansed",
+          "icon_path": "res://assets/ui/assigned/talents/bladedancer/virulent_corruption.png",
+          "skill_grant": null
+        },
+        {
+          "id": "talent.bladedancer.rending_slash",
+          "name": "Rending Slash",
+          "position": {
+            "x": 0.7
+          },
+          "tier": 1,
+          "required_points": 0,
+          "max_ranks": 1,
+          "prerequisites": [],
+          "draft_description": "Unlocks Rending Slash ",
+          "icon_path": "res://assets/ui/assigned/talents/bladedancer/rending_slash.png",
+          "skill_grant": "skill.rending_thrust"
+        },
+        {
+          "id": "talent.bladedancer.fancy_footwork",
+          "name": "Fancy Footwork",
+          "position": {
+            "x": 0.55
+          },
+          "tier": 2,
+          "required_points": 5,
+          "max_ranks": 5,
+          "prerequisites": [],
+          "draft_description": "Quick cut grants stacks of Footwork. Footwork lasts for 3 sec and stacks up to 5 times. Leaping Plunge consumes all stacks of Footwork for increased attack speed.",
+          "icon_path": "res://assets/ui/assigned/talents/bladedancer/fancy_footwork.png",
+          "skill_grant": null
+        },
+        {
+          "id": "talent.bladedancer.precision_attacks",
+          "name": "Precision Attacks",
+          "position": {
+            "x": 0.4
+          },
+          "tier": 2,
+          "required_points": 5,
+          "max_ranks": 1,
+          "prerequisites": [],
+          "draft_description": "Quick cut grants a stack of Precision. Your next Stab or Heavy Strike consumes a stack of Precision causing it to automatically retrigger. ",
+          "icon_path": "res://assets/ui/assigned/talents/bladedancer/precision_attacks.png",
+          "skill_grant": null
+        },
+        {
+          "id": "talent.bladedancer.double_dip",
+          "name": "Double Dip",
+          "position": {
+            "x": 0.25
+          },
+          "tier": 2,
+          "required_points": 5,
+          "max_ranks": 2,
+          "prerequisites": [],
+          "draft_description": "Your crit chance is increased by your retrigger chance",
+          "icon_path": "res://assets/ui/assigned/talents/bladedancer/double_dip.png",
+          "skill_grant": null
+        },
+        {
+          "id": "talent.bladedancer.sharpened_edge",
+          "name": "Sharpened Edge",
+          "position": {
+            "x": 0.4
+          },
+          "tier": 3,
+          "required_points": 10,
+          "max_ranks": 5,
+          "prerequisites": [
+            "talent.bladedancer.precision_attacks"
+          ],
+          "draft_description": "Increase the damage of Stab and Heavy Strike",
+          "icon_path": "res://assets/ui/assigned/talents/bladedancer/sharpened_edge.png",
+          "skill_grant": null
+        },
+        {
+          "id": "talent.bladedancer.cloak_and_dagger",
+          "name": "Cloak & Dagger",
+          "position": {
+            "x": 0.25
+          },
+          "tier": 3,
+          "required_points": 10,
+          "max_ranks": 2,
+          "prerequisites": [],
+          "draft_description": "Increase your critical damage",
+          "icon_path": "res://assets/ui/assigned/talents/bladedancer/cloak_dagger.png",
+          "skill_grant": null
+        },
+        {
+          "id": "talent.bladedancer.riposte",
+          "name": "Riposte",
+          "position": {
+            "x": 0.55
+          },
+          "tier": 4,
+          "required_points": 15,
+          "max_ranks": 2,
+          "prerequisites": [
+            "talent.bladedancer.fancy_footwork"
+          ],
+          "draft_description": "Footwork stacks also increase the damage of Leaping Plunge",
+          "icon_path": "res://assets/ui/assigned/talents/bladedancer/riposte.png",
+          "skill_grant": null
+        },
+        {
+          "id": "talent.bladedancer.side_step",
+          "name": "Side Step",
+          "position": {
+            "x": 0.4
+          },
+          "tier": 4,
+          "required_points": 15,
+          "max_ranks": 1,
+          "prerequisites": [],
+          "draft_description": "Parry Strike has 100% crit chance",
+          "icon_path": "res://assets/ui/assigned/talents/bladedancer/side_step.png",
+          "skill_grant": null
+        },
+        {
+          "id": "talent.bladedancer.weapon_master",
+          "name": "Weapon Master",
+          "position": {
+            "x": 0.25
+          },
+          "tier": 4,
+          "required_points": 15,
+          "max_ranks": 2,
+          "prerequisites": [],
+          "draft_description": "Increase all physical damage",
+          "icon_path": "res://assets/ui/assigned/talents/bladedancer/weapon_master.png",
+          "skill_grant": null
+        }
+      ],
+      "unlocks": [
+        {
+          "id": "unlock.bladedancer.slot_1",
+          "required_points": 1,
+          "draft_description": "Low damage, fast attack, high dps",
+          "skill_id": "skill.quick_cut",
+          "name": "Quick Cut",
+          "icon_path": "res://assets/ui/assigned/skills/quick_cut.png"
+        },
+        {
+          "id": "unlock.bladedancer.slot_2",
+          "required_points": 3,
+          "draft_description": "Long windup high damage attack",
+          "skill_id": "skill.leaping_plunge",
+          "name": "Leaping Plunge",
+          "icon_path": "res://assets/ui/assigned/skills/leaping_plunge.png"
+        },
+        {
+          "id": "unlock.bladedancer.slot_3",
+          "required_points": 6,
+          "draft_description": "Very fast attack that can only be used after a retriggered attack",
+          "skill_id": "skill.parry_strike",
+          "name": "Parry Strike",
+          "icon_path": "res://assets/ui/assigned/skills/parry_strike.png"
+        },
+        {
+          "id": "unlock.bladedancer.slot_4",
+          "required_points": 9,
+          "draft_description": "",
+          "skill_id": null,
+          "name": "Unassigned",
+          "icon_path": null
+        },
+        {
+          "id": "unlock.bladedancer.slot_5",
+          "required_points": 12,
+          "draft_description": "For the next 5 sec. the first hit of any skill has 100% retrigger chance. 20 sec. cooldown",
+          "skill_id": "skill.dance_of_death",
+          "name": "Dance of Death",
+          "icon_path": "res://assets/ui/assigned/skills/dance_of_death.png"
+        }
+      ]
+    },
+    {
+      "id": "tree.thief",
+      "name": "Thief",
+      "source": "docs/talent_tree_drafts/Thief.json",
+      "source_sha256": "029ea87fd1c31f6251c7d9b8024de9a58134e3f6c5fe4cf28a8cbd1b00fdebaf",
+      "talents": [
+        {
+          "id": "talent.gilded_blade",
+          "name": "Gilded Blade",
+          "position": {
+            "x": 0.5
+          },
+          "tier": 5,
+          "required_points": 20,
+          "max_ranks": 1,
+          "prerequisites": [],
+          "draft_description": "1% crit damage per gold is stash (Capped at 500)",
+          "icon_path": "res://assets/ui/assigned/talents/thief/gilded_blade.png",
+          "skill_grant": null
+        },
+        {
+          "id": "talent.keen_eye",
+          "name": "Keen Eye",
+          "position": {
+            "x": 0.4
+          },
+          "tier": 1,
+          "required_points": 0,
+          "max_ranks": 5,
+          "prerequisites": [],
+          "draft_description": "2% Increased all damage per point",
+          "icon_path": "res://assets/ui/assigned/talents/thief/keen_eye.png",
+          "skill_grant": null
+        },
+        {
+          "id": "talent.sticky_fingers",
+          "name": "Sticky Fingers",
+          "position": {
+            "x": 0.6
+          },
+          "tier": 1,
+          "required_points": 0,
+          "max_ranks": 5,
+          "prerequisites": [],
+          "draft_description": "10% Increased gold per point",
+          "icon_path": "res://assets/ui/assigned/talents/thief/sticky_fingers.png",
+          "skill_grant": null
+        },
+        {
+          "id": "talent.thief.silvered_edge",
+          "name": "Silvered Edge",
+          "position": {
+            "x": 0.6
+          },
+          "tier": 3,
+          "required_points": 10,
+          "max_ranks": 3,
+          "prerequisites": [],
+          "draft_description": "Add 1% crit per gold stolen. ",
+          "icon_path": "res://assets/ui/assigned/talents/thief/silvered_edge.png",
+          "skill_grant": null
+        },
+        {
+          "id": "talent.thief.fast_hands",
+          "name": "Fast Hands",
+          "position": {
+            "x": 0.3
+          },
+          "tier": 2,
+          "required_points": 5,
+          "max_ranks": 5,
+          "prerequisites": [],
+          "draft_description": "You attack speed is increased based on a percentage of your Increased Gold",
+          "icon_path": "res://assets/ui/assigned/talents/thief/fast_hands.png",
+          "skill_grant": null
+        },
+        {
+          "id": "talent.thief.fill_your_pockets",
+          "name": "Fill Your Pockets",
+          "position": {
+            "x": 0.45
+          },
+          "tier": 2,
+          "required_points": 5,
+          "max_ranks": 5,
+          "prerequisites": [],
+          "draft_description": "Increase your elemental damage based on a percentage of magic find",
+          "icon_path": "res://assets/ui/assigned/talents/thief/fill_your_pockets.png",
+          "skill_grant": null
+        },
+        {
+          "id": "talent.thief.charisma",
+          "name": "Charisma",
+          "position": {
+            "x": 0.7
+          },
+          "tier": 2,
+          "required_points": 5,
+          "max_ranks": 3,
+          "prerequisites": [],
+          "draft_description": "Increased Shop Discount",
+          "icon_path": "res://assets/ui/assigned/talents/thief/charisma.png",
+          "skill_grant": null
+        },
+        {
+          "id": "talent.thief.load_dice",
+          "name": "Loaded Dice",
+          "position": {
+            "x": 0.7
+          },
+          "tier": 4,
+          "required_points": 15,
+          "max_ranks": 3,
+          "prerequisites": [
+            "talent.thief.charisma"
+          ],
+          "draft_description": "Increased Magic Find",
+          "icon_path": "res://assets/ui/assigned/talents/thief/load_dice.png",
+          "skill_grant": null
+        },
+        {
+          "id": "talent.thief.bribery",
+          "name": "Bribery",
+          "position": {
+            "x": 0.4
+          },
+          "tier": 3,
+          "required_points": 10,
+          "max_ranks": 3,
+          "prerequisites": [],
+          "draft_description": "Stealing gold applies shred",
+          "icon_path": "res://assets/ui/assigned/talents/thief/bribery.png",
+          "skill_grant": null
+        },
+        {
+          "id": "talent.thief.finders_keepers",
+          "name": "Finders Keepers",
+          "position": {
+            "x": 0.5
+          },
+          "tier": 4,
+          "required_points": 15,
+          "max_ranks": 2,
+          "prerequisites": [],
+          "draft_description": "Attacks ingore block",
+          "icon_path": "res://assets/ui/assigned/talents/thief/finders_keepers.png",
+          "skill_grant": null
+        }
+      ],
+      "unlocks": [
+        {
+          "id": "unlock.thief.slot_1",
+          "required_points": 1,
+          "draft_description": "Crits steal 3 gold",
+          "skill_id": "skill.steal",
+          "name": "Steal",
+          "icon_path": "res://assets/ui/assigned/skills/steal.png"
+        },
+        {
+          "id": "unlock.thief.slot_2",
+          "required_points": 3,
+          "draft_description": "Add stolen gold as base physical damage (cap 100)",
+          "skill_id": "skill.mug",
+          "name": "Mug",
+          "icon_path": "res://assets/ui/assigned/skills/mug.png"
+        },
+        {
+          "id": "unlock.thief.slot_3",
+          "required_points": 6,
+          "draft_description": "Low damage but steals 20 gold",
+          "skill_id": "skill.pick_pocket",
+          "name": "Pick pocket",
+          "icon_path": "res://assets/ui/assigned/skills/pick_pocket.png"
+        },
+        {
+          "id": "unlock.thief.slot_4",
+          "required_points": 9,
+          "draft_description": "",
+          "skill_id": null,
+          "name": "Unassigned",
+          "icon_path": null
+        },
+        {
+          "id": "unlock.thief.slot_5",
+          "required_points": 12,
+          "draft_description": "Physical damage attack that does 2X crit damage",
+          "skill_id": "skill.big_score",
+          "name": "Big Score",
+          "icon_path": "res://assets/ui/assigned/skills/big_score.png"
+        }
+      ]
+    },
+    {
+      "id": "tree.assassin",
+      "name": "Assassin",
+      "source": "docs/talent_tree_drafts/Assassin.json",
+      "source_sha256": "7c70b4c80ccf089e9b0f8069db7827ffa8c703b52a4fbf1ce48111e80b8081bd",
+      "talents": [
+        {
+          "id": "talent.assassin.quick_hands",
+          "name": "Quick Hands",
+          "position": {
+            "x": 0.4
+          },
+          "tier": 1,
+          "required_points": 0,
+          "max_ranks": 5,
+          "prerequisites": [],
+          "draft_description": "Increase attack speed by 1% per point.",
+          "icon_path": "res://assets/ui/assigned/talents/assassin/quick_hands.png",
+          "skill_grant": null
+        },
+        {
+          "id": "talent.assassin.precision",
+          "name": "Precision",
+          "position": {
+            "x": 0.6
+          },
+          "tier": 1,
+          "required_points": 0,
+          "max_ranks": 5,
+          "prerequisites": [],
+          "draft_description": "Increase crit chance by 1 percentage point per rank.",
+          "icon_path": "res://assets/ui/assigned/talents/assassin/precision.png",
+          "skill_grant": null
+        },
+        {
+          "id": "talent.assassin.hastened_poison",
+          "name": "Hastened Poison",
+          "position": {
+            "x": 0.3
+          },
+          "tier": 2,
+          "required_points": 5,
+          "max_ranks": 5,
+          "prerequisites": [],
+          "draft_description": "Poison tick rate is increased by attack speed.",
+          "icon_path": "res://assets/ui/assigned/talents/assassin/hastened_poison.png",
+          "skill_grant": null
+        },
+        {
+          "id": "talent.assassin.echoing_toxin",
+          "name": "Echoing Toxin",
+          "position": {
+            "x": 0.5
+          },
+          "tier": 2,
+          "required_points": 5,
+          "max_ranks": 3,
+          "prerequisites": [],
+          "draft_description": "Poison now consumes 2 stacks each tick, but the damage is increased.",
+          "icon_path": "res://assets/ui/assigned/talents/assassin/echoing_toxin.png",
+          "skill_grant": null
+        },
+        {
+          "id": "talent.assassin.poison_strike",
+          "name": "Poison Strike",
+          "position": {
+            "x": 0.7
+          },
+          "tier": 2,
+          "required_points": 5,
+          "max_ranks": 1,
+          "prerequisites": [],
+          "draft_description": "Unlock Poison Strike: hits from Poison Strike cause poison ticks.",
+          "icon_path": "res://assets/ui/assigned/talents/assassin/poison_strike.png",
+          "skill_grant": "skill.poison_strike"
+        },
+        {
+          "id": "talent.assassin.bypass",
+          "name": "Bypass",
+          "position": {
+            "x": 0.4
+          },
+          "tier": 3,
+          "required_points": 10,
+          "max_ranks": 1,
+          "prerequisites": [],
+          "draft_description": "Stab grants a stack of Bypass. Bypass lasts for 3 sec. and can stack up to 3 times. Each stack provides x10% elemental damage increase (x30% total).",
+          "icon_path": "res://assets/ui/assigned/talents/assassin/bypass.png",
+          "skill_grant": null
+        },
+        {
+          "id": "talent.assassin.toxic_tradeoff",
+          "name": "Toxic Tradeoff",
+          "position": {
+            "x": 0.6
+          },
+          "tier": 3,
+          "required_points": 10,
+          "max_ranks": 5,
+          "prerequisites": [],
+          "draft_description": "Increase poison damage; reduce physical damage. Both values are illustrative.",
+          "icon_path": "res://assets/ui/assigned/talents/assassin/toxic_tradeoff.png",
+          "skill_grant": null
+        },
+        {
+          "id": "talent.assassin.accelerant",
+          "name": "Accelerant",
+          "position": {
+            "x": 0.3
+          },
+          "tier": 4,
+          "required_points": 15,
+          "max_ranks": 5,
+          "prerequisites": [
+            "talent.assassin.hastened_poison"
+          ],
+          "draft_description": "Increase the attack-speed scaling of poison ticks. Value is illustrative.",
+          "icon_path": "res://assets/ui/assigned/talents/assassin/accelerant.png",
+          "skill_grant": null
+        },
+        {
+          "id": "talent.assassin.resonance",
+          "name": "Resonance",
+          "position": {
+            "x": 0.5
+          },
+          "tier": 4,
+          "required_points": 15,
+          "max_ranks": 4,
+          "prerequisites": [
+            "talent.assassin.echoing_toxin"
+          ],
+          "draft_description": "Poison now consumes 3 stacks, and the damage is increased further. ",
+          "icon_path": "res://assets/ui/assigned/talents/assassin/resonance.png",
+          "skill_grant": null
+        },
+        {
+          "id": "talent.assassin.critical_poison",
+          "name": "Critical Poison",
+          "position": {
+            "x": 0.5
+          },
+          "tier": 5,
+          "required_points": 20,
+          "max_ranks": 1,
+          "prerequisites": [],
+          "draft_description": "Poison can crit. Each tick of poison has a chance to crit  based on your crit chance. The damage is increased by you crit damage. ",
+          "icon_path": "res://assets/ui/assigned/talents/assassin/critical_poison.png",
+          "skill_grant": null
+        }
+      ],
+      "unlocks": [
+        {
+          "id": "unlock.assassin.slot_1",
+          "required_points": 1,
+          "draft_description": "Apply 5 stacks of poison.",
+          "skill_id": "skill.venom_jab",
+          "name": "Venom Jab",
+          "icon_path": "res://assets/ui/assigned/skills/venom_jab.png"
+        },
+        {
+          "id": "unlock.assassin.slot_2",
+          "required_points": 3,
+          "draft_description": "Poison ignores <Assassin Level> absorb. Assassin Level means tree points in this mockup; definition remains a design question.",
+          "skill_id": "skill.blinding_powder",
+          "name": "Blinding Powder",
+          "icon_path": "res://assets/ui/assigned/skills/blinding_powder.png"
+        },
+        {
+          "id": "unlock.assassin.slot_3",
+          "required_points": 6,
+          "draft_description": "The next 5 ticks of poison do 2x damage.",
+          "skill_id": "skill.virulent_poison",
+          "name": "Virulent Poison",
+          "icon_path": "res://assets/ui/assigned/skills/virulent_poison.png"
+        },
+        {
+          "id": "unlock.assassin.slot_4",
+          "required_points": 9,
+          "draft_description": "Your elemental damage ignores resistance for the next 5 sec.",
+          "skill_id": "skill.master_of_poisons",
+          "name": "Master of Poisons",
+          "icon_path": "res://assets/ui/assigned/skills/master_of_poisons.png"
+        },
+        {
+          "id": "unlock.assassin.slot_5",
+          "required_points": 12,
+          "draft_description": "Applies 20 stacks of poison",
+          "skill_id": "skill.poison_vile",
+          "name": "Poison Vile",
+          "icon_path": "res://assets/ui/assigned/skills/poison_vile.png"
+        }
+      ]
+    },
+    {
+      "id": "tree.shadow",
+      "name": "Shadow",
+      "source": "docs/talent_tree_drafts/Shadow.json",
+      "source_sha256": "51d463c626cf8e9939cee445799f5136c330e293e1b5d334c3ce058e8f0571a7",
+      "talents": [
+        {
+          "id": "talent.umbral_pressure",
+          "name": "Umbral Presence",
+          "position": {
+            "x": 0.5
+          },
+          "tier": 5,
+          "required_points": 20,
+          "max_ranks": 1,
+          "prerequisites": [],
+          "draft_description": "Increase Poison stack cap to 80",
+          "icon_path": "res://assets/ui/assigned/talents/shadow/umbral_presence.png",
+          "skill_grant": null
+        },
+        {
+          "id": "talent.shadow.coated_weapons",
+          "name": "Coated Weapons",
+          "position": {
+            "x": 0.7
+          },
+          "tier": 1,
+          "required_points": 0,
+          "max_ranks": 1,
+          "prerequisites": [],
+          "draft_description": "Stab and Heavy Slash now apply 2 stacks of Poison",
+          "icon_path": "res://assets/ui/assigned/talents/shadow/coated_weapons.png",
+          "skill_grant": null
+        },
+        {
+          "id": "talent.shadow.blind_spot",
+          "name": "Blind Spot",
+          "position": {
+            "x": 0.5
+          },
+          "tier": 1,
+          "required_points": 0,
+          "max_ranks": 5,
+          "prerequisites": [],
+          "draft_description": "Increased crit chance",
+          "icon_path": "res://assets/ui/assigned/talents/shadow/blind_spot.png",
+          "skill_grant": null
+        },
+        {
+          "id": "talent.shadow.snake_oil",
+          "name": "Snake Oil",
+          "position": {
+            "x": 0.35
+          },
+          "tier": 1,
+          "required_points": 0,
+          "max_ranks": 4,
+          "prerequisites": [],
+          "draft_description": "Increased Base Elemental Damage",
+          "icon_path": "res://assets/ui/assigned/talents/shadow/snake_oil.png",
+          "skill_grant": null
+        },
+        {
+          "id": "talent.shadow.death_touch",
+          "name": "Death Touch",
+          "position": {
+            "x": 0.6
+          },
+          "tier": 3,
+          "required_points": 10,
+          "max_ranks": 3,
+          "prerequisites": [],
+          "draft_description": "All stacks you apply are increased",
+          "icon_path": "res://assets/ui/assigned/talents/shadow/death_touch.png",
+          "skill_grant": null
+        },
+        {
+          "id": "talent.shadow.dusk_strike",
+          "name": "Dusk Strike",
+          "position": {
+            "x": 0.5
+          },
+          "tier": 4,
+          "required_points": 15,
+          "max_ranks": 1,
+          "prerequisites": [],
+          "draft_description": "When you apply decay you also apply shred. +10 armor reduction per Shred stack.",
+          "icon_path": "res://assets/ui/assigned/talents/shadow/dusk_strike.png",
+          "skill_grant": null
+        },
+        {
+          "id": "talent.shadow.shadow_mastery",
+          "name": "Shadow Mastery",
+          "position": {
+            "x": 0.35
+          },
+          "tier": 4,
+          "required_points": 15,
+          "max_ranks": 5,
+          "prerequisites": [
+            "talent.shadow.deception"
+          ],
+          "draft_description": "A portion of your elemental damage bonuses are converted to physical ",
+          "icon_path": "res://assets/ui/assigned/talents/shadow/shadow_mastery.png",
+          "skill_grant": null
+        },
+        {
+          "id": "talent.shadow.deception",
+          "name": "Deception",
+          "position": {
+            "x": 0.35
+          },
+          "tier": 2,
+          "required_points": 5,
+          "max_ranks": 5,
+          "prerequisites": [
+            "talent.shadow.snake_oil"
+          ],
+          "draft_description": "Increased Elemental Damage",
+          "icon_path": "res://assets/ui/assigned/talents/shadow/deception.png",
+          "skill_grant": null
+        },
+        {
+          "id": "talent.shadow.death_from_the_shadows",
+          "name": "Death from the Shadows",
+          "position": {
+            "x": 0.5
+          },
+          "tier": 2,
+          "required_points": 5,
+          "max_ranks": 5,
+          "prerequisites": [],
+          "draft_description": "Increased crit damage",
+          "icon_path": "res://assets/ui/assigned/talents/shadow/death_from_the_shadows.png",
+          "skill_grant": null
+        },
+        {
+          "id": "talent.shadow.death_pact",
+          "name": "Death Pact",
+          "position": {
+            "x": 0.45
+          },
+          "tier": 3,
+          "required_points": 10,
+          "max_ranks": 3,
+          "prerequisites": [],
+          "draft_description": "Consuming Poison or Decay grants stacks of Death Pact equal to the number of stacks consumed. Each stack of Death Pact ignores 1 block or 1 absorb.  ",
+          "icon_path": "res://assets/ui/assigned/talents/shadow/death_pact.png",
+          "skill_grant": null
+        },
+        {
+          "id": "talent.shadow.death_blade",
+          "name": "Death Blade",
+          "position": {
+            "x": 0.7
+          },
+          "tier": 4,
+          "required_points": 15,
+          "max_ranks": 2,
+          "prerequisites": [
+            "talent.shadow.coated_weapons"
+          ],
+          "draft_description": "Stab can no longer apply poison. When you apply poison you have a chance to trigger stab.",
+          "icon_path": "res://assets/ui/assigned/talents/shadow/death_blade.png",
+          "skill_grant": null
+        }
+      ],
+      "unlocks": [
+        {
+          "id": "unlock.shadow.slot_1",
+          "required_points": 1,
+          "draft_description": "Applies 1 stack of decay",
+          "skill_id": "skill.toxic_flurry",
+          "name": "Beguiling Strike",
+          "icon_path": "res://assets/ui/assigned/skills/beguiling_strike.png"
+        },
+        {
+          "id": "unlock.shadow.slot_2",
+          "required_points": 3,
+          "draft_description": "Adds poison stacks damage",
+          "skill_id": "skill.killers_mark",
+          "name": "Death Strike",
+          "icon_path": "res://assets/ui/assigned/skills/death_strike.png"
+        },
+        {
+          "id": "unlock.shadow.slot_3",
+          "required_points": 6,
+          "draft_description": "Does physical damage  and converts up to 5 stacks of Decay into Poison",
+          "skill_id": "skill.distilled_corruption",
+          "name": "Distilled Corruption",
+          "icon_path": "res://assets/ui/assigned/skills/distilled_corruption.png"
+        },
+        {
+          "id": "unlock.shadow.slot_4",
+          "required_points": 9,
+          "draft_description": "Consume all poison stacks to increase attack speed by 10% and base physical damage by 2 per stack consumed for 12 sec. 30 sec cooldown",
+          "skill_id": "skill.touch_of_darkness",
+          "name": "Touch of Darkness",
+          "icon_path": "res://assets/ui/assigned/skills/touch_of_darkness.png"
+        },
+        {
+          "id": "unlock.shadow.slot_5",
+          "required_points": 12,
+          "draft_description": "Consume all stacks of Decay to increase your elemental base damage by 1 and critical chance by 2 percentage points per stack consumed for 10 sec. 30 sec cooldown",
+          "skill_id": "skill.beguiling_presence",
+          "name": "Beguiling Presence",
+          "icon_path": "res://assets/ui/assigned/skills/beguiling_presence.png"
+        }
+      ]
+    }
+  ]
+}

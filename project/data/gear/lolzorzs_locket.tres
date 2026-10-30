@@ -1,0 +1,40 @@
+[gd_resource type="Resource" script_class="GearItem" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/gear_item.gd" id="1_gear"]
+[ext_resource type="Script" path="res://scripts/resources/stat_modifier.gd" id="2_affix"]
+
+[sub_resource type="Resource" id="Resource_affix_0"]
+script = ExtResource("2_affix")
+stat_id = "base_damage"
+stat = 4
+category = 0
+operation = 0
+value = 15.0
+
+[sub_resource type="Resource" id="Resource_affix_1"]
+script = ExtResource("2_affix")
+stat_id = "base_elemental_damage"
+stat = 3
+category = 0
+operation = 0
+value = 15.0
+
+[sub_resource type="Resource" id="Resource_affix_2"]
+script = ExtResource("2_affix")
+stat_id = "cooldown_reduction"
+stat = 0
+category = 1
+operation = 0
+value = 0.15
+
+[resource]
+script = ExtResource("1_gear")
+id = "gear.legendary.lolzorzs_locket"
+display_name = "Lolzorz's Locket"
+legendary_effect_id = "locket"
+slot = 2
+tier = 3
+item_family = "Charm"
+class_family = 1
+source_kind = 3
+affixes = Array[StatModifier]([SubResource("Resource_affix_0"), SubResource("Resource_affix_1"), SubResource("Resource_affix_2")])

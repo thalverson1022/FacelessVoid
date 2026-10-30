@@ -82,6 +82,8 @@ func _check_impossible_roll_plans_fail_before_affixes() -> void:
 		{"category": StatCatalog.CATEGORY_SPECIAL, "is_drawback": false},
 		{"category": StatCatalog.CATEGORY_SPECIAL, "is_drawback": false},
 	]
+	# Weapon now has four Specials; five distinct rolls are impossible.
+	too_many_specials.append({"category": StatCatalog.CATEGORY_SPECIAL, "is_drawback": false})
 	var weapon_special_result := GearGenerator._affixes_for_rolls(GearItem.SlotType.WEAPON, GearItem.Tier.UNIQUE, too_many_specials, rng)
 	_require((weapon_special_result["affixes"] as Array).is_empty(), "Expected impossible Special plan to return no partial affixes.")
 	_require((weapon_special_result["errors"] as PackedStringArray).has("insufficient_special_pool:Weapon"), "Expected impossible Special plan to fail loudly.")

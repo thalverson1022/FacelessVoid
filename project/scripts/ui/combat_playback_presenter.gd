@@ -1,5 +1,6 @@
 class_name CombatPlaybackPresenter
 extends Node
+var category_preview
 ## Owns the CombatPlayback instance and translates each fired timeline event
 ## into HUD/stage/popup/macro-strip updates. Extracted from combat_screen.gd's
 ## inline playback/VFX layer (docs/Phase_3_Technical_Debt_Architecture_Cleanup.md
@@ -36,12 +37,14 @@ signal gold_stolen_played(amount: int)
 
 const PLAYBACK_HP_TWEEN_SEC := 0.15
 const PLAYBACK_TICK_HP_TWEEN_SEC := 0.3
-const HUD_POISON_ICON := preload("res://assets/combat_ui_icons/poison_stack.png")
-const HUD_SHRED_ICON := preload("res://assets/combat_ui_icons/shred.png")
-const HUD_DECAY_ICON := preload("res://assets/combat_ui_icons/decay.png")
-const MECHANIC_INTERRUPT_ICON := preload("res://assets/ui/icons/mechanics/interrupt.png")
+static var HUD_POISON_ICON: Texture2D = GameIcons.icon_for("status.poison")
+static var HUD_SHRED_ICON: Texture2D = GameIcons.icon_for("status.shred")
+static var HUD_DECAY_ICON: Texture2D = GameIcons.icon_for("status.decay")
+static var MECHANIC_INTERRUPT_ICON: Texture2D = GameIcons.icon_for("defense.interrupt")
 
 var skipping := false
+var effect_icons: CombatEffectIcons
+var clock_frost: Control
 
 var _playback: CombatPlayback = null
 var _intro_remaining_sec := 0.0
@@ -49,6 +52,8 @@ var _intro_duration_sec := 0.0
 var _intro_scales_with_playback_speed := true
 var _result: CombatResolver.CombatResult = null
 var _monster: Monster = null
+var _presentation_owner: Object
+var _owned_presentation_model
 
 var _hp := 0.0
 var _armor := 0
@@ -108,11 +113,18 @@ func elapsed_ms() -> float:
 	return _playback.elapsed_ms() if _playback != null else 0.0
 
 
+func countdown_remaining_ms() -> float:
+	return _playback.countdown_remaining_ms() if _playback != null else 0.0
+
+
 func window_ms() -> int:
 	return _playback.window_ms() if _playback != null else 0
 
 
 func set_speed(speed: float) -> void:
+	if _combat_stage != null: _combat_stage._clear_flurry()
+	_cancel_combat_audio()
+	if category_preview != null: category_preview.clear_feedback()
 	if _playback != null:
 		_playback.speed = speed
 
@@ -126,7 +138,20 @@ func set_speed(speed: float) -> void:
 ## text, or _playback_active -- see this class's header for why those stay
 ## with the caller.
 func start(result: CombatResolver.CombatResult, monster: Monster, wyvern_effect_active: bool, bandit_blade_effect_active: bool, play_intro_animation: bool, play_contract_traversal: bool = false, effective_slow: float = -1.0) -> void:
+	_cancel_combat_audio()
+	if category_preview != null: category_preview.clear()
+	play_intro_animation = play_intro_animation and not CombatEffectIcons.reduced_motion
 	_result = result
+	if clock_frost != null: clock_frost.set_active(result.countdown_rate < 1.0)
+	if _skill_build_panel != null: _skill_build_panel.clear_presentation()
+	if effect_icons != null:
+		if not effect_icons.motion_changed.is_connected(_on_motion_changed):
+			effect_icons.motion_changed.connect(_on_motion_changed)
+		effect_icons.begin(result)
+		if _skill_build_panel != null:
+			_skill_build_panel.state.set_meta("combat_presentation", effect_icons.model)
+			_presentation_owner = _skill_build_panel.state
+			_owned_presentation_model = effect_icons.model
 	_monster = monster
 	_hp = float(monster.hp)
 	_armor = monster.armor
@@ -143,6 +168,7 @@ func start(result: CombatResolver.CombatResult, monster: Monster, wyvern_effect_
 		_popup_layer.wyvern_tick_font_active = wyvern_effect_active
 	if _combat_stage != null:
 		_combat_stage.reset_state()
+		_combat_stage.configure_legendary_effects(result.presentation_initial.get("legendary_visuals", {}))
 		_combat_stage.set_bandit_blade_effect_active(bandit_blade_effect_active)
 		_combat_stage.set_slow_effect_active(slow > 0.0, slow, play_intro_animation)
 	if _skill_build_panel != null and _skill_build_panel.has_method("clear_combat_highlight"):
@@ -194,6 +220,9 @@ func advance(delta: float) -> void:
 			return
 		delta = overflow_delta
 	_playback.advance(delta)
+	if _playback != null and effect_icons != null:
+		effect_icons.advance_to(int(_playback.elapsed_ms()), _playback.record_frontier())
+		_sync_presentation()
 	_update_macro_progress()
 
 
@@ -202,6 +231,9 @@ func advance(delta: float) -> void:
 ## spawning and per-hit tweening are suppressed while the burst of remaining
 ## events fires.
 func skip() -> void:
+	if _popup_layer != null: _popup_layer.clear_retrigger_popups()
+	_cancel_combat_audio()
+	if category_preview != null: category_preview.clear()
 	if _playback == null:
 		return
 	skipping = true
@@ -216,12 +248,14 @@ func skip() -> void:
 
 
 func _update_macro_progress() -> void:
-	if _playback == null or _skill_build_panel == null or not _skill_build_panel.has_method("set_cast_progress"):
+	if _playback == null:
 		return
 	var cast := _playback.active_cast()
 	if cast == null:
 		return
-	_skill_build_panel.set_cast_progress(cast.rotation_index, _playback.active_cast_progress(), cast.min_cast_time_proc_applied)
+	if category_preview != null: category_preview.update_cast_progress(cast,_playback.active_cast_progress(),_playback.speed)
+	if _skill_build_panel != null and _skill_build_panel.has_method("set_cast_progress"):
+		_skill_build_panel.set_cast_progress(cast.rotation_index, _playback.active_cast_progress(), cast.min_cast_time_proc_applied)
 
 
 ## Applies one fired timeline event to the live HUD: drains HP with a quick
@@ -230,35 +264,45 @@ func _update_macro_progress() -> void:
 ## _hud_final_poison_resist() use -- no combat math reimplemented), refreshes
 ## the info line and status chips, and spawns the matching comic-book popup.
 func _on_event(event: CombatPlayback.PlaybackEvent) -> void:
+	if effect_icons != null:
+		effect_icons.advance_to(event.time_ms, event.sequence if event.sequence > 0 else 9223372036854775807)
 	if event.is_tick:
 		_stacks = event.tick.stacks_remaining
 		if _combat_stage != null:
-			_combat_stage.set_poison_stacks(_stacks, not skipping)
+			_combat_stage.set_poison_stacks(_stacks, not skipping and not CombatEffectIcons.reduced_motion)
 		if event.tick.had_active_stack:
 			if _combat_stage != null:
-				_combat_stage.play_poison_tick_pulse(not skipping)
+				_combat_stage.play_poison_tick_pulse(not skipping and event.chain_count <= 1 and not CombatEffectIcons.reduced_motion)
+				_combat_stage.play_poison_retrigger_event(event, _playback.speed if _playback != null else 1.0, not skipping and not CombatEffectIcons.reduced_motion)
+				if event.tick.keyword_consume:
+					_combat_stage.play_legendary_poison_consume(not skipping and not CombatEffectIcons.reduced_motion)
 			_hp = maxf(_hp - event.tick.damage, 0.0)
 			_apply_hp(PLAYBACK_TICK_HP_TWEEN_SEC)
-			# "Poison -N" matches the "SkillName -N" pattern the physical
-			# cast popups use, for visual cohesion; font size/color are
-			# unchanged, only the text gained a label.
-			if _popup_layer != null:
-				_popup_layer.spawn("Poison -%.0f" % event.tick.damage, CombatPopupLayer.Kind.POISON_TICK)
+			# Critical Poison keeps its green/tick lane and gains the same
+			# size emphasis, punctuation and punch used for critical attacks.
+			if _popup_layer != null and (event.chain_count <= 1 or event.tick.stacks_preserved) and not CombatEffectIcons.reduced_motion:
+				_popup_layer.spawn_poison_tick(event.tick.damage, event.tick.is_crit, event.tick.stacks_preserved)
 	else:
 		var cast := event.cast
+		if event.chain_count <= 1 and category_preview != null and category_preview.handles(cast):
+			category_preview.activate(cast,_playback.speed,not skipping)
 		if cast.gold_stolen > 0:
 			gold_stolen_played.emit(cast.gold_stolen)
 		var popup_delay := 0.0
-		if _combat_stage != null:
-			popup_delay = _combat_stage.play_cast_impact(cast, not skipping)
-		if (cast.physical_damage > 0.0 or cast.blocked_amount > 0.0) and not skipping:
+		if event.chain_count > 1 and _combat_stage != null and not skipping:
+			_combat_stage.play_retrigger_event(event, _playback.speed, not CombatEffectIcons.reduced_motion)
+		elif _combat_stage != null and not cast.cooldown_blocked and not cast.resource_unavailable and not (category_preview != null and category_preview.handles(cast)):
+			popup_delay = _combat_stage.play_cast_impact(cast, not skipping and not CombatEffectIcons.reduced_motion)
+		if event.chain_count <= 1 and _combat_stage != null and category_preview != null and category_preview.handles(cast):
+			_combat_stage.play_legendary_cast_effect(cast, not skipping and not CombatEffectIcons.reduced_motion)
+		if not skipping:
 			var audio_manager := get_node_or_null("/root/AudioManager")
-			if audio_manager != null and audio_manager.has_method("play_attack_sfx_for_cast"):
-				audio_manager.play_attack_sfx_for_cast(cast, _playback.speed, false)
+			if audio_manager != null and audio_manager.has_method("play_skill_sfx_for_cast"):
+				audio_manager.play_skill_sfx_for_cast(cast, _playback.speed, false, event.chain_count > 1, event.visual_beat)
 		if not cast.triggered_skill_names.is_empty() and _skill_build_panel != null and _skill_build_panel.has_method("highlight_rotation_index"):
 			_skill_build_panel.highlight_rotation_index(cast.rotation_index, true)
-		if cast.physical_damage > 0.0:
-			_hp = maxf(_hp - cast.physical_damage, 0.0)
+		if cast.total_health_loss() > 0.0:
+			_hp = maxf(_hp - cast.total_health_loss(), 0.0)
 		_armor -= cast.armor_reduction_applied
 		_armor_reduced += cast.armor_reduction_applied
 		_shred_stacks += cast.shred_stacks_applied
@@ -268,7 +312,7 @@ func _on_event(event: CombatPlayback.PlaybackEvent) -> void:
 		_stacks = mini(_stacks + cast.poison_stacks_applied, _poison_stack_cap())
 		if cast.poison_stacks_applied > 0:
 			if _combat_stage != null:
-				_combat_stage.set_poison_stacks(_stacks, not skipping)
+				_combat_stage.set_poison_stacks(_stacks, not skipping and not CombatEffectIcons.reduced_motion)
 		if cast.cleanse_triggered:
 			_armor = _monster.armor
 			_armor_reduced = 0
@@ -277,18 +321,25 @@ func _on_event(event: CombatPlayback.PlaybackEvent) -> void:
 			_resist = _monster.poison_resistance
 			_stacks = 0
 			if _combat_stage != null:
-				_combat_stage.set_poison_stacks(_stacks, not skipping)
-				_combat_stage.play_cleanse_effect(not skipping)
+				_combat_stage.set_poison_stacks(_stacks, not skipping and not CombatEffectIcons.reduced_motion)
+				_combat_stage.play_cleanse_effect(not skipping and not CombatEffectIcons.reduced_motion)
 			_pending_cleanse_status_flash = not skipping
 		if cast.stun_duration_ms > 0 and _combat_stage != null:
-			_combat_stage.play_stun_effect(cast.stun_duration_ms, not skipping)
+			_combat_stage.play_stun_effect(cast.stun_duration_ms, not skipping and not CombatEffectIcons.reduced_motion, event.chain_count > 1 and event.chain_index > 1)
 		if cast.stun_duration_ms > 0 and _skill_build_panel != null and _skill_build_panel.has_method("play_stun_effect"):
-			_skill_build_panel.play_stun_effect(cast.stun_duration_ms, not skipping, _playback.speed)
+			_skill_build_panel.play_stun_effect(cast.stun_duration_ms, not skipping and not CombatEffectIcons.reduced_motion, _playback.speed)
 		_interrupt_repeat_count = cast.interrupt_repeat_count_after
 		_update_interrupt_skill_lock(cast)
 		_apply_hp(PLAYBACK_HP_TWEEN_SEC)
-		_schedule_cast_popups(cast, popup_delay)
+		if event.chain_count <= 1 or event.chain_index == 1:
+			_schedule_cast_popups(cast, popup_delay)
+		elif event.visual_beat and not skipping and not CombatEffectIcons.reduced_motion and _popup_layer != null and not _is_hold_cast(cast):
+			var echo_color := Color.TRANSPARENT
+			if category_preview != null and category_preview.enabled and category_preview.Style.popup_selected(cast.skill):
+				echo_color = category_preview.Style.COLORS[cast.skill.category]
+			_popup_layer.spawn_retrigger(cast, event.chain_index, echo_color)
 	_update_hud_readout()
+	if effect_icons != null: _sync_presentation()
 
 
 func _on_cast_start(cast: CombatResolver.CastEvent) -> void:
@@ -297,8 +348,10 @@ func _on_cast_start(cast: CombatResolver.CastEvent) -> void:
 		_update_hud_readout()
 	if skipping:
 		return
-	if _combat_stage != null:
-		_combat_stage.play_cast_windup(cast, _playback.speed, true)
+	if _combat_stage != null and not cast.cooldown_blocked and not cast.resource_unavailable and not (category_preview != null and category_preview.handles(cast)):
+		_combat_stage.play_cast_windup(cast, _playback.speed, not CombatEffectIcons.reduced_motion)
+	if category_preview != null and category_preview.handles(cast) and not cast.cooldown_blocked and not cast.resource_unavailable:
+		category_preview.windup(cast, _playback.speed)
 	if _skill_build_panel != null and _skill_build_panel.has_method("set_cast_progress"):
 		_skill_build_panel.set_cast_progress(cast.rotation_index, 0.0, cast.min_cast_time_proc_applied)
 
@@ -342,6 +395,12 @@ func _schedule_cast_popups(cast: CombatResolver.CastEvent, delay_sec: float) -> 
 
 
 func _spawn_cast_popups(cast: CombatResolver.CastEvent) -> void:
+	if cast.cooldown_blocked: return
+	if category_preview != null and category_preview.handles(cast):
+		if not skipping: category_preview.show_cast(cast)
+		return
+	if CombatEffectIcons.reduced_motion or cast.cooldown_blocked or cast.resource_unavailable:
+		return
 	if _popup_layer == null:
 		return
 	var skill_name := cast.skill.display_name if cast.skill != null else "Attack"
@@ -355,9 +414,14 @@ func _spawn_cast_popups(cast: CombatResolver.CastEvent) -> void:
 	# The number is the event's full physical_damage, which already includes
 	# any triggered-skill damage folded into the same cast by the resolver;
 	# presentation splits the attack, but combat math stays merged.
+	var category_color := Color.TRANSPARENT
+	if category_preview != null and category_preview.enabled and category_preview.Style.popup_selected(cast.skill):
+		category_color = category_preview.Style.COLORS[cast.skill.category]
 	var damage_suffix := ""
 	if cast.was_dodged:
 		damage_suffix = " 0.0"
+	elif preload("res://scripts/ui/combat_effect_text.gd").is_health_removal(cast):
+		damage_suffix = " removes %.0f health" % cast.health_removed
 	elif cast.physical_damage > 0.0 or cast.blocked_amount > 0.0:
 		damage_suffix = " -%.0f" % cast.physical_damage
 	if cast.is_crit and cast.crit_negation_damage_prevented > 0.0 and _popup_layer.has_method("spawn_crit_negated"):
@@ -365,12 +429,13 @@ func _spawn_cast_popups(cast: CombatResolver.CastEvent) -> void:
 	elif cast.gold_stolen > 0 and _popup_layer.has_method("spawn_gold_hit"):
 		_popup_layer.spawn_gold_hit(skill_name, cast.physical_damage, cast.gold_stolen, cast.is_crit)
 	elif cast.is_crit:
-		_popup_layer.spawn("%s%s!" % [skill_name, damage_suffix], CombatPopupLayer.Kind.CRIT)
+		_popup_layer.spawn("%s%s!" % [skill_name, damage_suffix], CombatPopupLayer.Kind.CRIT, category_color)
 	elif cast.min_cast_time_proc_applied:
-		_popup_layer.spawn("%s%s PROC!" % [skill_name, damage_suffix], CombatPopupLayer.Kind.PROC)
+		_popup_layer.spawn("%s%s PROC!" % [skill_name, damage_suffix], CombatPopupLayer.Kind.PROC, category_color)
 	else:
-		_popup_layer.spawn("%s%s" % [skill_name, damage_suffix], CombatPopupLayer.Kind.NORMAL)
-	for triggered_name in cast.triggered_skill_names:
+		var label := _popup_layer.spawn("%s%s" % [skill_name, damage_suffix], CombatPopupLayer.Kind.NORMAL, category_color)
+		if label != null and preload("res://scripts/ui/combat_effect_text.gd").is_health_removal(cast): label.set_meta("health_removal_initial", true)
+	for triggered_name in [] if _playback != null and _playback.current_event_is_chain() else cast.triggered_skill_names:
 		_popup_layer.spawn(String(triggered_name), CombatPopupLayer.Kind.PROC)
 
 
@@ -388,7 +453,7 @@ func _apply_hp(tween_sec: float) -> void:
 		_hp_bar_tween.kill()
 	if _hud_health_bar == null:
 		return
-	if skipping:
+	if skipping or CombatEffectIcons.reduced_motion:
 		_hud_health_bar.value = _hp
 		return
 	_hp_bar_tween = create_tween()
@@ -406,6 +471,7 @@ func _update_hud_readout() -> void:
 	if _clear_status_chips.is_valid():
 		_clear_status_chips.call()
 	if _add_status_chip.is_valid():
+		CombatStatusIcons.add_timed_defense_chips(effect_icons.model if effect_icons != null else null, _add_status_chip)
 		_add_status_chip.call("x%d" % _stacks, UIColors.TEXT_POISON, HUD_POISON_ICON)
 		_add_status_chip.call("x%d" % _shred_stacks, UIColors.TEXT_WARNING, HUD_SHRED_ICON)
 		_add_status_chip.call("x%d" % _decay_stacks, UIColors.TEXT_MAGIC, HUD_DECAY_ICON)
@@ -423,6 +489,15 @@ func _update_hud_readout() -> void:
 ## reads elapsed_ms()/window_ms()/is_active() during the signal still sees
 ## the fight's final values, not already-reset defaults.
 func _on_finished() -> void:
+	if clock_frost != null: clock_frost.set_active(false)
+	if _popup_layer != null: _popup_layer.clear_retrigger_popups()
+	var audio := get_node_or_null("/root/AudioManager")
+	if audio != null: audio.cancel_combat_sfx(false)
+	if category_preview != null: category_preview.clear()
+	if effect_icons != null:
+		effect_icons.finish(_result)
+	if _skill_build_panel != null:
+		_skill_build_panel.clear_presentation()
 	if _hp_bar_tween != null and _hp_bar_tween.is_valid():
 		_hp_bar_tween.kill()
 	var result := _result
@@ -440,6 +515,7 @@ func _on_finished() -> void:
 		_skill_build_panel.set_combat_interaction_locked(false)
 	if _combat_stage != null and _combat_stage.has_method("set_slow_effect_active"):
 		_combat_stage.set_slow_effect_active(false)
+	if _combat_stage != null: _combat_stage._clear_flurry()
 	if was_skipped and _combat_stage != null and _combat_stage.has_method("clear_transient_effects"):
 		_combat_stage.clear_transient_effects()
 	_interrupt_skill_lock_counts.clear()
@@ -456,3 +532,45 @@ func _poison_stack_cap() -> int:
 	if _result == null:
 		return CombatResolver.MAX_POISON_STACKS
 	return maxi(1, _result.poison_stack_cap)
+
+
+func _sync_presentation() -> void:
+	var snapshot: Dictionary = effect_icons.model.statuses
+	_stacks = int(snapshot.get("poison", _stacks))
+	_shred_stacks = int(snapshot.get("shred", _shred_stacks))
+	_decay_stacks = int(snapshot.get("decay", _decay_stacks))
+	_armor = int(snapshot.get("armor", _armor))
+	_resist = float(snapshot.get("poison_resistance", _resist))
+	_update_hud_readout()
+	if _skill_build_panel != null:
+		_skill_build_panel.update_presentation(effect_icons.model, not skipping)
+
+
+func _on_motion_changed(enabled: bool) -> void:
+	_cancel_combat_audio()
+	if not enabled:
+		return
+	_intro_remaining_sec = 0
+	if _combat_stage != null:
+		_combat_stage.clear_transient_effects()
+	if _popup_layer != null:
+		_popup_layer.clear_transient_effects()
+	if _skill_build_panel != null:
+		_skill_build_panel.clear_stun_effect()
+		_skill_build_panel.clear_legendary_feedback()
+	if _hp_bar_tween != null and _hp_bar_tween.is_valid():
+		_hp_bar_tween.kill()
+	if _hud_health_bar != null:
+		_hud_health_bar.value = _hp
+
+
+func _cancel_combat_audio() -> void:
+	var audio := get_node_or_null("/root/AudioManager")
+	if audio != null: audio.cancel_combat_sfx()
+
+
+func _exit_tree() -> void:
+	_cancel_combat_audio()
+	if is_instance_valid(_presentation_owner) and _presentation_owner.has_meta("combat_presentation"):
+		if _presentation_owner.get_meta("combat_presentation") == _owned_presentation_model:
+			_presentation_owner.remove_meta("combat_presentation")

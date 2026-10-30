@@ -1,0 +1,1230 @@
+{
+  "schema_version": 1,
+  "revision": "p6m2-t4-2",
+  "status": "Identity reservations only; mechanics are not approved by this manifest. Legacy Adventure saves are invalidated and reset to a complete fresh run (P6M2-D006).",
+  "sources": [
+    {
+      "file": "docs/talent_tree_drafts/Assassin.json",
+      "sha256": "7c70b4c80ccf089e9b0f8069db7827ffa8c703b52a4fbf1ce48111e80b8081bd",
+      "tree_id": "tree.assassin"
+    },
+    {
+      "file": "docs/talent_tree_drafts/Bladedancer.json",
+      "sha256": "8c33a60060ad7e42c45f254b2c24515c217f22f94fe68dfec819ae183242cbc2",
+      "tree_id": "tree.bladedancer"
+    },
+    {
+      "file": "docs/talent_tree_drafts/Shadow.json",
+      "sha256": "4475e00e6fa0a544143a956b646d88a8e4582f64fd785e7e04af9bff5fe68171",
+      "tree_id": "tree.shadow"
+    },
+    {
+      "file": "docs/talent_tree_drafts/Thief.json",
+      "sha256": "029ea87fd1c31f6251c7d9b8024de9a58134e3f6c5fe4cf28a8cbd1b00fdebaf",
+      "tree_id": "tree.thief"
+    }
+  ],
+  "records": [
+    {
+      "kind": "tree",
+      "tree_id": "tree.assassin",
+      "source_file": "docs/talent_tree_drafts/Assassin.json",
+      "pointer": "/tree",
+      "source_id": "draft.assassin",
+      "source_name": "Assassin",
+      "runtime_id": "tree.assassin",
+      "existing_resource_path": "res://data/subclass_trees/assassin.tres"
+    },
+    {
+      "kind": "intrinsic",
+      "tree_id": "tree.assassin",
+      "source_file": "docs/talent_tree_drafts/Assassin.json",
+      "pointer": "/tree/intrinsic",
+      "source_id": null,
+      "source_name": "Assassin intrinsic",
+      "runtime_id": "intrinsic.assassin",
+      "existing_resource_path": null
+    },
+    {
+      "kind": "talent",
+      "tree_id": "tree.assassin",
+      "source_file": "docs/talent_tree_drafts/Assassin.json",
+      "pointer": "/tree/talents/0",
+      "source_id": "talent.quick_hands",
+      "source_name": "Quick Hands",
+      "runtime_id": "talent.assassin.quick_hands",
+      "existing_resource_path": null
+    },
+    {
+      "kind": "talent",
+      "tree_id": "tree.assassin",
+      "source_file": "docs/talent_tree_drafts/Assassin.json",
+      "pointer": "/tree/talents/1",
+      "source_id": "talent.precision",
+      "source_name": "Precision",
+      "runtime_id": "talent.assassin.precision",
+      "existing_resource_path": null
+    },
+    {
+      "kind": "talent",
+      "tree_id": "tree.assassin",
+      "source_file": "docs/talent_tree_drafts/Assassin.json",
+      "pointer": "/tree/talents/2",
+      "source_id": "talent.hastened_poison",
+      "source_name": "Hastened Poison",
+      "runtime_id": "talent.assassin.hastened_poison",
+      "existing_resource_path": null
+    },
+    {
+      "kind": "talent",
+      "tree_id": "tree.assassin",
+      "source_file": "docs/talent_tree_drafts/Assassin.json",
+      "pointer": "/tree/talents/3",
+      "source_id": "talent.echoing_toxin",
+      "source_name": "Echoing Toxin",
+      "runtime_id": "talent.assassin.echoing_toxin",
+      "existing_resource_path": null
+    },
+    {
+      "kind": "talent",
+      "tree_id": "tree.assassin",
+      "source_file": "docs/talent_tree_drafts/Assassin.json",
+      "pointer": "/tree/talents/4",
+      "source_id": "talent.poison_strike",
+      "source_name": "Poison Strike",
+      "runtime_id": "talent.assassin.poison_strike",
+      "existing_resource_path": null
+    },
+    {
+      "kind": "skill",
+      "tree_id": "tree.assassin",
+      "source_file": "docs/talent_tree_drafts/Assassin.json",
+      "pointer": "/tree/talents/4/skill_grant",
+      "source_id": "draft.skill.poison_strike",
+      "source_name": "Poison Strike",
+      "runtime_id": "skill.poison_strike",
+      "existing_resource_path": "res://data/skills/poison_strike.tres"
+    },
+    {
+      "kind": "talent",
+      "tree_id": "tree.assassin",
+      "source_file": "docs/talent_tree_drafts/Assassin.json",
+      "pointer": "/tree/talents/5",
+      "source_id": "talent.bypass",
+      "source_name": "Bypass",
+      "runtime_id": "talent.assassin.bypass",
+      "existing_resource_path": null
+    },
+    {
+      "kind": "talent",
+      "tree_id": "tree.assassin",
+      "source_file": "docs/talent_tree_drafts/Assassin.json",
+      "pointer": "/tree/talents/6",
+      "source_id": "talent.toxic_tradeoff",
+      "source_name": "Toxic Tradeoff",
+      "runtime_id": "talent.assassin.toxic_tradeoff",
+      "existing_resource_path": null
+    },
+    {
+      "kind": "talent",
+      "tree_id": "tree.assassin",
+      "source_file": "docs/talent_tree_drafts/Assassin.json",
+      "pointer": "/tree/talents/7",
+      "source_id": "talent.accelerant",
+      "source_name": "Accelerant",
+      "runtime_id": "talent.assassin.accelerant",
+      "existing_resource_path": null
+    },
+    {
+      "kind": "talent",
+      "tree_id": "tree.assassin",
+      "source_file": "docs/talent_tree_drafts/Assassin.json",
+      "pointer": "/tree/talents/8",
+      "source_id": "talent.resonance",
+      "source_name": "Resonance",
+      "runtime_id": "talent.assassin.resonance",
+      "existing_resource_path": null
+    },
+    {
+      "kind": "talent",
+      "tree_id": "tree.assassin",
+      "source_file": "docs/talent_tree_drafts/Assassin.json",
+      "pointer": "/tree/talents/9",
+      "source_id": "talent.critical_poison",
+      "source_name": "Critical Poison",
+      "runtime_id": "talent.assassin.critical_poison",
+      "existing_resource_path": null
+    },
+    {
+      "kind": "slot",
+      "tree_id": "tree.assassin",
+      "source_file": "docs/talent_tree_drafts/Assassin.json",
+      "pointer": "/tree/automatic_unlocks/0",
+      "source_id": "unlock.1",
+      "source_name": null,
+      "runtime_id": "unlock.assassin.slot_1",
+      "existing_resource_path": null,
+      "empty": false
+    },
+    {
+      "kind": "skill",
+      "tree_id": "tree.assassin",
+      "source_file": "docs/talent_tree_drafts/Assassin.json",
+      "pointer": "/tree/automatic_unlocks/0/skill",
+      "source_id": "draft.skill.venom_jab",
+      "source_name": "Venom Jab",
+      "runtime_id": "skill.venom_jab",
+      "existing_resource_path": "res://data/skills/venom_jab.tres"
+    },
+    {
+      "kind": "slot",
+      "tree_id": "tree.assassin",
+      "source_file": "docs/talent_tree_drafts/Assassin.json",
+      "pointer": "/tree/automatic_unlocks/1",
+      "source_id": "unlock.2",
+      "source_name": null,
+      "runtime_id": "unlock.assassin.slot_2",
+      "existing_resource_path": null,
+      "empty": false
+    },
+    {
+      "kind": "skill",
+      "tree_id": "tree.assassin",
+      "source_file": "docs/talent_tree_drafts/Assassin.json",
+      "pointer": "/tree/automatic_unlocks/1/skill",
+      "source_id": "draft.skill.blinding_powder",
+      "source_name": "Blinding Powder",
+      "runtime_id": "skill.blinding_powder",
+      "existing_resource_path": null
+    },
+    {
+      "kind": "slot",
+      "tree_id": "tree.assassin",
+      "source_file": "docs/talent_tree_drafts/Assassin.json",
+      "pointer": "/tree/automatic_unlocks/2",
+      "source_id": "unlock.3",
+      "source_name": null,
+      "runtime_id": "unlock.assassin.slot_3",
+      "existing_resource_path": null,
+      "empty": false
+    },
+    {
+      "kind": "skill",
+      "tree_id": "tree.assassin",
+      "source_file": "docs/talent_tree_drafts/Assassin.json",
+      "pointer": "/tree/automatic_unlocks/2/skill",
+      "source_id": "draft.skill.virulent_poison",
+      "source_name": "Virulent Poison",
+      "runtime_id": "skill.virulent_poison",
+      "existing_resource_path": null
+    },
+    {
+      "kind": "slot",
+      "tree_id": "tree.assassin",
+      "source_file": "docs/talent_tree_drafts/Assassin.json",
+      "pointer": "/tree/automatic_unlocks/3",
+      "source_id": "unlock.4",
+      "source_name": null,
+      "runtime_id": "unlock.assassin.slot_4",
+      "existing_resource_path": null,
+      "empty": false
+    },
+    {
+      "kind": "skill",
+      "tree_id": "tree.assassin",
+      "source_file": "docs/talent_tree_drafts/Assassin.json",
+      "pointer": "/tree/automatic_unlocks/3/skill",
+      "source_id": "draft.skill.master_of_poisons",
+      "source_name": "Master of Poisons",
+      "runtime_id": "skill.master_of_poisons",
+      "existing_resource_path": null
+    },
+    {
+      "kind": "slot",
+      "tree_id": "tree.assassin",
+      "source_file": "docs/talent_tree_drafts/Assassin.json",
+      "pointer": "/tree/automatic_unlocks/4",
+      "source_id": "unlock.5",
+      "source_name": null,
+      "runtime_id": "unlock.assassin.slot_5",
+      "existing_resource_path": null,
+      "empty": false
+    },
+    {
+      "kind": "skill",
+      "tree_id": "tree.assassin",
+      "source_file": "docs/talent_tree_drafts/Assassin.json",
+      "pointer": "/tree/automatic_unlocks/4/skill",
+      "source_id": "draft.skill.4420a5ac-be90-42bd-a011-0d3ab97ac048",
+      "source_name": "Poison Vile",
+      "runtime_id": "skill.poison_vile",
+      "existing_resource_path": null
+    },
+    {
+      "kind": "tree",
+      "tree_id": "tree.bladedancer",
+      "source_file": "docs/talent_tree_drafts/Bladedancer.json",
+      "pointer": "/tree",
+      "source_id": "draft.assassin",
+      "source_name": "Bladedancer",
+      "runtime_id": "tree.bladedancer",
+      "existing_resource_path": "res://data/subclass_trees/bladedancer.tres"
+    },
+    {
+      "kind": "intrinsic",
+      "tree_id": "tree.bladedancer",
+      "source_file": "docs/talent_tree_drafts/Bladedancer.json",
+      "pointer": "/tree/intrinsic",
+      "source_id": null,
+      "source_name": "Bladedancer intrinsic",
+      "runtime_id": "intrinsic.bladedancer",
+      "existing_resource_path": null
+    },
+    {
+      "kind": "talent",
+      "tree_id": "tree.bladedancer",
+      "source_file": "docs/talent_tree_drafts/Bladedancer.json",
+      "pointer": "/tree/talents/0",
+      "source_id": "talent.quick_hands",
+      "source_name": "Weakness",
+      "runtime_id": "talent.bladedancer.weakness",
+      "existing_resource_path": null
+    },
+    {
+      "kind": "talent",
+      "tree_id": "tree.bladedancer",
+      "source_file": "docs/talent_tree_drafts/Bladedancer.json",
+      "pointer": "/tree/talents/1",
+      "source_id": "talent.precision",
+      "source_name": "Whetstone",
+      "runtime_id": "talent.bladedancer.wet_stone",
+      "existing_resource_path": null
+    },
+    {
+      "kind": "talent",
+      "tree_id": "tree.bladedancer",
+      "source_file": "docs/talent_tree_drafts/Bladedancer.json",
+      "pointer": "/tree/talents/2",
+      "source_id": "talent.bypass",
+      "source_name": "Opportunity",
+      "runtime_id": "talent.bladedancer.opportunity",
+      "existing_resource_path": null
+    },
+    {
+      "kind": "talent",
+      "tree_id": "tree.bladedancer",
+      "source_file": "docs/talent_tree_drafts/Bladedancer.json",
+      "pointer": "/tree/talents/3",
+      "source_id": "talent.critical_poison",
+      "source_name": "Virulent Corruption",
+      "runtime_id": "talent.bladedancer.virulent_corruption",
+      "existing_resource_path": null
+    },
+    {
+      "kind": "talent",
+      "tree_id": "tree.bladedancer",
+      "source_file": "docs/talent_tree_drafts/Bladedancer.json",
+      "pointer": "/tree/talents/4",
+      "source_id": "talent.3249b911-9477-4ce7-afe2-fbeaefc253ee",
+      "source_name": "Rending Slash",
+      "runtime_id": "talent.bladedancer.rending_slash",
+      "existing_resource_path": null
+    },
+    {
+      "kind": "skill",
+      "tree_id": "tree.bladedancer",
+      "source_file": "docs/talent_tree_drafts/Bladedancer.json",
+      "pointer": "/tree/talents/4/skill_grant",
+      "source_id": "draft.skill.49b91564-06ec-4b57-8e70-5d381e5bc6b0",
+      "source_name": "Rending Slash",
+      "runtime_id": "skill.rending_thrust",
+      "existing_resource_path": "res://data/skills/rending_slash.tres"
+    },
+    {
+      "kind": "talent",
+      "tree_id": "tree.bladedancer",
+      "source_file": "docs/talent_tree_drafts/Bladedancer.json",
+      "pointer": "/tree/talents/5",
+      "source_id": "talent.376142b8-8b16-48cc-b805-38128a2d8282",
+      "source_name": "Fancy Footwork",
+      "runtime_id": "talent.bladedancer.fancy_footwork",
+      "existing_resource_path": null
+    },
+    {
+      "kind": "talent",
+      "tree_id": "tree.bladedancer",
+      "source_file": "docs/talent_tree_drafts/Bladedancer.json",
+      "pointer": "/tree/talents/6",
+      "source_id": "talent.ebb369f0-708d-4bff-9f8e-d499d76cca0d",
+      "source_name": "Precision Attacks",
+      "runtime_id": "talent.bladedancer.precision_attacks",
+      "existing_resource_path": null
+    },
+    {
+      "kind": "talent",
+      "tree_id": "tree.bladedancer",
+      "source_file": "docs/talent_tree_drafts/Bladedancer.json",
+      "pointer": "/tree/talents/7",
+      "source_id": "talent.ca0264a3-1480-480b-9221-f18c473f8bc8",
+      "source_name": "Double Dip",
+      "runtime_id": "talent.bladedancer.double_dip",
+      "existing_resource_path": null
+    },
+    {
+      "kind": "talent",
+      "tree_id": "tree.bladedancer",
+      "source_file": "docs/talent_tree_drafts/Bladedancer.json",
+      "pointer": "/tree/talents/8",
+      "source_id": "talent.14d6bac1-7e24-478a-b975-ed8dfa6e49a6",
+      "source_name": "Sharpened Edge",
+      "runtime_id": "talent.bladedancer.sharpened_edge",
+      "existing_resource_path": null
+    },
+    {
+      "kind": "talent",
+      "tree_id": "tree.bladedancer",
+      "source_file": "docs/talent_tree_drafts/Bladedancer.json",
+      "pointer": "/tree/talents/9",
+      "source_id": "talent.16e189cb-7afc-41eb-ad4e-2125c54b6023",
+      "source_name": "Cloak & Dagger",
+      "runtime_id": "talent.bladedancer.cloak_and_dagger",
+      "existing_resource_path": null
+    },
+    {
+      "kind": "talent",
+      "tree_id": "tree.bladedancer",
+      "source_file": "docs/talent_tree_drafts/Bladedancer.json",
+      "pointer": "/tree/talents/10",
+      "source_id": "talent.539ba91f-6825-481e-ba85-0571e4a41159",
+      "source_name": "Riposte",
+      "runtime_id": "talent.bladedancer.riposte",
+      "existing_resource_path": null
+    },
+    {
+      "kind": "talent",
+      "tree_id": "tree.bladedancer",
+      "source_file": "docs/talent_tree_drafts/Bladedancer.json",
+      "pointer": "/tree/talents/11",
+      "source_id": "talent.1783a26f-1621-4a7f-8ca4-b4f2ab32bda8",
+      "source_name": "Side Step",
+      "runtime_id": "talent.bladedancer.side_step",
+      "existing_resource_path": null
+    },
+    {
+      "kind": "talent",
+      "tree_id": "tree.bladedancer",
+      "source_file": "docs/talent_tree_drafts/Bladedancer.json",
+      "pointer": "/tree/talents/12",
+      "source_id": "talent.a5e65340-7311-4e13-934b-20dad7a0e16b",
+      "source_name": "Weapon Master",
+      "runtime_id": "talent.bladedancer.weapon_master",
+      "existing_resource_path": null
+    },
+    {
+      "kind": "slot",
+      "tree_id": "tree.bladedancer",
+      "source_file": "docs/talent_tree_drafts/Bladedancer.json",
+      "pointer": "/tree/automatic_unlocks/0",
+      "source_id": "unlock.1",
+      "source_name": null,
+      "runtime_id": "unlock.bladedancer.slot_1",
+      "existing_resource_path": null,
+      "empty": false
+    },
+    {
+      "kind": "skill",
+      "tree_id": "tree.bladedancer",
+      "source_file": "docs/talent_tree_drafts/Bladedancer.json",
+      "pointer": "/tree/automatic_unlocks/0/skill",
+      "source_id": "draft.skill.venom_jab",
+      "source_name": "Quick Cut",
+      "runtime_id": "skill.quick_cut",
+      "existing_resource_path": "res://data/skills/quick_cut.tres"
+    },
+    {
+      "kind": "slot",
+      "tree_id": "tree.bladedancer",
+      "source_file": "docs/talent_tree_drafts/Bladedancer.json",
+      "pointer": "/tree/automatic_unlocks/1",
+      "source_id": "unlock.2",
+      "source_name": null,
+      "runtime_id": "unlock.bladedancer.slot_2",
+      "existing_resource_path": null,
+      "empty": false
+    },
+    {
+      "kind": "skill",
+      "tree_id": "tree.bladedancer",
+      "source_file": "docs/talent_tree_drafts/Bladedancer.json",
+      "pointer": "/tree/automatic_unlocks/1/skill",
+      "source_id": "draft.skill.ee8c31ab-b736-4637-a4bd-849cd9213c8a",
+      "source_name": "Leaping Plunge",
+      "runtime_id": "skill.leaping_plunge",
+      "existing_resource_path": null
+    },
+    {
+      "kind": "slot",
+      "tree_id": "tree.bladedancer",
+      "source_file": "docs/talent_tree_drafts/Bladedancer.json",
+      "pointer": "/tree/automatic_unlocks/2",
+      "source_id": "unlock.3",
+      "source_name": null,
+      "runtime_id": "unlock.bladedancer.slot_3",
+      "existing_resource_path": null,
+      "empty": false
+    },
+    {
+      "kind": "skill",
+      "tree_id": "tree.bladedancer",
+      "source_file": "docs/talent_tree_drafts/Bladedancer.json",
+      "pointer": "/tree/automatic_unlocks/2/skill",
+      "source_id": "draft.skill.168fefcf-da69-48f4-a9d9-177541d411d0",
+      "source_name": "Parry Strike",
+      "runtime_id": "skill.parry_strike",
+      "existing_resource_path": null
+    },
+    {
+      "kind": "slot",
+      "tree_id": "tree.bladedancer",
+      "source_file": "docs/talent_tree_drafts/Bladedancer.json",
+      "pointer": "/tree/automatic_unlocks/3",
+      "source_id": "unlock.4",
+      "source_name": null,
+      "runtime_id": "unlock.bladedancer.slot_4",
+      "existing_resource_path": null,
+      "empty": true
+    },
+    {
+      "kind": "slot",
+      "tree_id": "tree.bladedancer",
+      "source_file": "docs/talent_tree_drafts/Bladedancer.json",
+      "pointer": "/tree/automatic_unlocks/4",
+      "source_id": "unlock.5",
+      "source_name": null,
+      "runtime_id": "unlock.bladedancer.slot_5",
+      "existing_resource_path": null,
+      "empty": false
+    },
+    {
+      "kind": "skill",
+      "tree_id": "tree.bladedancer",
+      "source_file": "docs/talent_tree_drafts/Bladedancer.json",
+      "pointer": "/tree/automatic_unlocks/4/skill",
+      "source_id": "draft.skill.25d484b9-a49d-410e-8e1d-f318765a48e2",
+      "source_name": "Dance of Death",
+      "runtime_id": "skill.dance_of_death",
+      "existing_resource_path": null
+    },
+    {
+      "kind": "tree",
+      "tree_id": "tree.shadow",
+      "source_file": "docs/talent_tree_drafts/Shadow.json",
+      "pointer": "/tree",
+      "source_id": "draft.411f8321-f3e8-460d-a875-11fc57e2f8d6",
+      "source_name": "Shadow",
+      "runtime_id": "tree.shadow",
+      "existing_resource_path": "res://data/subclass_trees/shadow.tres"
+    },
+    {
+      "kind": "intrinsic",
+      "tree_id": "tree.shadow",
+      "source_file": "docs/talent_tree_drafts/Shadow.json",
+      "pointer": "/tree/intrinsic",
+      "source_id": null,
+      "source_name": "Shadow Intrinsic",
+      "runtime_id": "intrinsic.shadow",
+      "existing_resource_path": null
+    },
+    {
+      "kind": "talent",
+      "tree_id": "tree.shadow",
+      "source_file": "docs/talent_tree_drafts/Shadow.json",
+      "pointer": "/tree/talents/0",
+      "source_id": "talent.5465413e-ddf0-409e-9498-d9bce17eecd5",
+      "source_name": "Umbral Presence",
+      "runtime_id": "talent.umbral_pressure",
+      "existing_resource_path": "res://data/talents/shadow/umbral_pressure.tres"
+    },
+    {
+      "kind": "talent",
+      "tree_id": "tree.shadow",
+      "source_file": "docs/talent_tree_drafts/Shadow.json",
+      "pointer": "/tree/talents/1",
+      "source_id": "talent.f6f0c0a5-eef5-49ad-8453-505bb57da116",
+      "source_name": "Coated Weapons",
+      "runtime_id": "talent.shadow.coated_weapons",
+      "existing_resource_path": null
+    },
+    {
+      "kind": "talent",
+      "tree_id": "tree.shadow",
+      "source_file": "docs/talent_tree_drafts/Shadow.json",
+      "pointer": "/tree/talents/2",
+      "source_id": "talent.e138e6fe-0f89-461e-a2db-19b6ba4fcb17",
+      "source_name": "Blind Spot",
+      "runtime_id": "talent.shadow.blind_spot",
+      "existing_resource_path": null
+    },
+    {
+      "kind": "talent",
+      "tree_id": "tree.shadow",
+      "source_file": "docs/talent_tree_drafts/Shadow.json",
+      "pointer": "/tree/talents/3",
+      "source_id": "talent.ea1c0755-e280-4e65-936b-49ccf3b6937f",
+      "source_name": "Snake Oil",
+      "runtime_id": "talent.shadow.snake_oil",
+      "existing_resource_path": null
+    },
+    {
+      "kind": "talent",
+      "tree_id": "tree.shadow",
+      "source_file": "docs/talent_tree_drafts/Shadow.json",
+      "pointer": "/tree/talents/4",
+      "source_id": "talent.67a4f847-f898-4bfd-929b-62b6f1348f18",
+      "source_name": "Death Touch",
+      "runtime_id": "talent.shadow.death_touch",
+      "existing_resource_path": null
+    },
+    {
+      "kind": "talent",
+      "tree_id": "tree.shadow",
+      "source_file": "docs/talent_tree_drafts/Shadow.json",
+      "pointer": "/tree/talents/5",
+      "source_id": "talent.e2c6d402-4d20-453d-b14f-d5e454471905",
+      "source_name": "Dusk Strike",
+      "runtime_id": "talent.shadow.dusk_strike",
+      "existing_resource_path": null
+    },
+    {
+      "kind": "talent",
+      "tree_id": "tree.shadow",
+      "source_file": "docs/talent_tree_drafts/Shadow.json",
+      "pointer": "/tree/talents/6",
+      "source_id": "talent.1ebc1ec2-d3fe-48b0-9a07-90446f52df28",
+      "source_name": "Shadow Mastery",
+      "runtime_id": "talent.shadow.shadow_mastery",
+      "existing_resource_path": null
+    },
+    {
+      "kind": "talent",
+      "tree_id": "tree.shadow",
+      "source_file": "docs/talent_tree_drafts/Shadow.json",
+      "pointer": "/tree/talents/7",
+      "source_id": "talent.e95e78cc-d08d-4d42-98c7-a6468041c3ce",
+      "source_name": "Deception",
+      "runtime_id": "talent.shadow.deception",
+      "existing_resource_path": null
+    },
+    {
+      "kind": "talent",
+      "tree_id": "tree.shadow",
+      "source_file": "docs/talent_tree_drafts/Shadow.json",
+      "pointer": "/tree/talents/8",
+      "source_id": "talent.2def1356-df57-4b8b-b526-ff0f90af4779",
+      "source_name": "Death from the Shadows",
+      "runtime_id": "talent.shadow.death_from_the_shadows",
+      "existing_resource_path": null
+    },
+    {
+      "kind": "talent",
+      "tree_id": "tree.shadow",
+      "source_file": "docs/talent_tree_drafts/Shadow.json",
+      "pointer": "/tree/talents/9",
+      "source_id": "talent.5498b7b0-5523-43f7-9b4e-cf1340388382",
+      "source_name": "Death Pact",
+      "runtime_id": "talent.shadow.death_pact",
+      "existing_resource_path": null
+    },
+    {
+      "kind": "talent",
+      "tree_id": "tree.shadow",
+      "source_file": "docs/talent_tree_drafts/Shadow.json",
+      "pointer": "/tree/talents/10",
+      "source_id": "talent.2dd768f0-494e-4004-84bc-c720702d20b7",
+      "source_name": "Death Blade",
+      "runtime_id": "talent.shadow.death_blade",
+      "existing_resource_path": null
+    },
+    {
+      "kind": "slot",
+      "tree_id": "tree.shadow",
+      "source_file": "docs/talent_tree_drafts/Shadow.json",
+      "pointer": "/tree/automatic_unlocks/0",
+      "source_id": "unlock.1",
+      "source_name": null,
+      "runtime_id": "unlock.shadow.slot_1",
+      "existing_resource_path": null,
+      "empty": false
+    },
+    {
+      "kind": "skill",
+      "tree_id": "tree.shadow",
+      "source_file": "docs/talent_tree_drafts/Shadow.json",
+      "pointer": "/tree/automatic_unlocks/0/skill",
+      "source_id": "draft.skill.6ea7c82d-61bf-4f60-9ba0-375aa394ef83",
+      "source_name": "Beguiling Strike",
+      "runtime_id": "skill.toxic_flurry",
+      "existing_resource_path": "res://data/skills/beguiling_strike.tres"
+    },
+    {
+      "kind": "slot",
+      "tree_id": "tree.shadow",
+      "source_file": "docs/talent_tree_drafts/Shadow.json",
+      "pointer": "/tree/automatic_unlocks/1",
+      "source_id": "unlock.2",
+      "source_name": null,
+      "runtime_id": "unlock.shadow.slot_2",
+      "existing_resource_path": null,
+      "empty": false
+    },
+    {
+      "kind": "skill",
+      "tree_id": "tree.shadow",
+      "source_file": "docs/talent_tree_drafts/Shadow.json",
+      "pointer": "/tree/automatic_unlocks/1/skill",
+      "source_id": "draft.skill.1eee0559-2acb-4d87-8f95-c72cc231159b",
+      "source_name": "Death Strike",
+      "runtime_id": "skill.killers_mark",
+      "existing_resource_path": "res://data/skills/death_strike.tres"
+    },
+    {
+      "kind": "slot",
+      "tree_id": "tree.shadow",
+      "source_file": "docs/talent_tree_drafts/Shadow.json",
+      "pointer": "/tree/automatic_unlocks/2",
+      "source_id": "unlock.3",
+      "source_name": null,
+      "runtime_id": "unlock.shadow.slot_3",
+      "existing_resource_path": null,
+      "empty": false
+    },
+    {
+      "kind": "skill",
+      "tree_id": "tree.shadow",
+      "source_file": "docs/talent_tree_drafts/Shadow.json",
+      "pointer": "/tree/automatic_unlocks/2/skill",
+      "source_id": "draft.skill.8afdd760-6053-4b38-8e87-d32a9aa2fefe",
+      "source_name": "Distilled Corruption",
+      "runtime_id": "skill.distilled_corruption",
+      "existing_resource_path": null
+    },
+    {
+      "kind": "slot",
+      "tree_id": "tree.shadow",
+      "source_file": "docs/talent_tree_drafts/Shadow.json",
+      "pointer": "/tree/automatic_unlocks/3",
+      "source_id": "unlock.4",
+      "source_name": null,
+      "runtime_id": "unlock.shadow.slot_4",
+      "existing_resource_path": null,
+      "empty": false
+    },
+    {
+      "kind": "skill",
+      "tree_id": "tree.shadow",
+      "source_file": "docs/talent_tree_drafts/Shadow.json",
+      "pointer": "/tree/automatic_unlocks/3/skill",
+      "source_id": "draft.skill.ae2f1e15-a0d4-46ca-95fc-c374ef2cb8b7",
+      "source_name": "Touch of Darkness",
+      "runtime_id": "skill.touch_of_darkness",
+      "existing_resource_path": null
+    },
+    {
+      "kind": "slot",
+      "tree_id": "tree.shadow",
+      "source_file": "docs/talent_tree_drafts/Shadow.json",
+      "pointer": "/tree/automatic_unlocks/4",
+      "source_id": "unlock.5",
+      "source_name": null,
+      "runtime_id": "unlock.shadow.slot_5",
+      "existing_resource_path": null,
+      "empty": false
+    },
+    {
+      "kind": "skill",
+      "tree_id": "tree.shadow",
+      "source_file": "docs/talent_tree_drafts/Shadow.json",
+      "pointer": "/tree/automatic_unlocks/4/skill",
+      "source_id": "draft.skill.61de2222-cb8d-4ef8-8969-004280b1f601",
+      "source_name": "Beguiling Presence ",
+      "runtime_id": "skill.beguiling_presence",
+      "existing_resource_path": null
+    },
+    {
+      "kind": "tree",
+      "tree_id": "tree.thief",
+      "source_file": "docs/talent_tree_drafts/Thief.json",
+      "pointer": "/tree",
+      "source_id": "draft.796efc38-720f-4ee9-bdfa-816ab6540b0d",
+      "source_name": "Thief",
+      "runtime_id": "tree.thief",
+      "existing_resource_path": "res://data/subclass_trees/thief.tres"
+    },
+    {
+      "kind": "intrinsic",
+      "tree_id": "tree.thief",
+      "source_file": "docs/talent_tree_drafts/Thief.json",
+      "pointer": "/tree/intrinsic",
+      "source_id": null,
+      "source_name": "Thief Intrinsic",
+      "runtime_id": "intrinsic.thief",
+      "existing_resource_path": null
+    },
+    {
+      "kind": "talent",
+      "tree_id": "tree.thief",
+      "source_file": "docs/talent_tree_drafts/Thief.json",
+      "pointer": "/tree/talents/0",
+      "source_id": "talent.af3c13fe-ca0d-4b76-824c-b3f297ad1bcd",
+      "source_name": "Gilded Blade",
+      "runtime_id": "talent.gilded_blade",
+      "existing_resource_path": "res://data/talents/thief/gilded_blade.tres"
+    },
+    {
+      "kind": "talent",
+      "tree_id": "tree.thief",
+      "source_file": "docs/talent_tree_drafts/Thief.json",
+      "pointer": "/tree/talents/1",
+      "source_id": "talent.218204d6-6d0d-4786-abf9-ab5a88162460",
+      "source_name": "Keen Eye",
+      "runtime_id": "talent.keen_eye",
+      "existing_resource_path": "res://data/talents/thief/keen_eye.tres"
+    },
+    {
+      "kind": "talent",
+      "tree_id": "tree.thief",
+      "source_file": "docs/talent_tree_drafts/Thief.json",
+      "pointer": "/tree/talents/2",
+      "source_id": "talent.e427faad-e406-48de-91df-87a8b89f605f",
+      "source_name": "Sticky Fingers",
+      "runtime_id": "talent.sticky_fingers",
+      "existing_resource_path": "res://data/talents/thief/sticky_fingers.tres"
+    },
+    {
+      "kind": "talent",
+      "tree_id": "tree.thief",
+      "source_file": "docs/talent_tree_drafts/Thief.json",
+      "pointer": "/tree/talents/3",
+      "source_id": "talent.c710496f-e14c-417c-a986-679a06f755b1",
+      "source_name": "Silvered Edge",
+      "runtime_id": "talent.thief.silvered_edge",
+      "existing_resource_path": null
+    },
+    {
+      "kind": "talent",
+      "tree_id": "tree.thief",
+      "source_file": "docs/talent_tree_drafts/Thief.json",
+      "pointer": "/tree/talents/4",
+      "source_id": "talent.ea4bc525-1133-4983-9197-30f2ded2b0d4",
+      "source_name": "Fast Hands",
+      "runtime_id": "talent.thief.fast_hands",
+      "existing_resource_path": null
+    },
+    {
+      "kind": "talent",
+      "tree_id": "tree.thief",
+      "source_file": "docs/talent_tree_drafts/Thief.json",
+      "pointer": "/tree/talents/5",
+      "source_id": "talent.0b3a6738-69a2-4776-8bd6-2c431ee87f14",
+      "source_name": "Fill Your Pockets",
+      "runtime_id": "talent.thief.fill_your_pockets",
+      "existing_resource_path": null
+    },
+    {
+      "kind": "talent",
+      "tree_id": "tree.thief",
+      "source_file": "docs/talent_tree_drafts/Thief.json",
+      "pointer": "/tree/talents/6",
+      "source_id": "talent.38bc1195-2df1-4a68-95c3-3ce47dac594e",
+      "source_name": "Charisma",
+      "runtime_id": "talent.thief.charisma",
+      "existing_resource_path": null
+    },
+    {
+      "kind": "talent",
+      "tree_id": "tree.thief",
+      "source_file": "docs/talent_tree_drafts/Thief.json",
+      "pointer": "/tree/talents/7",
+      "source_id": "talent.85903eb4-7bd5-4193-88d4-483d29903fdf",
+      "source_name": "Load Dice",
+      "runtime_id": "talent.thief.load_dice",
+      "existing_resource_path": null
+    },
+    {
+      "kind": "talent",
+      "tree_id": "tree.thief",
+      "source_file": "docs/talent_tree_drafts/Thief.json",
+      "pointer": "/tree/talents/8",
+      "source_id": "talent.63088562-c24a-437b-b5ae-9620c3fa735f",
+      "source_name": "Bribery",
+      "runtime_id": "talent.thief.bribery",
+      "existing_resource_path": null
+    },
+    {
+      "kind": "talent",
+      "tree_id": "tree.thief",
+      "source_file": "docs/talent_tree_drafts/Thief.json",
+      "pointer": "/tree/talents/9",
+      "source_id": "talent.7d15dba0-0aca-48b9-b347-0c3890d0a78f",
+      "source_name": "Finders Keepers",
+      "runtime_id": "talent.thief.finders_keepers",
+      "existing_resource_path": null
+    },
+    {
+      "kind": "slot",
+      "tree_id": "tree.thief",
+      "source_file": "docs/talent_tree_drafts/Thief.json",
+      "pointer": "/tree/automatic_unlocks/0",
+      "source_id": "unlock.1",
+      "source_name": null,
+      "runtime_id": "unlock.thief.slot_1",
+      "existing_resource_path": null,
+      "empty": false
+    },
+    {
+      "kind": "skill",
+      "tree_id": "tree.thief",
+      "source_file": "docs/talent_tree_drafts/Thief.json",
+      "pointer": "/tree/automatic_unlocks/0/skill",
+      "source_id": "draft.skill.35218f74-d5c9-420f-9c33-fa84919900f6",
+      "source_name": "Steal",
+      "runtime_id": "skill.steal",
+      "existing_resource_path": "res://data/skills/steal.tres"
+    },
+    {
+      "kind": "slot",
+      "tree_id": "tree.thief",
+      "source_file": "docs/talent_tree_drafts/Thief.json",
+      "pointer": "/tree/automatic_unlocks/1",
+      "source_id": "unlock.2",
+      "source_name": null,
+      "runtime_id": "unlock.thief.slot_2",
+      "existing_resource_path": null,
+      "empty": false
+    },
+    {
+      "kind": "skill",
+      "tree_id": "tree.thief",
+      "source_file": "docs/talent_tree_drafts/Thief.json",
+      "pointer": "/tree/automatic_unlocks/1/skill",
+      "source_id": "draft.skill.7cda0b57-089b-45ba-a9b8-ff709c86f557",
+      "source_name": "Mug",
+      "runtime_id": "skill.mug",
+      "existing_resource_path": null
+    },
+    {
+      "kind": "slot",
+      "tree_id": "tree.thief",
+      "source_file": "docs/talent_tree_drafts/Thief.json",
+      "pointer": "/tree/automatic_unlocks/2",
+      "source_id": "unlock.3",
+      "source_name": null,
+      "runtime_id": "unlock.thief.slot_3",
+      "existing_resource_path": null,
+      "empty": false
+    },
+    {
+      "kind": "skill",
+      "tree_id": "tree.thief",
+      "source_file": "docs/talent_tree_drafts/Thief.json",
+      "pointer": "/tree/automatic_unlocks/2/skill",
+      "source_id": "draft.skill.233951b0-cea3-4411-a655-a7ae6700462d",
+      "source_name": "Pick pocket",
+      "runtime_id": "skill.pick_pocket",
+      "existing_resource_path": null
+    },
+    {
+      "kind": "slot",
+      "tree_id": "tree.thief",
+      "source_file": "docs/talent_tree_drafts/Thief.json",
+      "pointer": "/tree/automatic_unlocks/3",
+      "source_id": "unlock.4",
+      "source_name": null,
+      "runtime_id": "unlock.thief.slot_4",
+      "existing_resource_path": null,
+      "empty": true
+    },
+    {
+      "kind": "slot",
+      "tree_id": "tree.thief",
+      "source_file": "docs/talent_tree_drafts/Thief.json",
+      "pointer": "/tree/automatic_unlocks/4",
+      "source_id": "unlock.5",
+      "source_name": null,
+      "runtime_id": "unlock.thief.slot_5",
+      "existing_resource_path": null,
+      "empty": false
+    },
+    {
+      "kind": "skill",
+      "tree_id": "tree.thief",
+      "source_file": "docs/talent_tree_drafts/Thief.json",
+      "pointer": "/tree/automatic_unlocks/4/skill",
+      "source_id": "draft.skill.5d93b084-6349-4df6-b8b1-a06a2a2d3db9",
+      "source_name": "Big Score",
+      "runtime_id": "skill.big_score",
+      "existing_resource_path": null
+    }
+  ],
+  "legacy_resources": [
+    {
+      "kind": "tree",
+      "path": "res://data/subclass_trees/assassin.tres",
+      "id": "tree.assassin",
+      "display_name": "Assassin",
+      "allocation_policy": "no_legacy_save_import; fresh_run_reset"
+    },
+    {
+      "kind": "tree",
+      "path": "res://data/subclass_trees/bladedancer.tres",
+      "id": "tree.bladedancer",
+      "display_name": "Bladedancer",
+      "allocation_policy": "no_legacy_save_import; fresh_run_reset"
+    },
+    {
+      "kind": "tree",
+      "path": "res://data/subclass_trees/shadow.tres",
+      "id": "tree.shadow",
+      "display_name": "Shadow",
+      "allocation_policy": "no_legacy_save_import; fresh_run_reset"
+    },
+    {
+      "kind": "tree",
+      "path": "res://data/subclass_trees/thief.tres",
+      "id": "tree.thief",
+      "display_name": "Thief",
+      "allocation_policy": "no_legacy_save_import; fresh_run_reset"
+    },
+    {
+      "kind": "talent",
+      "path": "res://data/talents/assassin/lethal_intent.tres",
+      "id": "talent.lethal_intent",
+      "display_name": "Lethal Intent",
+      "allocation_policy": "no_legacy_save_import; fresh_run_reset"
+    },
+    {
+      "kind": "talent",
+      "path": "res://data/talents/assassin/perfect_toxin.tres",
+      "id": "talent.perfect_toxin",
+      "display_name": "Perfect Toxin",
+      "allocation_policy": "no_legacy_save_import; fresh_run_reset"
+    },
+    {
+      "kind": "talent",
+      "path": "res://data/talents/assassin/precise_cuts.tres",
+      "id": "talent.precise_cuts",
+      "display_name": "Precise Cuts",
+      "allocation_policy": "no_legacy_save_import; fresh_run_reset"
+    },
+    {
+      "kind": "talent",
+      "path": "res://data/talents/assassin/toxic_technique.tres",
+      "id": "talent.toxic_technique",
+      "display_name": "Toxic Techniques",
+      "allocation_policy": "no_legacy_save_import; fresh_run_reset"
+    },
+    {
+      "kind": "talent",
+      "path": "res://data/talents/assassin/venom_edge.tres",
+      "id": "talent.venom_edge",
+      "display_name": "Venom Edge",
+      "allocation_policy": "no_legacy_save_import; fresh_run_reset"
+    },
+    {
+      "kind": "talent",
+      "path": "res://data/talents/bladedancer/opportunity_strikes.tres",
+      "id": "talent.opportunity_strikes",
+      "display_name": "Opportunity Strikes",
+      "allocation_policy": "no_legacy_save_import; fresh_run_reset"
+    },
+    {
+      "kind": "talent",
+      "path": "res://data/talents/bladedancer/piercing_blades.tres",
+      "id": "talent.piercing_blades",
+      "display_name": "Piercing Blades",
+      "allocation_policy": "no_legacy_save_import; fresh_run_reset"
+    },
+    {
+      "kind": "talent",
+      "path": "res://data/talents/bladedancer/practiced_rhythm.tres",
+      "id": "talent.practiced_rhythm",
+      "display_name": "Practiced Rhythm",
+      "allocation_policy": "no_legacy_save_import; fresh_run_reset"
+    },
+    {
+      "kind": "talent",
+      "path": "res://data/talents/bladedancer/quick_hands.tres",
+      "id": "talent.quick_hands",
+      "display_name": "Quick Hands",
+      "allocation_policy": "no_legacy_save_import; fresh_run_reset"
+    },
+    {
+      "kind": "talent",
+      "path": "res://data/talents/bladedancer/sunder.tres",
+      "id": "talent.sunder",
+      "display_name": "Sunder",
+      "allocation_policy": "no_legacy_save_import; fresh_run_reset"
+    },
+    {
+      "kind": "talent",
+      "path": "res://data/talents/shadow/black_lotus.tres",
+      "id": "talent.black_lotus",
+      "display_name": "Black Lotus",
+      "allocation_policy": "no_legacy_save_import; fresh_run_reset"
+    },
+    {
+      "kind": "talent",
+      "path": "res://data/talents/shadow/exposed_weakness.tres",
+      "id": "talent.exposed_weakness",
+      "display_name": "Exposed Weakness",
+      "allocation_policy": "no_legacy_save_import; fresh_run_reset"
+    },
+    {
+      "kind": "talent",
+      "path": "res://data/talents/shadow/lingering_venom.tres",
+      "id": "talent.lingering_venom",
+      "display_name": "Lingering Venom",
+      "allocation_policy": "no_legacy_save_import; fresh_run_reset"
+    },
+    {
+      "kind": "talent",
+      "path": "res://data/talents/shadow/nightblade_rhythm.tres",
+      "id": "talent.nightblade_rhythm",
+      "display_name": "Nightblade Rhythm",
+      "allocation_policy": "no_legacy_save_import; fresh_run_reset"
+    },
+    {
+      "kind": "talent",
+      "path": "res://data/talents/shadow/umbral_pressure.tres",
+      "id": "talent.umbral_pressure",
+      "display_name": "Umbral Presence",
+      "allocation_policy": "no_legacy_save_import; fresh_run_reset"
+    },
+    {
+      "kind": "talent",
+      "path": "res://data/talents/thief/big_score.tres",
+      "id": "talent.big_score",
+      "display_name": "Big Score",
+      "allocation_policy": "no_legacy_save_import; fresh_run_reset"
+    },
+    {
+      "kind": "talent",
+      "path": "res://data/talents/thief/gilded_blade.tres",
+      "id": "talent.gilded_blade",
+      "display_name": "Gilded Blade",
+      "allocation_policy": "no_legacy_save_import; fresh_run_reset"
+    },
+    {
+      "kind": "talent",
+      "path": "res://data/talents/thief/keen_eye.tres",
+      "id": "talent.keen_eye",
+      "display_name": "Keen Eye",
+      "allocation_policy": "no_legacy_save_import; fresh_run_reset"
+    },
+    {
+      "kind": "talent",
+      "path": "res://data/talents/thief/silvered_blade.tres",
+      "id": "talent.silvered_blade",
+      "display_name": "Silvered Blade",
+      "allocation_policy": "no_legacy_save_import; fresh_run_reset"
+    },
+    {
+      "kind": "talent",
+      "path": "res://data/talents/thief/sticky_fingers.tres",
+      "id": "talent.sticky_fingers",
+      "display_name": "Sticky Fingers",
+      "allocation_policy": "no_legacy_save_import; fresh_run_reset"
+    },
+    {
+      "kind": "skill",
+      "path": "res://data/skills/beguiling_strike.tres",
+      "id": "skill.toxic_flurry",
+      "display_name": "Beguiling Strike",
+      "allocation_policy": "no_legacy_save_import; fresh_run_reset"
+    },
+    {
+      "kind": "skill",
+      "path": "res://data/skills/death_strike.tres",
+      "id": "skill.killers_mark",
+      "display_name": "Death Strike",
+      "allocation_policy": "no_legacy_save_import; fresh_run_reset"
+    },
+    {
+      "kind": "skill",
+      "path": "res://data/skills/heavy_slash.tres",
+      "id": "skill.heavy_slash",
+      "display_name": "Heavy Slash",
+      "allocation_policy": "no_legacy_save_import; fresh_run_reset"
+    },
+    {
+      "kind": "skill",
+      "path": "res://data/skills/hold.tres",
+      "id": "skill.hold",
+      "display_name": "Hold",
+      "allocation_policy": "no_legacy_save_import; fresh_run_reset"
+    },
+    {
+      "kind": "skill",
+      "path": "res://data/skills/placeholder_quick_cut.tres",
+      "id": "skill.placeholder_quick_cut",
+      "display_name": "Placeholder Quick Cut",
+      "allocation_policy": "no_legacy_save_import; fresh_run_reset"
+    },
+    {
+      "kind": "skill",
+      "path": "res://data/skills/placeholder_strike.tres",
+      "id": "skill.placeholder_strike",
+      "display_name": "Placeholder Strike",
+      "allocation_policy": "no_legacy_save_import; fresh_run_reset"
+    },
+    {
+      "kind": "skill",
+      "path": "res://data/skills/poison_strike.tres",
+      "id": "skill.poison_strike",
+      "display_name": "Poison Strike",
+      "allocation_policy": "no_legacy_save_import; fresh_run_reset"
+    },
+    {
+      "kind": "skill",
+      "path": "res://data/skills/quick_cut.tres",
+      "id": "skill.quick_cut",
+      "display_name": "Quick Cut",
+      "allocation_policy": "no_legacy_save_import; fresh_run_reset"
+    },
+    {
+      "kind": "skill",
+      "path": "res://data/skills/rending_slash.tres",
+      "id": "skill.rending_thrust",
+      "display_name": "Rending Slash",
+      "allocation_policy": "no_legacy_save_import; fresh_run_reset"
+    },
+    {
+      "kind": "skill",
+      "path": "res://data/skills/stab.tres",
+      "id": "skill.stab",
+      "display_name": "Stab",
+      "allocation_policy": "no_legacy_save_import; fresh_run_reset"
+    },
+    {
+      "kind": "skill",
+      "path": "res://data/skills/steal.tres",
+      "id": "skill.steal",
+      "display_name": "Steal",
+      "allocation_policy": "no_legacy_save_import; fresh_run_reset"
+    },
+    {
+      "kind": "skill",
+      "path": "res://data/skills/venom_jab.tres",
+      "id": "skill.venom_jab",
+      "display_name": "Venom Jab",
+      "allocation_policy": "no_legacy_save_import; fresh_run_reset"
+    },
+    {
+      "kind": "class",
+      "path": "res://data/classes/rogue.tres",
+      "id": "class.rogue",
+      "display_name": "Rogue",
+      "allocation_policy": "no_legacy_save_import; fresh_run_reset"
+    }
+  ]
+}

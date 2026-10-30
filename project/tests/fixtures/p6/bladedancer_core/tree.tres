@@ -1,0 +1,50 @@
+[gd_resource type="Resource" script_class="SubclassTree" format=3]
+[ext_resource type="Script" path="res://scripts/resources/subclass_tree.gd" id="tree"]
+[ext_resource type="Script" path="res://scripts/resources/talent.gd" id="talent"]
+[ext_resource type="Script" path="res://scripts/resources/stat_modifier.gd" id="modifier"]
+[ext_resource type="Script" path="res://scripts/resources/tree_skill_unlock.gd" id="unlock"]
+[ext_resource type="Resource" path="res://tests/fixtures/p6/wet_stone.tres" id="wet"]
+[ext_resource type="Resource" path="res://tests/fixtures/p6/bladedancer_core/rending_slash.tres" id="rend"]
+[ext_resource type="Resource" path="res://tests/fixtures/p6/bladedancer_core/fancy_footwork.tres" id="foot"]
+[ext_resource type="Resource" path="res://data/skills/quick_cut.tres" id="quick"]
+[ext_resource type="Resource" path="res://tests/fixtures/p6/bladedancer_core/leaping_plunge.tres" id="plunge"]
+[ext_resource type="Resource" path="res://tests/fixtures/p6/bladedancer_core/parry_strike.tres" id="parry"]
+
+[sub_resource type="Resource" id="base"]
+script = ExtResource("modifier")
+stat_id = "chance_for_retrigger"
+value = 0.05
+
+[sub_resource type="Resource" id="point"]
+script = ExtResource("modifier")
+stat_id = "chance_for_retrigger"
+value = 0.002
+
+[sub_resource type="Resource" id="unlock1"]
+script = ExtResource("unlock")
+required_points = 1
+skill = ExtResource("quick")
+
+[sub_resource type="Resource" id="unlock3"]
+script = ExtResource("unlock")
+required_points = 3
+skill = ExtResource("plunge")
+
+[sub_resource type="Resource" id="unlock6"]
+script = ExtResource("unlock")
+required_points = 6
+skill = ExtResource("parry")
+
+[sub_resource type="Resource" id="unlock9"]
+script = ExtResource("unlock")
+required_points = 9
+
+[resource]
+script = ExtResource("tree")
+id = "tree.bladedancer"
+display_name = "Bladedancer (T8 core fixture)"
+ranked_content_ready = true
+talents = Array[ExtResource("talent")]([ExtResource("wet"), ExtResource("rend"), ExtResource("foot")])
+innate_modifiers = Array[ExtResource("modifier")]([SubResource("base")])
+primary_point_modifiers = Array[ExtResource("modifier")]([SubResource("point")])
+automatic_unlocks = Array[ExtResource("unlock")]([SubResource("unlock1"), SubResource("unlock3"), SubResource("unlock6"), SubResource("unlock9")])

@@ -1,0 +1,2144 @@
+{
+  "schema_version": 1,
+  "kind": "planning_only_not_runtime_content",
+  "identity_revision": "p6m2-t4-2",
+  "sources": [
+    {
+      "file": "docs/talent_tree_drafts/Assassin.json",
+      "sha256": "7c70b4c80ccf089e9b0f8069db7827ffa8c703b52a4fbf1ce48111e80b8081bd",
+      "tree_id": "tree.assassin"
+    },
+    {
+      "file": "docs/talent_tree_drafts/Bladedancer.json",
+      "sha256": "8c33a60060ad7e42c45f254b2c24515c217f22f94fe68dfec819ae183242cbc2",
+      "tree_id": "tree.bladedancer"
+    },
+    {
+      "file": "docs/talent_tree_drafts/Shadow.json",
+      "sha256": "4475e00e6fa0a544143a956b646d88a8e4582f64fd785e7e04af9bff5fe68171",
+      "tree_id": "tree.shadow"
+    },
+    {
+      "file": "docs/talent_tree_drafts/Thief.json",
+      "sha256": "029ea87fd1c31f6251c7d9b8024de9a58134e3f6c5fe4cf28a8cbd1b00fdebaf",
+      "tree_id": "tree.thief"
+    }
+  ],
+  "profile_semantics": "Expand purchases in order one rank at a time; fixture points select the exact prefix. Budget includes unspent points. No mechanics are approved by allocation legality.",
+  "profiles": {
+    "assassin": {
+      "tree_id": "tree.assassin",
+      "purchases": [
+        {
+          "talent_id": "talent.assassin.quick_hands",
+          "to_rank": 5
+        },
+        {
+          "talent_id": "talent.assassin.precision",
+          "to_rank": 5
+        },
+        {
+          "talent_id": "talent.assassin.hastened_poison",
+          "to_rank": 5
+        },
+        {
+          "talent_id": "talent.assassin.echoing_toxin",
+          "to_rank": 3
+        },
+        {
+          "talent_id": "talent.assassin.poison_strike",
+          "to_rank": 1
+        },
+        {
+          "talent_id": "talent.assassin.bypass",
+          "to_rank": 1
+        },
+        {
+          "talent_id": "talent.assassin.critical_poison",
+          "to_rank": 1
+        },
+        {
+          "talent_id": "talent.assassin.accelerant",
+          "to_rank": 5
+        },
+        {
+          "talent_id": "talent.assassin.resonance",
+          "to_rank": 4
+        },
+        {
+          "talent_id": "talent.assassin.toxic_tradeoff",
+          "to_rank": 5
+        }
+      ]
+    },
+    "bladedancer": {
+      "tree_id": "tree.bladedancer",
+      "purchases": [
+        {
+          "talent_id": "talent.bladedancer.wet_stone",
+          "to_rank": 4
+        },
+        {
+          "talent_id": "talent.bladedancer.rending_slash",
+          "to_rank": 1
+        },
+        {
+          "talent_id": "talent.bladedancer.fancy_footwork",
+          "to_rank": 5
+        },
+        {
+          "talent_id": "talent.bladedancer.opportunity",
+          "to_rank": 3
+        },
+        {
+          "talent_id": "talent.bladedancer.cloak_and_dagger",
+          "to_rank": 2
+        },
+        {
+          "talent_id": "talent.bladedancer.riposte",
+          "to_rank": 2
+        },
+        {
+          "talent_id": "talent.bladedancer.weakness",
+          "to_rank": 3
+        },
+        {
+          "talent_id": "talent.bladedancer.virulent_corruption",
+          "to_rank": 1
+        },
+        {
+          "talent_id": "talent.bladedancer.precision_attacks",
+          "to_rank": 1
+        },
+        {
+          "talent_id": "talent.bladedancer.double_dip",
+          "to_rank": 2
+        },
+        {
+          "talent_id": "talent.bladedancer.weapon_master",
+          "to_rank": 2
+        },
+        {
+          "talent_id": "talent.bladedancer.side_step",
+          "to_rank": 1
+        },
+        {
+          "talent_id": "talent.bladedancer.sharpened_edge",
+          "to_rank": 5
+        },
+        {
+          "talent_id": "talent.bladedancer.weakness",
+          "to_rank": 5
+        },
+        {
+          "talent_id": "talent.bladedancer.wet_stone",
+          "to_rank": 5
+        }
+      ]
+    },
+    "shadow": {
+      "tree_id": "tree.shadow",
+      "purchases": [
+        {
+          "talent_id": "talent.shadow.coated_weapons",
+          "to_rank": 1
+        },
+        {
+          "talent_id": "talent.shadow.snake_oil",
+          "to_rank": 4
+        },
+        {
+          "talent_id": "talent.shadow.blind_spot",
+          "to_rank": 5
+        },
+        {
+          "talent_id": "talent.shadow.deception",
+          "to_rank": 5
+        },
+        {
+          "talent_id": "talent.shadow.shadow_mastery",
+          "to_rank": 4
+        },
+        {
+          "talent_id": "talent.shadow.death_from_the_shadows",
+          "to_rank": 1
+        },
+        {
+          "talent_id": "talent.umbral_pressure",
+          "to_rank": 1
+        },
+        {
+          "talent_id": "talent.shadow.shadow_mastery",
+          "to_rank": 5
+        },
+        {
+          "talent_id": "talent.shadow.dusk_strike",
+          "to_rank": 1
+        },
+        {
+          "talent_id": "talent.shadow.death_blade",
+          "to_rank": 2
+        },
+        {
+          "talent_id": "talent.shadow.death_touch",
+          "to_rank": 3
+        },
+        {
+          "talent_id": "talent.shadow.death_pact",
+          "to_rank": 3
+        },
+        {
+          "talent_id": "talent.shadow.death_from_the_shadows",
+          "to_rank": 5
+        }
+      ]
+    },
+    "thief": {
+      "tree_id": "tree.thief",
+      "purchases": [
+        {
+          "talent_id": "talent.keen_eye",
+          "to_rank": 5
+        },
+        {
+          "talent_id": "talent.sticky_fingers",
+          "to_rank": 5
+        },
+        {
+          "talent_id": "talent.thief.fast_hands",
+          "to_rank": 5
+        },
+        {
+          "talent_id": "talent.thief.charisma",
+          "to_rank": 3
+        },
+        {
+          "talent_id": "talent.thief.load_dice",
+          "to_rank": 2
+        },
+        {
+          "talent_id": "talent.gilded_blade",
+          "to_rank": 1
+        },
+        {
+          "talent_id": "talent.thief.load_dice",
+          "to_rank": 3
+        },
+        {
+          "talent_id": "talent.thief.fill_your_pockets",
+          "to_rank": 5
+        },
+        {
+          "talent_id": "talent.thief.silvered_edge",
+          "to_rank": 3
+        },
+        {
+          "talent_id": "talent.thief.bribery",
+          "to_rank": 3
+        },
+        {
+          "talent_id": "talent.thief.finders_keepers",
+          "to_rank": 2
+        }
+      ]
+    },
+    "assassin_forced_tick": {
+      "tree_id": "tree.assassin",
+      "purchases": [
+        {
+          "talent_id": "talent.assassin.quick_hands",
+          "to_rank": 5
+        },
+        {
+          "talent_id": "talent.assassin.hastened_poison",
+          "to_rank": 3
+        },
+        {
+          "talent_id": "talent.assassin.echoing_toxin",
+          "to_rank": 1
+        },
+        {
+          "talent_id": "talent.assassin.poison_strike",
+          "to_rank": 1
+        }
+      ]
+    },
+    "bladedancer_precision": {
+      "tree_id": "tree.bladedancer",
+      "purchases": [
+        {
+          "talent_id": "talent.bladedancer.wet_stone",
+          "to_rank": 4
+        },
+        {
+          "talent_id": "talent.bladedancer.rending_slash",
+          "to_rank": 1
+        },
+        {
+          "talent_id": "talent.bladedancer.fancy_footwork",
+          "to_rank": 1
+        },
+        {
+          "talent_id": "talent.bladedancer.precision_attacks",
+          "to_rank": 1
+        },
+        {
+          "talent_id": "talent.bladedancer.double_dip",
+          "to_rank": 2
+        },
+        {
+          "talent_id": "talent.bladedancer.weakness",
+          "to_rank": 1
+        },
+        {
+          "talent_id": "talent.bladedancer.opportunity",
+          "to_rank": 3
+        },
+        {
+          "talent_id": "talent.bladedancer.sharpened_edge",
+          "to_rank": 2
+        }
+      ]
+    }
+  },
+  "fixtures": [
+    {
+      "id": "assassin_0",
+      "budget": 0,
+      "primary": {
+        "profile": "assassin",
+        "points": 0
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "model"
+    },
+    {
+      "id": "assassin_1",
+      "budget": 1,
+      "primary": {
+        "profile": "assassin",
+        "points": 1
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "model"
+    },
+    {
+      "id": "assassin_3",
+      "budget": 3,
+      "primary": {
+        "profile": "assassin",
+        "points": 3
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "model"
+    },
+    {
+      "id": "assassin_5",
+      "budget": 5,
+      "primary": {
+        "profile": "assassin",
+        "points": 5
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "model"
+    },
+    {
+      "id": "assassin_6",
+      "budget": 6,
+      "primary": {
+        "profile": "assassin",
+        "points": 6
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "model"
+    },
+    {
+      "id": "assassin_9",
+      "budget": 9,
+      "primary": {
+        "profile": "assassin",
+        "points": 9
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "model"
+    },
+    {
+      "id": "assassin_10",
+      "budget": 10,
+      "primary": {
+        "profile": "assassin",
+        "points": 10
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "model"
+    },
+    {
+      "id": "assassin_11",
+      "budget": 11,
+      "primary": {
+        "profile": "assassin",
+        "points": 11
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "model"
+    },
+    {
+      "id": "assassin_12",
+      "budget": 12,
+      "primary": {
+        "profile": "assassin",
+        "points": 12
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "model"
+    },
+    {
+      "id": "assassin_15",
+      "budget": 15,
+      "primary": {
+        "profile": "assassin",
+        "points": 15
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "model"
+    },
+    {
+      "id": "assassin_20",
+      "budget": 20,
+      "primary": {
+        "profile": "assassin",
+        "points": 20
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "model"
+    },
+    {
+      "id": "assassin_21",
+      "budget": 21,
+      "primary": {
+        "profile": "assassin",
+        "points": 21
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "model"
+    },
+    {
+      "id": "assassin_24",
+      "budget": 24,
+      "primary": {
+        "profile": "assassin",
+        "points": 24
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "model"
+    },
+    {
+      "id": "assassin_25",
+      "budget": 25,
+      "primary": {
+        "profile": "assassin",
+        "points": 25
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "model"
+    },
+    {
+      "id": "assassin_30",
+      "budget": 30,
+      "primary": {
+        "profile": "assassin",
+        "points": 30
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "model"
+    },
+    {
+      "id": "assassin_33",
+      "budget": 33,
+      "primary": {
+        "profile": "assassin",
+        "points": 33
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "model"
+    },
+    {
+      "id": "assassin_35",
+      "budget": 35,
+      "primary": {
+        "profile": "assassin",
+        "points": 35
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "model"
+    },
+    {
+      "id": "assassin_40",
+      "budget": 40,
+      "primary": {
+        "profile": "assassin",
+        "points": 35
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "model"
+    },
+    {
+      "id": "assassin_45",
+      "budget": 45,
+      "primary": {
+        "profile": "assassin",
+        "points": 35
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "model"
+    },
+    {
+      "id": "bladedancer_0",
+      "budget": 0,
+      "primary": {
+        "profile": "bladedancer",
+        "points": 0
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "model"
+    },
+    {
+      "id": "bladedancer_1",
+      "budget": 1,
+      "primary": {
+        "profile": "bladedancer",
+        "points": 1
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "model"
+    },
+    {
+      "id": "bladedancer_3",
+      "budget": 3,
+      "primary": {
+        "profile": "bladedancer",
+        "points": 3
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "model"
+    },
+    {
+      "id": "bladedancer_5",
+      "budget": 5,
+      "primary": {
+        "profile": "bladedancer",
+        "points": 5
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "model"
+    },
+    {
+      "id": "bladedancer_6",
+      "budget": 6,
+      "primary": {
+        "profile": "bladedancer",
+        "points": 6
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "model"
+    },
+    {
+      "id": "bladedancer_9",
+      "budget": 9,
+      "primary": {
+        "profile": "bladedancer",
+        "points": 9
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "model"
+    },
+    {
+      "id": "bladedancer_10",
+      "budget": 10,
+      "primary": {
+        "profile": "bladedancer",
+        "points": 10
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "model"
+    },
+    {
+      "id": "bladedancer_11",
+      "budget": 11,
+      "primary": {
+        "profile": "bladedancer",
+        "points": 11
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "model"
+    },
+    {
+      "id": "bladedancer_12",
+      "budget": 12,
+      "primary": {
+        "profile": "bladedancer",
+        "points": 12
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "model"
+    },
+    {
+      "id": "bladedancer_15",
+      "budget": 15,
+      "primary": {
+        "profile": "bladedancer",
+        "points": 15
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "model"
+    },
+    {
+      "id": "bladedancer_20",
+      "budget": 20,
+      "primary": {
+        "profile": "bladedancer",
+        "points": 20
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "model"
+    },
+    {
+      "id": "bladedancer_21",
+      "budget": 21,
+      "primary": {
+        "profile": "bladedancer",
+        "points": 21
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "model"
+    },
+    {
+      "id": "bladedancer_24",
+      "budget": 24,
+      "primary": {
+        "profile": "bladedancer",
+        "points": 24
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "model"
+    },
+    {
+      "id": "bladedancer_25",
+      "budget": 25,
+      "primary": {
+        "profile": "bladedancer",
+        "points": 25
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "model"
+    },
+    {
+      "id": "bladedancer_30",
+      "budget": 30,
+      "primary": {
+        "profile": "bladedancer",
+        "points": 30
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "model"
+    },
+    {
+      "id": "bladedancer_33",
+      "budget": 33,
+      "primary": {
+        "profile": "bladedancer",
+        "points": 33
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "model"
+    },
+    {
+      "id": "bladedancer_35",
+      "budget": 35,
+      "primary": {
+        "profile": "bladedancer",
+        "points": 35
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "model"
+    },
+    {
+      "id": "bladedancer_40",
+      "budget": 40,
+      "primary": {
+        "profile": "bladedancer",
+        "points": 35
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "model"
+    },
+    {
+      "id": "bladedancer_45",
+      "budget": 45,
+      "primary": {
+        "profile": "bladedancer",
+        "points": 35
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "model"
+    },
+    {
+      "id": "shadow_0",
+      "budget": 0,
+      "primary": {
+        "profile": "shadow",
+        "points": 0
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "model"
+    },
+    {
+      "id": "shadow_1",
+      "budget": 1,
+      "primary": {
+        "profile": "shadow",
+        "points": 1
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "model"
+    },
+    {
+      "id": "shadow_3",
+      "budget": 3,
+      "primary": {
+        "profile": "shadow",
+        "points": 3
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "model"
+    },
+    {
+      "id": "shadow_5",
+      "budget": 5,
+      "primary": {
+        "profile": "shadow",
+        "points": 5
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "model"
+    },
+    {
+      "id": "shadow_6",
+      "budget": 6,
+      "primary": {
+        "profile": "shadow",
+        "points": 6
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "model"
+    },
+    {
+      "id": "shadow_9",
+      "budget": 9,
+      "primary": {
+        "profile": "shadow",
+        "points": 9
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "model"
+    },
+    {
+      "id": "shadow_10",
+      "budget": 10,
+      "primary": {
+        "profile": "shadow",
+        "points": 10
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "model"
+    },
+    {
+      "id": "shadow_11",
+      "budget": 11,
+      "primary": {
+        "profile": "shadow",
+        "points": 11
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "model"
+    },
+    {
+      "id": "shadow_12",
+      "budget": 12,
+      "primary": {
+        "profile": "shadow",
+        "points": 12
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "model"
+    },
+    {
+      "id": "shadow_15",
+      "budget": 15,
+      "primary": {
+        "profile": "shadow",
+        "points": 15
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "model"
+    },
+    {
+      "id": "shadow_20",
+      "budget": 20,
+      "primary": {
+        "profile": "shadow",
+        "points": 20
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "model"
+    },
+    {
+      "id": "shadow_21",
+      "budget": 21,
+      "primary": {
+        "profile": "shadow",
+        "points": 21
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "model"
+    },
+    {
+      "id": "shadow_24",
+      "budget": 24,
+      "primary": {
+        "profile": "shadow",
+        "points": 24
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "model"
+    },
+    {
+      "id": "shadow_25",
+      "budget": 25,
+      "primary": {
+        "profile": "shadow",
+        "points": 25
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "model"
+    },
+    {
+      "id": "shadow_30",
+      "budget": 30,
+      "primary": {
+        "profile": "shadow",
+        "points": 30
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "model"
+    },
+    {
+      "id": "shadow_33",
+      "budget": 33,
+      "primary": {
+        "profile": "shadow",
+        "points": 33
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "model"
+    },
+    {
+      "id": "shadow_35",
+      "budget": 35,
+      "primary": {
+        "profile": "shadow",
+        "points": 35
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "model"
+    },
+    {
+      "id": "shadow_40",
+      "budget": 40,
+      "primary": {
+        "profile": "shadow",
+        "points": 35
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "model"
+    },
+    {
+      "id": "shadow_45",
+      "budget": 45,
+      "primary": {
+        "profile": "shadow",
+        "points": 35
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "model"
+    },
+    {
+      "id": "thief_0",
+      "budget": 0,
+      "primary": {
+        "profile": "thief",
+        "points": 0
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "model"
+    },
+    {
+      "id": "thief_1",
+      "budget": 1,
+      "primary": {
+        "profile": "thief",
+        "points": 1
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "model"
+    },
+    {
+      "id": "thief_3",
+      "budget": 3,
+      "primary": {
+        "profile": "thief",
+        "points": 3
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "model"
+    },
+    {
+      "id": "thief_5",
+      "budget": 5,
+      "primary": {
+        "profile": "thief",
+        "points": 5
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "model"
+    },
+    {
+      "id": "thief_6",
+      "budget": 6,
+      "primary": {
+        "profile": "thief",
+        "points": 6
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "model"
+    },
+    {
+      "id": "thief_9",
+      "budget": 9,
+      "primary": {
+        "profile": "thief",
+        "points": 9
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "model"
+    },
+    {
+      "id": "thief_10",
+      "budget": 10,
+      "primary": {
+        "profile": "thief",
+        "points": 10
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "model"
+    },
+    {
+      "id": "thief_11",
+      "budget": 11,
+      "primary": {
+        "profile": "thief",
+        "points": 11
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "model"
+    },
+    {
+      "id": "thief_12",
+      "budget": 12,
+      "primary": {
+        "profile": "thief",
+        "points": 12
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "model"
+    },
+    {
+      "id": "thief_15",
+      "budget": 15,
+      "primary": {
+        "profile": "thief",
+        "points": 15
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "model"
+    },
+    {
+      "id": "thief_20",
+      "budget": 20,
+      "primary": {
+        "profile": "thief",
+        "points": 20
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "model"
+    },
+    {
+      "id": "thief_21",
+      "budget": 21,
+      "primary": {
+        "profile": "thief",
+        "points": 21
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "model"
+    },
+    {
+      "id": "thief_24",
+      "budget": 24,
+      "primary": {
+        "profile": "thief",
+        "points": 24
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "model"
+    },
+    {
+      "id": "thief_25",
+      "budget": 25,
+      "primary": {
+        "profile": "thief",
+        "points": 25
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "model"
+    },
+    {
+      "id": "thief_30",
+      "budget": 30,
+      "primary": {
+        "profile": "thief",
+        "points": 30
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "model"
+    },
+    {
+      "id": "thief_33",
+      "budget": 33,
+      "primary": {
+        "profile": "thief",
+        "points": 33
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "model"
+    },
+    {
+      "id": "thief_35",
+      "budget": 35,
+      "primary": {
+        "profile": "thief",
+        "points": 35
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "model"
+    },
+    {
+      "id": "thief_40",
+      "budget": 40,
+      "primary": {
+        "profile": "thief",
+        "points": 35
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "model"
+    },
+    {
+      "id": "thief_45",
+      "budget": 45,
+      "primary": {
+        "profile": "thief",
+        "points": 35
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "model"
+    },
+    {
+      "id": "mix_assassin_35_bladedancer_10",
+      "budget": 45,
+      "primary": {
+        "profile": "assassin",
+        "points": 35
+      },
+      "secondary": {
+        "profile": "bladedancer",
+        "points": 10
+      },
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "mixed roles and depth"
+    },
+    {
+      "id": "mix_assassin_24_bladedancer_21",
+      "budget": 45,
+      "primary": {
+        "profile": "assassin",
+        "points": 24
+      },
+      "secondary": {
+        "profile": "bladedancer",
+        "points": 21
+      },
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "mixed roles and depth"
+    },
+    {
+      "id": "mix_assassin_33_bladedancer_12",
+      "budget": 45,
+      "primary": {
+        "profile": "assassin",
+        "points": 33
+      },
+      "secondary": {
+        "profile": "bladedancer",
+        "points": 12
+      },
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "mixed roles and depth"
+    },
+    {
+      "id": "mix_bladedancer_35_assassin_10",
+      "budget": 45,
+      "primary": {
+        "profile": "bladedancer",
+        "points": 35
+      },
+      "secondary": {
+        "profile": "assassin",
+        "points": 10
+      },
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "mixed roles and depth"
+    },
+    {
+      "id": "mix_bladedancer_24_assassin_21",
+      "budget": 45,
+      "primary": {
+        "profile": "bladedancer",
+        "points": 24
+      },
+      "secondary": {
+        "profile": "assassin",
+        "points": 21
+      },
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "mixed roles and depth"
+    },
+    {
+      "id": "mix_bladedancer_33_assassin_12",
+      "budget": 45,
+      "primary": {
+        "profile": "bladedancer",
+        "points": 33
+      },
+      "secondary": {
+        "profile": "assassin",
+        "points": 12
+      },
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "mixed roles and depth"
+    },
+    {
+      "id": "mix_assassin_35_shadow_10",
+      "budget": 45,
+      "primary": {
+        "profile": "assassin",
+        "points": 35
+      },
+      "secondary": {
+        "profile": "shadow",
+        "points": 10
+      },
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "mixed roles and depth"
+    },
+    {
+      "id": "mix_assassin_24_shadow_21",
+      "budget": 45,
+      "primary": {
+        "profile": "assassin",
+        "points": 24
+      },
+      "secondary": {
+        "profile": "shadow",
+        "points": 21
+      },
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "mixed roles and depth"
+    },
+    {
+      "id": "mix_assassin_33_shadow_12",
+      "budget": 45,
+      "primary": {
+        "profile": "assassin",
+        "points": 33
+      },
+      "secondary": {
+        "profile": "shadow",
+        "points": 12
+      },
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "mixed roles and depth"
+    },
+    {
+      "id": "mix_shadow_35_assassin_10",
+      "budget": 45,
+      "primary": {
+        "profile": "shadow",
+        "points": 35
+      },
+      "secondary": {
+        "profile": "assassin",
+        "points": 10
+      },
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "mixed roles and depth"
+    },
+    {
+      "id": "mix_shadow_24_assassin_21",
+      "budget": 45,
+      "primary": {
+        "profile": "shadow",
+        "points": 24
+      },
+      "secondary": {
+        "profile": "assassin",
+        "points": 21
+      },
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "mixed roles and depth"
+    },
+    {
+      "id": "mix_shadow_33_assassin_12",
+      "budget": 45,
+      "primary": {
+        "profile": "shadow",
+        "points": 33
+      },
+      "secondary": {
+        "profile": "assassin",
+        "points": 12
+      },
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "mixed roles and depth"
+    },
+    {
+      "id": "mix_assassin_35_thief_10",
+      "budget": 45,
+      "primary": {
+        "profile": "assassin",
+        "points": 35
+      },
+      "secondary": {
+        "profile": "thief",
+        "points": 10
+      },
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "mixed roles and depth"
+    },
+    {
+      "id": "mix_assassin_24_thief_21",
+      "budget": 45,
+      "primary": {
+        "profile": "assassin",
+        "points": 24
+      },
+      "secondary": {
+        "profile": "thief",
+        "points": 21
+      },
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "mixed roles and depth"
+    },
+    {
+      "id": "mix_assassin_33_thief_12",
+      "budget": 45,
+      "primary": {
+        "profile": "assassin",
+        "points": 33
+      },
+      "secondary": {
+        "profile": "thief",
+        "points": 12
+      },
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "mixed roles and depth"
+    },
+    {
+      "id": "mix_thief_35_assassin_10",
+      "budget": 45,
+      "primary": {
+        "profile": "thief",
+        "points": 35
+      },
+      "secondary": {
+        "profile": "assassin",
+        "points": 10
+      },
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "mixed roles and depth"
+    },
+    {
+      "id": "mix_thief_24_assassin_21",
+      "budget": 45,
+      "primary": {
+        "profile": "thief",
+        "points": 24
+      },
+      "secondary": {
+        "profile": "assassin",
+        "points": 21
+      },
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "mixed roles and depth"
+    },
+    {
+      "id": "mix_thief_33_assassin_12",
+      "budget": 45,
+      "primary": {
+        "profile": "thief",
+        "points": 33
+      },
+      "secondary": {
+        "profile": "assassin",
+        "points": 12
+      },
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "mixed roles and depth"
+    },
+    {
+      "id": "mix_bladedancer_35_shadow_10",
+      "budget": 45,
+      "primary": {
+        "profile": "bladedancer",
+        "points": 35
+      },
+      "secondary": {
+        "profile": "shadow",
+        "points": 10
+      },
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "mixed roles and depth"
+    },
+    {
+      "id": "mix_bladedancer_24_shadow_21",
+      "budget": 45,
+      "primary": {
+        "profile": "bladedancer",
+        "points": 24
+      },
+      "secondary": {
+        "profile": "shadow",
+        "points": 21
+      },
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "mixed roles and depth"
+    },
+    {
+      "id": "mix_bladedancer_33_shadow_12",
+      "budget": 45,
+      "primary": {
+        "profile": "bladedancer",
+        "points": 33
+      },
+      "secondary": {
+        "profile": "shadow",
+        "points": 12
+      },
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "mixed roles and depth"
+    },
+    {
+      "id": "mix_shadow_35_bladedancer_10",
+      "budget": 45,
+      "primary": {
+        "profile": "shadow",
+        "points": 35
+      },
+      "secondary": {
+        "profile": "bladedancer",
+        "points": 10
+      },
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "mixed roles and depth"
+    },
+    {
+      "id": "mix_shadow_24_bladedancer_21",
+      "budget": 45,
+      "primary": {
+        "profile": "shadow",
+        "points": 24
+      },
+      "secondary": {
+        "profile": "bladedancer",
+        "points": 21
+      },
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "mixed roles and depth"
+    },
+    {
+      "id": "mix_shadow_33_bladedancer_12",
+      "budget": 45,
+      "primary": {
+        "profile": "shadow",
+        "points": 33
+      },
+      "secondary": {
+        "profile": "bladedancer",
+        "points": 12
+      },
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "mixed roles and depth"
+    },
+    {
+      "id": "mix_bladedancer_35_thief_10",
+      "budget": 45,
+      "primary": {
+        "profile": "bladedancer",
+        "points": 35
+      },
+      "secondary": {
+        "profile": "thief",
+        "points": 10
+      },
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "mixed roles and depth"
+    },
+    {
+      "id": "mix_bladedancer_24_thief_21",
+      "budget": 45,
+      "primary": {
+        "profile": "bladedancer",
+        "points": 24
+      },
+      "secondary": {
+        "profile": "thief",
+        "points": 21
+      },
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "mixed roles and depth"
+    },
+    {
+      "id": "mix_bladedancer_33_thief_12",
+      "budget": 45,
+      "primary": {
+        "profile": "bladedancer",
+        "points": 33
+      },
+      "secondary": {
+        "profile": "thief",
+        "points": 12
+      },
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "mixed roles and depth"
+    },
+    {
+      "id": "mix_thief_35_bladedancer_10",
+      "budget": 45,
+      "primary": {
+        "profile": "thief",
+        "points": 35
+      },
+      "secondary": {
+        "profile": "bladedancer",
+        "points": 10
+      },
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "mixed roles and depth"
+    },
+    {
+      "id": "mix_thief_24_bladedancer_21",
+      "budget": 45,
+      "primary": {
+        "profile": "thief",
+        "points": 24
+      },
+      "secondary": {
+        "profile": "bladedancer",
+        "points": 21
+      },
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "mixed roles and depth"
+    },
+    {
+      "id": "mix_thief_33_bladedancer_12",
+      "budget": 45,
+      "primary": {
+        "profile": "thief",
+        "points": 33
+      },
+      "secondary": {
+        "profile": "bladedancer",
+        "points": 12
+      },
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "mixed roles and depth"
+    },
+    {
+      "id": "mix_shadow_35_thief_10",
+      "budget": 45,
+      "primary": {
+        "profile": "shadow",
+        "points": 35
+      },
+      "secondary": {
+        "profile": "thief",
+        "points": 10
+      },
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "mixed roles and depth"
+    },
+    {
+      "id": "mix_shadow_24_thief_21",
+      "budget": 45,
+      "primary": {
+        "profile": "shadow",
+        "points": 24
+      },
+      "secondary": {
+        "profile": "thief",
+        "points": 21
+      },
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "mixed roles and depth"
+    },
+    {
+      "id": "mix_shadow_33_thief_12",
+      "budget": 45,
+      "primary": {
+        "profile": "shadow",
+        "points": 33
+      },
+      "secondary": {
+        "profile": "thief",
+        "points": 12
+      },
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "mixed roles and depth"
+    },
+    {
+      "id": "mix_thief_35_shadow_10",
+      "budget": 45,
+      "primary": {
+        "profile": "thief",
+        "points": 35
+      },
+      "secondary": {
+        "profile": "shadow",
+        "points": 10
+      },
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "mixed roles and depth"
+    },
+    {
+      "id": "mix_thief_24_shadow_21",
+      "budget": 45,
+      "primary": {
+        "profile": "thief",
+        "points": 24
+      },
+      "secondary": {
+        "profile": "shadow",
+        "points": 21
+      },
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "mixed roles and depth"
+    },
+    {
+      "id": "mix_thief_33_shadow_12",
+      "budget": 45,
+      "primary": {
+        "profile": "thief",
+        "points": 33
+      },
+      "secondary": {
+        "profile": "shadow",
+        "points": 12
+      },
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "mixed roles and depth"
+    },
+    {
+      "id": "m4_bladedancer_core",
+      "budget": 10,
+      "primary": {
+        "profile": "bladedancer",
+        "points": 10
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.quick_cut",
+        "skill.quick_cut",
+        "skill.parry_strike",
+        "skill.leaping_plunge",
+        "skill.rending_thrust"
+      ],
+      "purpose": "M4 first playable candidate; M3/M5 dependencies pending"
+    },
+    {
+      "id": "m4_bladedancer_thief",
+      "budget": 20,
+      "primary": {
+        "profile": "bladedancer",
+        "points": 15
+      },
+      "secondary": {
+        "profile": "thief",
+        "points": 5
+      },
+      "rotation_skill_ids": [
+        "skill.dance_of_death",
+        "skill.quick_cut",
+        "skill.quick_cut",
+        "skill.parry_strike",
+        "skill.leaping_plunge",
+        "skill.rending_thrust",
+        "skill.steal",
+        "skill.mug"
+      ],
+      "purpose": "M4 mixed/cooldown extension; M3/M5 dependencies pending"
+    },
+    {
+      "id": "assassin_forced_tick_10",
+      "budget": 10,
+      "primary": {
+        "profile": "assassin_forced_tick",
+        "points": 10
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.venom_jab",
+        "skill.poison_strike",
+        "skill.virulent_poison"
+      ],
+      "purpose": "M3 poison supply and forced-tick variant"
+    },
+    {
+      "id": "bladedancer_precision_15",
+      "budget": 15,
+      "primary": {
+        "profile": "bladedancer_precision",
+        "points": 15
+      },
+      "secondary": null,
+      "rotation_skill_ids": [
+        "skill.quick_cut",
+        "skill.stab",
+        "skill.parry_strike",
+        "skill.dance_of_death"
+      ],
+      "purpose": "M3 guaranteed-repeat variant"
+    },
+    {
+      "id": "zero_secondary_assassin",
+      "budget": 10,
+      "primary": {
+        "profile": "assassin",
+        "points": 10
+      },
+      "secondary": {
+        "profile": "bladedancer",
+        "points": 0
+      },
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "zero-investment secondary intrinsic and no automatic unlock"
+    },
+    {
+      "id": "zero_secondary_bladedancer",
+      "budget": 10,
+      "primary": {
+        "profile": "bladedancer",
+        "points": 10
+      },
+      "secondary": {
+        "profile": "shadow",
+        "points": 0
+      },
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "zero-investment secondary intrinsic and no automatic unlock"
+    },
+    {
+      "id": "zero_secondary_shadow",
+      "budget": 10,
+      "primary": {
+        "profile": "shadow",
+        "points": 10
+      },
+      "secondary": {
+        "profile": "thief",
+        "points": 0
+      },
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "zero-investment secondary intrinsic and no automatic unlock"
+    },
+    {
+      "id": "zero_secondary_thief",
+      "budget": 10,
+      "primary": {
+        "profile": "thief",
+        "points": 10
+      },
+      "secondary": {
+        "profile": "assassin",
+        "points": 0
+      },
+      "rotation_skill_ids": [
+        "skill.stab",
+        "skill.hold"
+      ],
+      "purpose": "zero-investment secondary intrinsic and no automatic unlock"
+    },
+    {
+      "id": "m4_thief_bladedancer",
+      "budget": 20,
+      "primary": {
+        "profile": "thief",
+        "points": 5
+      },
+      "secondary": {
+        "profile": "bladedancer",
+        "points": 15
+      },
+      "rotation_skill_ids": [
+        "skill.dance_of_death",
+        "skill.quick_cut",
+        "skill.quick_cut",
+        "skill.parry_strike",
+        "skill.leaping_plunge",
+        "skill.rending_thrust",
+        "skill.steal",
+        "skill.mug"
+      ],
+      "purpose": "M4 role-reversal comparison in Practice; not Adventure respec"
+    }
+  ]
+}

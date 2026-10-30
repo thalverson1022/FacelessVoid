@@ -1,0 +1,38 @@
+const { chromium } = require('C:/Users/tommh/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
+const path = require('node:path');
+const fs = require('node:fs');
+(async () => {
+  const output = path.resolve('project/reports/p6_t10_full_tree_preview');
+  const browser = await chromium.launch({headless:true,channel:'chrome'});
+  const page = await browser.newPage({viewport:{width:1100,height:1000},colorScheme:'dark'});
+  const errors=[];page.on('pageerror', e=>errors.push(e.message));
+  await page.goto('about:blank');
+  await page.evaluate(() => {
+    window.__bindings=[];
+    window.Tweak=class {constructor(options){this.options=options;} addSelect(object,key){window.__bindings.push({object,key,update:this.options.onChange});} addToggle(){} addSlider(){} };
+  });
+  await page.setContent(fs.readFileSync('C:/Users/tommh/.codex/visualizations/2026/10/02/01a0fdbf-e79c-73e2-a69c-a3f988b0846d/talent-tree-layouts.html','utf8'));
+  const frame=page.mainFrame();
+  await frame.waitForSelector('.fv-node');
+  await frame.waitForFunction(()=>[...document.images].every(i=>i.complete && i.naturalWidth>0));
+  const count=await frame.locator('.fv-node').count();
+  if(count!==23)throw new Error('Expected 23 nodes, got '+count);
+  await frame.locator('[data-id="talent.bladedancer.riposte"]').click();
+  if(!(await frame.locator('#fv-detail').innerText()).includes('Fancy Footwork'))throw new Error('Dependency inspection failed');
+  await frame.locator('#fv-tree-layout').screenshot({path:path.join(output,'mockup-side-by-side.png')});
+  await frame.evaluate(()=>{const b=window.__bindings[0];b.object[b.key]='Tabbed';b.update();});
+  if(await frame.locator('.fv-node').count()!==13)throw new Error('Tabbed primary coverage failed');
+  await frame.getByRole('button',{name:'Thief · Secondary',exact:true}).click();
+  if(await frame.locator('.fv-node').count()!==10)throw new Error('Tabbed secondary coverage failed');
+  await frame.locator('#fv-tree-layout').screenshot({path:path.join(output,'mockup-tabbed.png')});
+  await frame.getByRole('button',{name:'Reset points',exact:true}).click();
+  if(await frame.locator('#fv-unspent').innerText()!=='20 unspent')throw new Error('Mock reset failed');
+  await page.setViewportSize({width:360,height:1000});
+  await frame.evaluate(()=>{const b=window.__bindings[0];b.object[b.key]='Side by side';b.update();});
+  const overflow=await frame.evaluate(()=>document.documentElement.scrollWidth>document.documentElement.clientWidth);
+  if(overflow)throw new Error('Narrow mockup overflows');
+  if(errors.length)throw new Error(errors.join('\n'));
+  fs.writeFileSync(path.join(output,'mockup-checks.json'),JSON.stringify({passed:true,nodes:23,checks:['icons loaded','node prerequisite inspection','side-by-side layout','tabbed primary and secondary','local reset','360px no horizontal overflow'],errors},null,2));
+  console.log('PASS: full-tree mockup layouts, inspection, local reset and narrow layout');
+  await browser.close();
+})().catch(e=>{console.error(e);process.exit(1);});

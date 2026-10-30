@@ -22,7 +22,8 @@ func _initialize() -> void:
 
 	# -- Title -> New Adventure --
 	var title = game_root._current_screen
-	title.adventure_pressed.emit()
+	# Legacy Adventure regression uses its controller directly; the M4 title disables entry.
+	game_root._on_new_game_pressed()
 	await process_frame
 
 	# -- Class select: only Rogue is real; Mage/Crusader must be disabled --
@@ -203,11 +204,11 @@ func _initialize() -> void:
 	assert(absf(player_anchor_point.x - (combat_screen._combat_stage._stage_point_for_grid(combat_screen._combat_stage.PLAYER_STAGE_GRID).x + combat_screen._combat_stage.ACTOR_GROUP_STAGE_OFFSET_PX.x)) < 1.5)
 	assert(absf(enemy_anchor_point.x - (combat_screen._combat_stage._stage_point_for_grid(combat_screen._combat_stage.ENEMY_STAGE_GRID).x + combat_screen._combat_stage.ACTOR_GROUP_STAGE_OFFSET_PX.x)) < 1.5)
 
-	# -- Sizing: Character Stats/Enemy Stats shrink to content; Subclass/Gear
-	# absorb the leftover column height instead. --
+	# -- Character/Enemy Stats and the modal talent panel shrink to content;
+	# Gear absorbs the leftover side-column height. --
 	print("character stats size_flags_vertical (expect not expand-fill): %d" % character_stats_panel.size_flags_vertical)
 	assert(character_stats_panel.size_flags_vertical != Control.SIZE_EXPAND_FILL)
-	assert(talent_panel.size_flags_vertical == Control.SIZE_EXPAND_FILL)
+	assert(talent_panel.size_flags_vertical == Control.SIZE_SHRINK_BEGIN)
 	var enemy_panel_node = combat_screen.find_child("EnemyPanel", true, false)
 	print("enemy stats size_flags_vertical (expect not expand-fill): %d" % enemy_panel_node.size_flags_vertical)
 	assert(enemy_panel_node.size_flags_vertical != Control.SIZE_EXPAND_FILL)
@@ -287,7 +288,8 @@ func _initialize() -> void:
 	print("sunder disabled before prereqs (expect true): %s" % node_buttons["talent.sunder"].disabled)
 	assert(node_buttons["talent.sunder"].disabled)
 	assert(node_buttons["talent.sunder"].tooltip_text.contains("+20 Bonus Armor Shred"))
-	assert(node_buttons["talent.opportunity_strikes"].tooltip_text.contains("Quick Cut"))
+	# The retained legacy talent has unrestricted source skill eligibility.
+	assert(bladedancer.talents.filter(func(t): return t.id == "talent.opportunity_strikes")[0].triggered_skill_effects[0].source_skill_ids.is_empty())
 	assert(node_buttons["talent.opportunity_strikes"].tooltip_text.contains("20% chance to trigger Rending Slash"))
 
 	var piercing_blades: Talent = bladedancer.talents[1]
@@ -326,7 +328,7 @@ func _initialize() -> void:
 	# flush -- same benign artifact seen with talent_panel's checkboxes
 	# earlier, not a real duplication bug. --
 	await process_frame
-	var skills_box: HBoxContainer = available_skills_panel._skills_box
+	var skills_box: Container = available_skills_panel._skills_box
 	print("available skill buttons=%d" % skills_box.get_child_count())
 	assert(skills_box.get_child_count() == unlocked.size())
 	for button in skills_box.get_children():
@@ -335,7 +337,7 @@ func _initialize() -> void:
 		assert(min_width > 20.0)
 
 	# -- Skill Build strip: assigned skills render icons; clicking one
-	# removes it. The text glyph stays empty for icon-backed slots so the
+	# selects it; Remove performs the edit. The text glyph stays empty for icon-backed slots so the
 	# compact macro doesn't double-render icon + letter, while iconless skills
 	# still fall back to their authored letter. --
 	await process_frame
@@ -357,7 +359,9 @@ func _initialize() -> void:
 
 	var first_before: Skill = build_state.rotation[0]
 	skill_build_panel._on_slot_pressed(0)
-	print("rotation size after slot click (expect 3): %d" % build_state.rotation.size())
+	assert(build_state.rotation.size() == 4)
+	skill_build_panel._remove_selected()
+	print("rotation size after explicit removal (expect 3): %d" % build_state.rotation.size())
 	assert(build_state.rotation.size() == 3)
 	assert(not build_state.rotation.has(first_before))
 	available_skills_panel._on_skill_pressed(first_before)
@@ -430,9 +434,9 @@ func _initialize() -> void:
 	# feedback pass removed T4's always-visible effect-summary caption, so
 	# there's no longer a wrapping VBoxContainer around it).
 	for child in available_skills_panel._skills_box.get_children():
-		assert(child.disabled)
+		assert(not child.disabled) # Inspection remains available while edits are locked.
 	for child in skill_build_panel._slots_box.get_children():
-		assert(child.disabled)
+		assert(not child.disabled) # Inspection remains available while edits are locked.
 	var locked_rotation_size: int = build_state.rotation.size()
 	available_skills_panel._on_skill_pressed(build_state.unlocked_skills()[0])
 	skill_build_panel._on_slot_pressed(0)
@@ -454,7 +458,7 @@ func _initialize() -> void:
 	var expected_result: CombatResolver.CombatResult = CombatResolver.resolve(
 		expected_rotation, expected_stats, expected_monster, expected_duration_ms, build_state.current_combat_rng_seed()
 	)
-	var expected_log := CombatResultFormatter.format(expected_result, expected_monster)
+	var expected_log := CombatResultFormatter.event_log(expected_result)
 	button_sfx_before = audio_manager.button_press_sfx_play_count
 	enemy_panel.fight_button().button_down.emit()
 	enemy_panel.fight_button().pressed.emit()
@@ -466,8 +470,8 @@ func _initialize() -> void:
 	print(combat_screen._log_overlay._log_label.text)
 	assert(not combat_screen._log_overlay._log_label.text.contains("[DIAG"))
 	assert(combat_screen._log_overlay._log_label.text == expected_log)
-	assert(combat_screen._log_overlay._log_label.text.contains("VICTORY!"))
-	assert(combat_screen._log_overlay._log_label.text.contains("DPS"))
+	assert(combat_screen._log_overlay._details.text.contains("Victory"))
+	assert(combat_screen._log_overlay._inspector._summary_row.get_child_count() == 3)
 	assert(combat_screen._log_overlay._inspector.visible)
 	assert(combat_screen._log_overlay._inspector._timeline_chart._rows.size() > 0)
 	assert(combat_screen._log_overlay._inspector._damage_chart._rows.size() > 0)
@@ -491,6 +495,7 @@ func _initialize() -> void:
 	assert((history_header.get_child(0) as Label).custom_minimum_size.x >= 112.0)
 	var enemy_history_cell: RichTextLabel = combat_screen._log_overlay._enemy_cell(history_entry)
 	assert(enemy_history_cell.text == "[color=#%s]%s[/color]" % [UIColors.TEXT_POISON.to_html(false), expected_monster.display_name])
+	enemy_history_cell.free()
 	print("status label: %s" % combat_screen._status_label.text)
 	assert(combat_screen._status_label.text.begins_with("Fight complete:"))
 	assert(not combat_screen._status_label.visible)
@@ -604,7 +609,8 @@ func _initialize() -> void:
 	banner_claim.pressed.emit()
 	await process_frame
 	assert(build_state.gold == 0)
-	assert(build_state.earned_talent_points == 0)
+	# Talent points commit at claim; the flight only presents that deposit.
+	assert(build_state.earned_talent_points == 1)
 	await _wait_reward_gold_flight()
 	print("victory overlay visible after Claim Rewards (expect false): %s" % combat_screen._victory_overlay.visible)
 	assert(not combat_screen._victory_overlay.visible)
@@ -736,7 +742,7 @@ func _initialize() -> void:
 	enemy_panel.fight_pressed.emit()
 	await process_frame
 	assert(combat_screen._victory_overlay.visible)
-	assert(combat_screen._log_overlay._log_label.text.contains("Drunk Buddy"))
+	assert(combat_screen._log_overlay._details.text.contains("Drunk Buddy"))
 	print("reward after second win: %s" % _reward_row_text(combat_screen))
 	assert(_reward_row_text(combat_screen).contains(": 18g"))
 	assert(_reward_row_text(combat_screen).contains("Lucky Coin"))
@@ -1134,7 +1140,7 @@ func _initialize() -> void:
 	assert(is_equal_approx(combat_screen._combat_stage.player_actor_anchor.position.x, combat_screen._combat_stage._player_base_position.x))
 	combat_screen.instant_playback = true
 	assert(enemy_panel._fight_button.disabled)
-	assert(build_state.needs_secondary_subclass_choice())
+	assert(not build_state.needs_secondary_subclass_choice())
 	combat_screen._show_talent_overlay()
 	await process_frame
 	var talent_scroll: ScrollContainer = combat_screen._talent_overlay.find_child("TalentTreeScroll", true, false)
@@ -1153,6 +1159,10 @@ func _initialize() -> void:
 	assert(combat_screen._combat_stage.player_actor_anchor.visible)
 	assert(is_equal_approx(combat_screen._combat_stage.player_actor_anchor.position.x, combat_screen._combat_stage._player_base_position.x))
 	combat_screen._show_talent_overlay()
+	await process_frame
+	# Earned-choice UI fixture: ordinary contract acceptance remains locked.
+	build_state.completed_contract_count = 1
+	combat_screen._talent_overlay._talent_panel.refresh_panel()
 	await process_frame
 	var secondary_choices: VBoxContainer = combat_screen._talent_overlay.find_child("SecondaryTreeChoices", true, false)
 	assert(secondary_choices != null)
@@ -1181,8 +1191,8 @@ func _initialize() -> void:
 	enemy_panel._fight_button.pressed.emit()
 	await process_frame
 	print("route fight phase after generated route node: %d" % build_state.run_phase)
-	print("route fight log contains generated node (expect true): %s" % combat_screen._log_overlay._log_label.text.contains(generated_route_name))
-	assert(combat_screen._log_overlay._log_label.text.contains(generated_route_name))
+	print("route fight details contain generated node (expect true): %s" % combat_screen._log_overlay._details.text.contains(generated_route_name))
+	assert(combat_screen._log_overlay._details.text.contains(generated_route_name))
 	assert(combat_screen._view_log_button.disabled == false)
 	# This regression is about the post-contract-reward shop transition, not
 	# route balance for the broad dashboard build assembled above. Contract

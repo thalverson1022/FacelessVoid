@@ -1,0 +1,10 @@
+{
+  "buff.greed": {
+    "name": "Greed",
+    "category": "Player Buffs",
+    "path": "res://assets/ui/assigned/buffs/greed.png",
+    "source_asset_id": "F:\\Data\\Junk\\DPS Game\\Purchased Sprites\\Rpg Icon Pack\\Misc. Items\\2.png",
+    "source_sha256": "64b1d9a57f0485d23c6f694b01852be43dfb0e2ac42f466dd064c2e04b6a01fb",
+    "sha256": "64b1d9a57f0485d23c6f694b01852be43dfb0e2ac42f466dd064c2e04b6a01fb"
+  }
+}

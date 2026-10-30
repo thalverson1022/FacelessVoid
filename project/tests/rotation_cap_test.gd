@@ -27,7 +27,7 @@ func _check_pure_resolver_cap() -> void:
 
 
 func _check_training_room_ui_cap() -> void:
-	print("-- Practice Room: available-skill buttons disable once the macro is full --")
+	print("-- Practice Room: full macro refuses further additions; hover remains available --")
 	var game_root_scene: PackedScene = load("res://scenes/game_root.tscn")
 	var game_root = game_root_scene.instantiate()
 	root.add_child(game_root)
@@ -56,9 +56,8 @@ func _check_training_room_ui_cap() -> void:
 	assert(training_room._state.rotation.size() == BuildResolver.MAX_ROTATION_SIZE)
 	assert(skill_build_panel._slot_count_label.text == "Slots: 10/10")
 
-	# One more press past the cap must not grow the rotation, and the
-	# button itself should now be disabled (clear UX signal, not just a
-	# silent no-op).
+	# Further presses cannot grow the rotation. Icons remain enabled for
+	# inspection in the accepted compact interaction design.
 	available_skills_panel._on_skill_pressed(stab)
 	await process_frame
 	print("rotation size after one more press past cap (expect still %d): %d" % [
@@ -67,4 +66,9 @@ func _check_training_room_ui_cap() -> void:
 	assert(training_room._state.rotation.size() == BuildResolver.MAX_ROTATION_SIZE)
 	for child in available_skills_panel._skills_box.get_children():
 		if child is Button:
-			assert(child.disabled)
+			assert(not child.disabled)
+			child.pressed.emit()
+			assert(training_room._state.rotation.size() == BuildResolver.MAX_ROTATION_SIZE)
+			assert(not child._get_tooltip(Vector2.ZERO).is_empty())
+	game_root.queue_free()
+	await process_frame

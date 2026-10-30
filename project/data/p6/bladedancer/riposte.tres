@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="Talent" format=3]
+[ext_resource type="Script" path="res://scripts/resources/talent.gd" id="talent"]
+[ext_resource type="Script" path="res://scripts/resources/talent_rank.gd" id="rank"]
+
+[sub_resource type="Resource" id="rank1"]
+script = ExtResource("rank")
+riposte_rank = 1
+
+[sub_resource type="Resource" id="rank2"]
+script = ExtResource("rank")
+riposte_rank = 2
+
+[resource]
+script = ExtResource("talent")
+id = "talent.bladedancer.riposte"
+display_name = "Riposte"
+max_ranks = 2
+required_tree_points = 15
+prerequisite_ids = Array[String](["talent.bladedancer.fancy_footwork"])
+ranks = Array[ExtResource("rank")]([SubResource("rank1"), SubResource("rank2")])

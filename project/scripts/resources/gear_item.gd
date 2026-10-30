@@ -7,6 +7,8 @@ enum SlotType {
 	CHARM,
 	HELM,
 	ARMOR,
+	LEGS = 5,
+	HANDS = 6,
 }
 
 enum Tier {
@@ -35,6 +37,8 @@ enum SourceKind {
 
 @export var id: String = ""
 @export var display_name: String = ""
+## Stable signature identity, separate from ordinary numeric affixes.
+@export var legendary_effect_id: String = ""
 @export var slot: SlotType = SlotType.WEAPON
 @export var tier: Tier = Tier.BASIC
 @export var item_family: String = ""
@@ -63,6 +67,8 @@ static func universal_slot_order() -> Array[SlotType]:
 		SlotType.ARMOR,
 		SlotType.TRINKET,
 		SlotType.CHARM,
+		SlotType.LEGS,
+		SlotType.HANDS,
 	]
 
 

@@ -1,9 +1,5 @@
 extends Control
-## Title screen: entry point of the game. Menu order: "New Adventure"
-## (starts the real flow), "Resume Adventure" (resume -- always present,
-## disabled when no save exists), "Practice Room" (P2:R10 freeform practice
-## mode), "Exit". The `contract_test_pressed` signal remains for diagnostic
-## harnesses, but the debug shortcut is intentionally hidden from the menu.
+## M6 Adventure uses reviewed ranked content; Test Mode remains memory-only.
 ## No game logic here, per docs/Conventions.md's UI architecture principle.
 ##
 ## Layout per user direction: everything centered on the canvas, large
@@ -30,6 +26,9 @@ var _new_game_confirm_dialog: ConfirmationDialog
 var _random_seed_check_box: CheckBox
 var _seed_spin_box: SpinBox
 var _lightning_flash_overlay: Control
+var _test_points: OptionButton
+var _test_main_tree: OptionButton
+var _test_secondary_tree: OptionButton
 
 func _ready() -> void:
 	var background := TextureRect.new()
@@ -113,6 +112,10 @@ func _ready() -> void:
 	# disabled-state convention as class_select.gd's Mage/Crusader cards.
 	var adventure_button := Button.new()
 	adventure_button.text = FLOW_TEXT.ACTION_START_ADVENTURE
+	adventure_button.name = "AdventureButton"
+	var boundary_ready := SevenSlotSaveBoundary.ensure_ready()
+	adventure_button.disabled = not BuildContentRegistry.ADVENTURE_ENABLED or not boundary_ready
+	adventure_button.tooltip_text = "Start with a Crude Dagger and earn your build through the Tavern and contracts."
 	adventure_button.pressed.connect(_on_adventure_button_pressed)
 	card_vbox.add_child(adventure_button)
 
@@ -121,11 +124,65 @@ func _ready() -> void:
 	# shift between sessions.
 	var continue_button := Button.new()
 	continue_button.text = FLOW_TEXT.ACTION_RESUME_ADVENTURE
-	continue_button.disabled = not SaveSystem.has_save()
-	if continue_button.disabled:
-		continue_button.tooltip_text = FLOW_TEXT.TOOLTIP_NO_SAVED_ADVENTURE
+	continue_button.name = "ResumeAdventureButton"
+	continue_button.disabled = not BuildContentRegistry.ADVENTURE_ENABLED or not SaveSystem.has_save()
+	continue_button.tooltip_text = "Resume your current Adventure." if SaveSystem.has_save() else "No current Adventure to resume."
 	continue_button.pressed.connect(func(): continue_pressed.emit())
 	card_vbox.add_child(continue_button)
+
+	if SevenSlotSaveBoundary.last_error != "":
+		var reset_notice := Label.new()
+		reset_notice.text = SevenSlotSaveBoundary.last_error
+		reset_notice.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		card_vbox.add_child(reset_notice)
+
+	var test_row := HBoxContainer.new()
+	test_row.visible = false
+	card_vbox.add_child(test_row)
+	var test_button := Button.new()
+	test_button.name = "TestModeButton"
+	test_button.text = "Test Mode"
+	test_button.tooltip_text = "Fresh session with your selected trees, point budget and an empty rotation. Adventure and Practice saves are preserved."
+	test_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	test_button.pressed.connect(func(): contract_test_pressed.emit())
+	test_row.add_child(test_button)
+	_test_points = OptionButton.new()
+	_test_points.name = "TestPointBudget"
+	_test_points.add_item("6 points (Tavern exit)", BuildProgression.TAVERN_TOTAL)
+	_test_points.add_item("45 points", 45)
+	_test_points.add_item("10 points", 10)
+	_test_points.tooltip_text = "Choose the starting talent point budget for your build."
+	test_row.add_child(_test_points)
+
+	var tree_row := HBoxContainer.new()
+	tree_row.visible = false
+	card_vbox.add_child(tree_row)
+	var registry := BuildContentRegistry.test_mode()
+	for role in ["Main", "Secondary"]:
+		var column := VBoxContainer.new()
+		column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		tree_row.add_child(column)
+		var label := Label.new()
+		label.text = role + " tree"
+		column.add_child(label)
+		var picker := OptionButton.new()
+		picker.name = "Test" + role + "Tree"
+		column.add_child(picker)
+		if role == "Secondary":
+			_test_secondary_tree = picker
+			picker.add_item("None")
+			picker.set_item_metadata(0, "")
+		else:
+			_test_main_tree = picker
+		for tree in registry.classes["class.rogue"].trees:
+			picker.add_item(tree.display_name)
+			picker.set_item_metadata(picker.item_count - 1, tree.id)
+			if role == "Main" and tree.id == "tree.bladedancer":
+				picker.select(picker.item_count - 1)
+	_test_main_tree.tooltip_text = "Your main tree receives per-point intrinsic scaling."
+	_test_secondary_tree.tooltip_text = "Optional second tree; shares your talent point budget."
+	_test_main_tree.item_selected.connect(_on_test_main_tree_selected)
+	_on_test_main_tree_selected(_test_main_tree.selected)
 
 	var training_room_button := Button.new()
 	training_room_button.text = "Practice Room"
@@ -183,7 +240,8 @@ func _ready() -> void:
 
 
 func _on_adventure_button_pressed() -> void:
-	if SaveSystem.has_save():
+	if not BuildContentRegistry.ADVENTURE_ENABLED: return
+	if SaveSystem.has_saved_file():
 		_new_game_confirm_dialog.popup_centered()
 	else:
 		adventure_pressed.emit()
@@ -306,3 +364,23 @@ func _on_random_seed_toggled(enabled: bool) -> void:
 		if enabled
 		else FLOW_TEXT.TOOLTIP_ADVENTURE_SEED
 	)
+
+
+func selected_test_points() -> int:
+	return _test_points.get_selected_id()
+
+
+func selected_test_main_tree() -> String:
+	return str(_test_main_tree.get_selected_metadata())
+
+
+func selected_test_secondary_tree() -> String:
+	return str(_test_secondary_tree.get_selected_metadata())
+
+
+func _on_test_main_tree_selected(_index: int) -> void:
+	for index in _test_secondary_tree.item_count:
+		var duplicate := str(_test_secondary_tree.get_item_metadata(index)) == selected_test_main_tree()
+		_test_secondary_tree.set_item_disabled(index, duplicate)
+		if duplicate and _test_secondary_tree.selected == index:
+			_test_secondary_tree.select(0)

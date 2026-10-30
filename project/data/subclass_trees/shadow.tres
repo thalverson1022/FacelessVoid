@@ -1,14 +1,19 @@
-[gd_resource type="Resource" script_class="SubclassTree" load_steps=14 format=3]
+[gd_resource type="Resource" script_class="SubclassTree" format=3 uid="uid://cgqrfutfc3xy5"]
 
-[ext_resource type="Script" path="res://scripts/resources/subclass_tree.gd" id="1_tree"]
-[ext_resource type="Script" path="res://scripts/resources/skill_augment.gd" id="2_augment"]
-[ext_resource type="Script" path="res://scripts/resources/poison_damage_effect.gd" id="3_poison"]
-[ext_resource type="Resource" path="res://data/talents/shadow/lingering_venom.tres" id="4_lingering"]
-[ext_resource type="Resource" path="res://data/talents/shadow/exposed_weakness.tres" id="5_exposed"]
-[ext_resource type="Resource" path="res://data/talents/shadow/black_lotus.tres" id="6_black_lotus"]
-[ext_resource type="Resource" path="res://data/talents/shadow/nightblade_rhythm.tres" id="7_nightblade"]
-[ext_resource type="Resource" path="res://data/talents/shadow/umbral_pressure.tres" id="8_umbral"]
-[ext_resource type="Texture2D" path="res://assets/subclass_icons/rogue/shadow.png" id="9_icon"]
+[ext_resource type="Script" uid="uid://ccn5oxlw8r50c" path="res://scripts/resources/tree_skill_unlock.gd" id="1_at45e"]
+[ext_resource type="Script" uid="uid://bu6ht8c08e4an" path="res://scripts/resources/subclass_tree.gd" id="1_tree"]
+[ext_resource type="Script" uid="uid://cbkin0ub6teak" path="res://scripts/resources/skill_augment.gd" id="2_augment"]
+[ext_resource type="Script" uid="uid://m13uapmegxo2" path="res://scripts/resources/stat_modifier.gd" id="3_6k8qq"]
+[ext_resource type="Script" uid="uid://c6w7hky6emjld" path="res://scripts/resources/poison_damage_effect.gd" id="3_poison"]
+[ext_resource type="Resource" uid="uid://bfs21r2plgupt" path="res://data/talents/shadow/lingering_venom.tres" id="4_lingering"]
+[ext_resource type="Resource" uid="uid://bhcdhubvkcd02" path="res://data/talents/shadow/exposed_weakness.tres" id="5_exposed"]
+[ext_resource type="Resource" uid="uid://bfgpbywqabwwy" path="res://data/talents/shadow/black_lotus.tres" id="6_black_lotus"]
+[ext_resource type="Script" uid="uid://b3jgtul4lne2k" path="res://scripts/resources/skill_effect.gd" id="6_nvek8"]
+[ext_resource type="Resource" uid="uid://d4b6kt3cy2s5i" path="res://data/talents/shadow/nightblade_rhythm.tres" id="7_nightblade"]
+[ext_resource type="Script" uid="uid://bq2fx6c5wnwsg" path="res://scripts/resources/talent.gd" id="8_hdvir"]
+[ext_resource type="Resource" uid="uid://c5brq8vtan4km" path="res://data/talents/shadow/umbral_pressure.tres" id="8_umbral"]
+[ext_resource type="Texture2D" uid="uid://cum64vbwqytim" path="res://assets/subclass_icons/rogue/shadow.png" id="9_icon"]
+[ext_resource type="Script" uid="uid://d3apprhhvrqum" path="res://scripts/resources/skill.gd" id="14_bbrd8"]
 
 [sub_resource type="Resource" id="Resource_shadow_poison_effect"]
 script = ExtResource("3_poison")
@@ -16,14 +21,12 @@ stacks_applied = 1
 
 [sub_resource type="Resource" id="Resource_shadow_stab_augment"]
 script = ExtResource("2_augment")
-target_skill_ids = PackedStringArray("skill.stab")
-extra_effects = Array[SkillEffect]([SubResource("Resource_shadow_poison_effect")])
+extra_effects = Array[ExtResource("6_nvek8")]([SubResource("Resource_shadow_poison_effect")])
 poison_stacks_applied = 1
 
 [sub_resource type="Resource" id="Resource_shadow_heavy_augment"]
 script = ExtResource("2_augment")
-target_skill_ids = PackedStringArray("skill.heavy_slash")
-extra_effects = Array[SkillEffect]([SubResource("Resource_shadow_poison_effect")])
+extra_effects = Array[ExtResource("6_nvek8")]([SubResource("Resource_shadow_poison_effect")])
 poison_stacks_applied = 1
 
 [resource]
@@ -32,7 +35,5 @@ id = "tree.shadow"
 display_name = "Shadow"
 icon = ExtResource("9_icon")
 intrinsic_text = "Stab & Heavy Slash apply +1 Poison Stack"
-talents = Array[Talent]([ExtResource("4_lingering"), ExtResource("5_exposed"), ExtResource("6_black_lotus"), ExtResource("7_nightblade"), ExtResource("8_umbral")])
-innate_modifiers = Array[StatModifier]([])
-unlocked_skills = Array[Skill]([])
-skill_augments = Array[SkillAugment]([SubResource("Resource_shadow_stab_augment"), SubResource("Resource_shadow_heavy_augment")])
+talents = Array[ExtResource("8_hdvir")]([ExtResource("4_lingering"), ExtResource("5_exposed"), ExtResource("6_black_lotus"), ExtResource("7_nightblade"), ExtResource("8_umbral")])
+skill_augments = Array[ExtResource("2_augment")]([SubResource("Resource_shadow_stab_augment"), SubResource("Resource_shadow_heavy_augment")])

@@ -1,27 +1,27 @@
-[gd_resource type="Resource" script_class="Talent" load_steps=6 format=3]
+[gd_resource type="Resource" script_class="Talent" format=3 uid="uid://co7ibvkhh6s4e"]
 
-[ext_resource type="Script" path="res://scripts/resources/talent.gd" id="1_talent"]
-[ext_resource type="Script" path="res://scripts/resources/prerequisite_group.gd" id="2_group"]
-[ext_resource type="Resource" path="res://data/talents/bladedancer/practiced_rhythm.tres" id="3_practiced_rhythm"]
-[ext_resource type="Script" path="res://scripts/resources/triggered_skill_effect.gd" id="4_trigger"]
-[ext_resource type="Resource" path="res://data/skills/rending_slash.tres" id="5_rending_slash"]
+[ext_resource type="Script" uid="uid://bq2fx6c5wnwsg" path="res://scripts/resources/talent.gd" id="1_talent"]
+[ext_resource type="Script" uid="uid://bpusgj7hvipbl" path="res://scripts/resources/prerequisite_group.gd" id="2_group"]
+[ext_resource type="Resource" uid="uid://o4qatn0ob423" path="res://data/talents/bladedancer/practiced_rhythm.tres" id="3_practiced_rhythm"]
+[ext_resource type="Script" uid="uid://evdact12hmik" path="res://scripts/resources/talent_rank.gd" id="4_jor1t"]
+[ext_resource type="Script" uid="uid://c7fj7apjjsn5" path="res://scripts/resources/triggered_skill_effect.gd" id="4_trigger"]
+[ext_resource type="Resource" uid="uid://doy45moc6qf0" path="res://data/skills/rending_slash.tres" id="5_rending_slash"]
+[ext_resource type="Script" uid="uid://m13uapmegxo2" path="res://scripts/resources/stat_modifier.gd" id="5_wwd8r"]
+[ext_resource type="Script" uid="uid://d3apprhhvrqum" path="res://scripts/resources/skill.gd" id="8_wx2ci"]
 
 [sub_resource type="Resource" id="Resource_opportunity_strikes_group"]
 script = ExtResource("2_group")
-options = Array[Talent]([ExtResource("3_practiced_rhythm")])
+options = Array[ExtResource("1_talent")]([ExtResource("3_practiced_rhythm")])
 
 [sub_resource type="Resource" id="Resource_opportunity_strikes_trigger"]
 script = ExtResource("4_trigger")
 skill = ExtResource("5_rending_slash")
 chance = 0.2
-source_skill_ids = PackedStringArray("skill.quick_cut")
 
 [resource]
 script = ExtResource("1_talent")
 id = "talent.opportunity_strikes"
 display_name = "Opportunity Strikes"
 cost = 2
-prerequisites = Array[PrerequisiteGroup]([SubResource("Resource_opportunity_strikes_group")])
-stat_modifiers = Array[StatModifier]([])
-unlocked_skills = Array[Skill]([])
-triggered_skill_effects = Array[TriggeredSkillEffect]([SubResource("Resource_opportunity_strikes_trigger")])
+prerequisites = Array[ExtResource("2_group")]([SubResource("Resource_opportunity_strikes_group")])
+triggered_skill_effects = Array[ExtResource("4_trigger")]([SubResource("Resource_opportunity_strikes_trigger")])

@@ -10,6 +10,15 @@ const RUN_ROW_FONT_SIZE := 17
 const MODAL_Z_INDEX := 930
 const INSPECTOR_SCENE := preload("res://scenes/combat/combat_log_inspector.gd")
 
+var practice_mode := false
+var category_preview := false
+var _tabs: TabContainer
+var _damage_scroll: ScrollContainer
+var _run_scroll: ScrollContainer
+var _details: Label
+var _panel: PanelContainer
+var _category_result: CombatResolver.CombatResult
+var _original_text := ""
 var _inspector
 var _log_label: RichTextLabel
 var _run_chart: RunDpsChart
@@ -21,7 +30,11 @@ func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	visible = false
 
-	var panel := CardStyle.build_modal_panel(self, true)
+	var panel := CardStyle.build_modal_panel(self, true, true)
+	_panel = panel
+	get_viewport().size_changed.connect(_resize_panel)
+	resized.connect(_resize_panel)
+	_resize_panel()
 	z_index = MODAL_Z_INDEX
 	panel.add_theme_stylebox_override("panel", CardStyle.make_stylebox())
 
@@ -44,62 +57,83 @@ func _ready() -> void:
 	header.add_child(close_button)
 	content.add_child(header)
 
-	var tabs := TabContainer.new()
-	tabs.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	tabs.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	content.add_child(tabs)
+	_tabs = TabContainer.new()
+	_tabs.name = "LogTabs"
+	_tabs.use_hidden_tabs_for_min_size = false
+	_tabs.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_tabs.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	content.add_child(_tabs)
 
-	var event_tab := VBoxContainer.new()
-	event_tab.name = "Event Log"
-	event_tab.add_theme_constant_override("separation", 8)
-	tabs.add_child(event_tab)
-
+	_damage_scroll = _scroll_tab("Damage Breakdown")
+	var damage_content := VBoxContainer.new()
+	damage_content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_damage_scroll.add_child(damage_content)
+	_details = Label.new()
+	_details.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_details.add_theme_font_size_override("font_size", 17)
+	damage_content.add_child(_details)
 	_inspector = INSPECTOR_SCENE.new()
+	_inspector.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_inspector.visible = false
-	event_tab.add_child(_inspector)
-
-	var detail_title := Label.new()
-	detail_title.text = "Event Log"
-	detail_title.theme_type_variation = &"PanelHeader"
-	event_tab.add_child(detail_title)
+	damage_content.add_child(_inspector)
+	# Keep the inspector usable alone, while sharing its summary across tabs here.
+	_inspector._summary_row.reparent(content)
+	content.move_child(_inspector._summary_row, 1)
+	_inspector._summary_row.visible = false
 
 	_log_label = RichTextLabel.new()
-	_log_label.custom_minimum_size = Vector2(760, 180)
+	_log_label.name = "Event Log"
+	_log_label.custom_minimum_size = Vector2(0, 120)
 	_log_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_log_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	event_tab.add_child(_log_label)
+	_tabs.add_child(_log_label)
 
+	_run_scroll = _scroll_tab("Run Log")
 	var run_tab := VBoxContainer.new()
-	run_tab.name = "Run Log"
+	run_tab.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	run_tab.add_theme_constant_override("separation", 8)
-	tabs.add_child(run_tab)
-
+	_run_scroll.add_child(run_tab)
 	var run_title := Label.new()
 	run_title.text = "Player DPS By Fight"
+	run_title.visible = not practice_mode
 	run_title.theme_type_variation = &"PanelHeader"
 	run_tab.add_child(run_title)
-
 	_run_chart = RunDpsChart.new()
-	_run_chart.custom_minimum_size = Vector2(760, 170)
+	_run_chart.custom_minimum_size = Vector2(0, 170)
 	_run_chart.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	run_tab.add_child(_run_chart)
-
 	var list_title := Label.new()
 	list_title.text = "Encounter History"
+	list_title.visible = not practice_mode
 	list_title.theme_type_variation = &"PanelHeader"
 	run_tab.add_child(list_title)
-
-	var scroll := ScrollContainer.new()
-	scroll.custom_minimum_size = Vector2(760, 220)
-	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	run_tab.add_child(scroll)
 
 	_run_list = VBoxContainer.new()
 	_run_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_run_list.add_theme_constant_override("separation", 2)
-	scroll.add_child(_run_list)
+	run_tab.add_child(_run_list)
 	_refresh_run_history()
+
+
+func _resize_panel() -> void:
+	# A fixed viewport bounds the active page; chart minimums stay inside scrolls.
+	_panel.custom_minimum_size = Vector2(minf(1040, size.x - 48), maxf(320, size.y - 32))
+
+
+func _scroll_tab(title: String) -> ScrollContainer:
+	var scroll := ScrollContainer.new()
+	scroll.name = title
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_tabs.add_child(scroll)
+	return scroll
+
+
+func _reset_scrolls() -> void:
+	_damage_scroll.scroll_vertical = 0
+	_run_scroll.scroll_vertical = 0
+	_log_label.scroll_to_line(0)
 
 
 ## Public setter so combat_screen.gd never touches this overlay's internal
@@ -107,12 +141,43 @@ func _ready() -> void:
 func set_result_text(text: String) -> void:
 	if _inspector != null:
 		_inspector.clear()
+	_reset_scrolls()
+	_details.text = "No damage breakdown available for this text log."
+	_tabs.current_tab = 1
+	_category_result = null
+	_original_text = text
+	_log_label.bbcode_enabled = false
 	_log_label.text = text
 
 
 func set_result(result: CombatResolver.CombatResult, monster: Monster, text: String) -> void:
-	_inspector.set_result(result, monster)
-	_log_label.text = text
+	if result == null:
+		set_result_text(text)
+		return
+	_reset_scrolls()
+	_tabs.current_tab = 0
+	_inspector.set_result(result, monster, practice_mode)
+	_details.text = _result_details(result, monster)
+	_category_result = result
+	_original_text = CombatResultFormatter.event_log(result) if result != null else text
+	refresh_category_preview()
+
+
+func _result_details(result: CombatResolver.CombatResult, monster: Monster) -> String:
+	if not result.is_valid:
+		return CombatResultFormatter.invalid_simulation_message(result)
+	var details: PackedStringArray = []
+	if monster != null:
+		if not practice_mode:
+			details.append("%s | %s | %d HP" % ["Victory" if result.is_win else "Defeat", monster.display_name, monster.hp])
+		else:
+			details.append("Practice | %s" % monster.display_name)
+		details.append("%d Armor | %.0f%% Resist" % [monster.armor, monster.poison_resistance * 100.0])
+	if result.countdown_rate != 1.0:
+		details.append("Countdown %ss at %.0f%% speed" % [LegendaryCatalog.number_text(result.nominal_duration_ms / 1000.0), result.countdown_rate * 100.0])
+	if result.gold_stolen > 0:
+		details.append("Gold stolen %d" % result.gold_stolen)
+	return " | ".join(details)
 
 
 func show_log() -> void:
@@ -132,14 +197,16 @@ func set_run_history(history: Array) -> void:
 func _refresh_run_history() -> void:
 	if _run_chart != null:
 		_run_chart.set_rows(_run_history)
+		_run_chart.visible = not practice_mode
 	if _run_list == null:
 		return
 	for child in _run_list.get_children():
 		child.queue_free()
-	_run_list.add_child(_history_header_row())
+	if not practice_mode:
+		_run_list.add_child(_history_header_row())
 	if _run_history.is_empty():
 		var empty := Label.new()
-		empty.text = "No encounters recorded yet."
+		empty.text = "Adventure run history is not recorded in Practice." if practice_mode else "No encounters recorded yet."
 		empty.add_theme_color_override("font_color", UIColors.TEXT_DISABLED)
 		_run_list.add_child(empty)
 		return
@@ -298,3 +365,8 @@ class RunDpsChart:
 			var x := chart.position.x + float(i) * slot_w + slot_w * 0.5
 			var color := UIColors.TEXT_GOLD if fight_number <= count else UIColors.TEXT_DISABLED
 			draw_string(font, Vector2(x - 12.0, chart.end.y + 20.0), "%d" % fight_number, HORIZONTAL_ALIGNMENT_CENTER, 24.0, font_size, color)
+
+func refresh_category_preview() -> void:
+	if _log_label == null: return
+	_log_label.bbcode_enabled = category_preview and _category_result != null
+	_log_label.text = preload("res://scripts/ui/skill_category_preview_style.gd").log_text(_category_result) + "\n\nFULL EVENT LOG\n" + _original_text.replace("[", "[lb]") if category_preview and _category_result != null else _original_text

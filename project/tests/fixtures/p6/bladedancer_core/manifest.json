@@ -1,0 +1,23 @@
+{
+  "revision": "p6.test.bladedancer_core.1",
+  "scope": "T8 ten-point core only",
+  "release_ready": false,
+  "fixture_id": "m4_bladedancer_core",
+  "authority": [
+    "P6M2_T5_Integration_And_Dependency_Plan",
+    "P6M3_T1_Bladedancer_First_Slice_Specification",
+    "P6M3-D023"
+  ],
+  "excluded": [
+    "other Bladedancer talents",
+    "12-point Dance slot",
+    "other trees",
+    "playable registry promotion",
+    "final UI/icons"
+  ],
+  "sources": {
+    "docs\\P6M2_T4_Content_Identity_Manifest.json": "c481021dbe512387d9638d7775a0d7b4dfad4a7842202e8b2a1009195a61c18c",
+    "docs\\P6M2_T5_Build_Fixtures.json": "92a6e5f2f2b1d054de8eb30d6bc48b709af14577c7b019bc090eca4979adaf4b",
+    "docs\\talent_tree_drafts\\Bladedancer.json": "8c33a60060ad7e42c45f254b2c24515c217f22f94fe68dfec819ae183242cbc2"
+  }
+}

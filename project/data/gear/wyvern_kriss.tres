@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="GearItem" load_steps=6 format=3]
+[gd_resource type="Resource" script_class="GearItem" load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://scripts/resources/gear_item.gd" id="1_gear"]
 [ext_resource type="Script" path="res://scripts/resources/stat_modifier.gd" id="2_affix"]
@@ -41,6 +41,7 @@ display_label = "Poison Tick Interval"
 [resource]
 script = ExtResource("1_gear")
 id = "gear.legendary.wyvern_kriss"
+legendary_effect_id = "wyvern"
 display_name = "Wyvern Kriss"
 slot = 0
 tier = 3

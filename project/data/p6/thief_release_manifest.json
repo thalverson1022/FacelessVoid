@@ -1,0 +1,51 @@
+{
+  "content_revision": "p6.playable.thief.1",
+  "compatible_revisions": [
+    "p6.playable.thief.1",
+    "p6.playable.bladedancer.1",
+    "p6.playable.mixed.1",
+    "p6.playable.bladedancer_core.1"
+  ],
+  "authority": "P6M5-D004 / M5-T6",
+  "promoted_from": "p6.playable.bladedancer.1",
+  "previous_manifest_sha256": "9c53f26ee876e0bc84be2e69ecb5d905fdd288c48eb0bb8672e116ace6dbf350",
+  "scope": "Complete Bladedancer 13/35 and Thief 10/35 in Test Mode/Practice. Adventure retains p6.compat.1.",
+  "source_sha256": {
+    "project/data/p6/thief/bribery.tres": "ef14d8055b6d65de432e07bb9baac0cef38a6e8b8058e45a79ff99b8405132d4",
+    "project/data/p6/thief/charisma.tres": "f5ee9c5a66ed796a872c35696a7c54954a166a7d8cd0a04cc562e2988e9f8e2c",
+    "project/data/p6/thief/fast_hands.tres": "65091b3c1e43618bda05c0de650fc169232b18d1ffa92930142583d0a723e2be",
+    "project/data/p6/thief/fill_your_pockets.tres": "57a9027cf3cd4e31d7093e650f3f8918de869c45747686d585c159416fa84cf3",
+    "project/data/p6/thief/finders_keepers.tres": "b5910aa61f0e4ac86994d0896755f3a9506f92b4f6aebb7c0a2d07e9779b8172",
+    "project/data/p6/thief/gilded_blade.tres": "84d6ee0c4ebb3b8bbce115a2a628f8343b6106cb75b91a1327e93d28c2473665",
+    "project/data/p6/thief/load_dice.tres": "351c1ddca405577ca59e1a7ae7e1cc8cc955e569531eaf80dd55ec68f729f297",
+    "project/data/p6/thief/silvered_edge.tres": "e7addba2150b21f89d89f9ec1b93b51807802ce08f67b3dfc3448447114a3f58",
+    "project/data/p6/thief/sticky_fingers.tres": "18e71704fb7c828c8bad1b65555f0a92e32d5c4b2cbce2502d8eea442e3cf994",
+    "project/scripts/systems/playable_thief_content.gd": "412828e5123daaafdd609f9d82402516bd3345d78ae5da66802ecfa7158aa2e0",
+    "project/scripts/systems/build_content_registry.gd": "02b7d1ec64342516c36a660f84d772e7ae0456a96ca4e9849656a42ac0c4140a",
+    "project/scripts/systems/ranked_build.gd": "73c71fd72a45cdbb896f4ae81a05f209bdd75a2cdae20ffbd29a5c36b65bf4a6",
+    "project/scripts/systems/build_resolver.gd": "eb0229ae836e1c34ff1b6396e61d742f2a384c714f28faf84d9e2e155f01222a",
+    "project/scripts/resources/talent_rank.gd": "46b072911180c11e36d0d1c72285b9c1d77e20bc486c1512d52dd9e616dd0270",
+    "project/scripts/resources/talent.gd": "13eff415b1e5f4f726107de1095785c160b4cddde4bf2ad91831aa4c5396516c",
+    "docs/P6M5_T5_Thief_Design_Review.md": "7553b64e05f883bfb4080d21ecab672122cc2bd445c9fb4cf8bb6a6f5a18b0c9",
+    "docs/talent_tree_drafts/Thief.json": "029ea87fd1c31f6251c7d9b8024de9a58134e3f6c5fe4cf28a8cbd1b00fdebaf",
+    "project/scripts/systems/p6_thief_contracts.gd": "1d581653dd57c1f814bff2de2e1fd9435e0aae525147f5e8e536dc9c97f9c290",
+    "project/scripts/resources/skill.gd": "82df5c87eab53b1c49d1d051d32d72e7838b0c1649baf5438a28dbc0f472bdc3",
+    "project/scripts/systems/combat_resolver.gd": "95e3376892b979a72344d3863f4511afc27603c6cdb864e5030b5db26b0dbbd1",
+    "project/scripts/ui/skill_tooltip_formatter.gd": "23c0e6345222c08e68ce170e4b6ea05a8f500f2cdbcffbe12ebb9c9b180f46f3",
+    "project/scripts/ui/combat_presentation_state.gd": "89df1503251b620934c9c22e260d1b7bd0c821cd23b7248cc861ee44338ea507",
+    "project/scripts/ui/combat_effect_icons.gd": "691535a8c94c412f11277206209d9420c9a1f361be5226e2dc806f7ba484d047"
+  },
+  "approved_tuning": {
+    "authority": "P6M5-D008",
+    "changes": "Pick Pocket retains 1800 ms/10 raw gold; Mug +1 damage per credited stolen gold, cap50",
+    "previous_contract_sha256": "7673ac4cb65212c2b917be40c89b75eb8d7f9c115761a6fb3a35db3c6b130ca3"
+  },
+  "presentation_updates": {
+    "greed": "User requested combat-only indicator: one stack per credited gold stolen; no extra stat modifiers.",
+    "dance_recast": "Normalize dance.N lifecycle instances to buff.dance for display, preserving distinct timer state."
+  },
+  "allocation_update": {
+    "authority": "P6M5-D007",
+    "rule": "Talent gates require strictly lower-tier points; rejected edits are atomic. Automatic skills/intrinsics still use total investment."
+  }
+}
