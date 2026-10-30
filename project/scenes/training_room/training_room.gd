@@ -59,7 +59,6 @@ const GEAR_EDITOR_POPUP_SIZE := Vector2(390, 285)
 const ROGUE_CLASS_PATH := "res://data/classes/rogue.tres"
 const BACKDROP_COLOR := UIColors.OVERLAY_BACKDROP
 const FIGHT_ICON := preload("res://assets/ui/icons/fight.png")
-const PRACTICE_LOGO_PATH := "res://assets/ui/logos/peak_deeps_logo_mountain_crest.png"
 const UI_BACK_ICON_PATH := "res://assets/ui/icons/abandon_ex.png"
 const TOP_ACTION_BUTTON_SIZE := Vector2(56, 56)
 const SETTINGS_BUTTON_RESERVED_WIDTH := 50.0
@@ -69,7 +68,7 @@ const TALENT_PANEL_SCENE := preload("res://scenes/combat/talent_panel.tscn")
 const AVAILABLE_SKILLS_PANEL_SCENE := preload("res://scenes/combat/available_skills_panel.tscn")
 const SKILL_BUILD_PANEL_SCENE := preload("res://scenes/combat/skill_build_panel.tscn")
 const CHARACTER_STATS_PANEL_SCENE := preload("res://scenes/combat/character_stats_panel.tscn")
-const COMBAT_LOG_INSPECTOR_SCRIPT := preload("res://scenes/combat/combat_log_inspector.gd")
+const LOG_OVERLAY_SCENE := preload("res://scenes/combat/log_overlay.tscn")
 
 const RARITY_NAMES := {
 	GearItem.Tier.CRUDE: "Crude",
@@ -107,6 +106,8 @@ var _helm_slot_button: Button
 var _armor_slot_button: Button
 var _trinket_slot_button: Button
 var _charm_slot_button: Button
+var _legs_slot_button: Button
+var _hands_slot_button: Button
 var _carried_button: Button
 var _carried_overlay: Control
 var _carried_rows: VBoxContainer
@@ -175,6 +176,7 @@ func _ready() -> void:
 	margin.add_child(vbox)
 
 	var header := HBoxContainer.new()
+	header.name = "TopActionBar"
 	header.add_theme_constant_override("separation", 20)
 	vbox.add_child(header)
 
@@ -205,8 +207,7 @@ func _ready() -> void:
 	var save_setup_button := Button.new()
 	save_setup_button.text = "Save Setup"
 	save_setup_button.pressed.connect(func():
-		_setup_autosave = true
-		_commit_setup_save()
+		_commit_setup_save(true)
 	)
 	header.add_child(save_setup_button)
 	# Reserve the far-right space for global Settings after all header actions.
@@ -235,13 +236,14 @@ func _ready() -> void:
 	var character_stats_panel := CHARACTER_STATS_PANEL_SCENE.instantiate()
 	character_stats_panel.name = "CharacterStatsPanel"
 	character_stats_panel.state = _state
+	character_stats_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	left_column.add_child(character_stats_panel)
 
 	var active_talents_panel := ACTIVE_TALENTS_PANEL_SCENE.instantiate()
 	active_talents_panel.name = "ActiveTalentsPanel"
 	active_talents_panel.state = _state
 	active_talents_panel.enable_open_button_attention = false
-	active_talents_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	active_talents_panel.size_flags_vertical = Control.SIZE_FILL
 	active_talents_panel.open_talents_pressed.connect(_show_talent_overlay)
 	left_column.add_child(active_talents_panel)
 
@@ -288,7 +290,7 @@ func _ready() -> void:
 	_view_log_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	_view_log_button.add_theme_font_size_override("font_size", ACTION_BUTTON_FONT_SIZE)
 	_view_log_button.disabled = true
-	_view_log_button.pressed.connect(func(): _log_overlay.visible = true)
+	_view_log_button.pressed.connect(func(): _log_overlay.show_log())
 	fight_button_row.add_child(_view_log_button)
 
 	var available_skills_panel := AVAILABLE_SKILLS_PANEL_SCENE.instantiate()
@@ -325,11 +327,13 @@ func _ready() -> void:
 	right_column.add_child(_target_panel)
 
 	_build_fight_setup_panel(right_column)
-	_build_practice_logo(right_column)
 
 	_build_talent_overlay()
 	_build_gear_editor_overlay()
 	_build_log_overlay()
+	preload("res://scripts/ui/play_area_focus.gd").fit_below(_talent_overlay, header, true)
+	_talent_overlay.resized.connect(_resize_talent_overlay_to_viewport)
+	preload("res://scripts/ui/play_area_focus.gd").fit_below(_log_overlay, columns)
 
 	_state.build_changed.connect(_refresh_talent_panel)
 	_state.build_changed.connect(_refresh_gear_editor)
@@ -377,7 +381,7 @@ func _build_talent_overlay() -> void:
 	_talent_overlay.visible = false
 	add_child(_talent_overlay)
 
-	var panel := CardStyle.build_modal_panel(_talent_overlay, true)
+	var panel := CardStyle.build_modal_panel(_talent_overlay, true, true)
 	var style := CardStyle.make_stylebox(18)
 	style.set_border_width_all(3)
 	panel.add_theme_stylebox_override("panel", style)
@@ -431,7 +435,11 @@ func _build_talent_overlay() -> void:
 func _resize_talent_overlay_to_viewport() -> void:
 	if _talent_overlay_content == null or _talent_overlay_scroll == null:
 		return
-	var available := get_viewport_rect().size - Vector2(96, 96)
+	# Use the space below the system bar, including the subtitle area.
+	# Budget panel borders explicitly instead of losing another96px to padding.
+	var panel := _talent_overlay_content.get_parent() as PanelContainer
+	var frame := panel.get_theme_stylebox("panel").get_minimum_size()
+	var available := _talent_overlay.size - Vector2(96, 32 + frame.y)
 	_talent_overlay_content.custom_minimum_size = Vector2(minf(940, available.x), 0)
 	var chrome: float = _talent_overlay_content.get_child(0).get_combined_minimum_size().y + 10
 	_talent_overlay_scroll.custom_minimum_size = Vector2(0, minf(_talent_panel.get_combined_minimum_size().y, maxf(180, available.y - chrome)))
@@ -454,67 +462,53 @@ func _build_gear_paper_doll(parent: Container) -> void:
 	title.add_theme_font_size_override("font_size", CARD_TITLE_FONT_SIZE)
 	content.add_child(title)
 
-	var equipment_label := Label.new()
-	equipment_label.text = "Equipment"
-	equipment_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	equipment_label.add_theme_font_size_override("font_size", 15)
-	content.add_child(equipment_label)
-
-	var doll := VBoxContainer.new()
+	var doll := HBoxContainer.new()
 	doll.name = "PracticeGearDoll"
-	doll.add_theme_constant_override("separation", 6)
+	doll.alignment = BoxContainer.ALIGNMENT_CENTER
+	doll.add_theme_constant_override("separation", 8)
 	content.add_child(doll)
+	var left := VBoxContainer.new()
+	left.alignment = BoxContainer.ALIGNMENT_CENTER
+	left.add_theme_constant_override("separation", 6)
+	doll.add_child(left)
+	var center := VBoxContainer.new()
+	center.alignment = BoxContainer.ALIGNMENT_CENTER
+	center.add_theme_constant_override("separation", 6)
+	doll.add_child(center)
+	var right := VBoxContainer.new()
+	right.alignment = BoxContainer.ALIGNMENT_CENTER
+	right.add_theme_constant_override("separation", 6)
+	doll.add_child(right)
+	_weapon_slot_button = _add_practice_slot(left, PAPER_DOLL_WEAPON_SLOT_SIZE, GearItem.SlotType.WEAPON, "Weapon")
+	_hands_slot_button = _add_practice_slot(left, Vector2(60, 60), GearItem.SlotType.HANDS, "Gloves")
+	_helm_slot_button = _add_practice_slot(center, PAPER_DOLL_HELM_SLOT_SIZE, GearItem.SlotType.HELM, "Helm")
+	_armor_slot_button = _add_practice_slot(center, PAPER_DOLL_ARMOR_SLOT_SIZE, GearItem.SlotType.ARMOR, "Armor")
+	_legs_slot_button = _add_practice_slot(center, Vector2(88, 88), GearItem.SlotType.LEGS, "Pants")
+	_charm_slot_button = _add_practice_slot(right, PAPER_DOLL_SMALL_SLOT_SIZE, GearItem.SlotType.CHARM, "Charm")
+	_trinket_slot_button = _add_practice_slot(right, PAPER_DOLL_SMALL_SLOT_SIZE, GearItem.SlotType.TRINKET, "Trinket")
 
-	_helm_slot_button = _make_gear_slot_button(PAPER_DOLL_HELM_SLOT_SIZE, GearItem.SlotType.HELM)
-	_helm_slot_button.name = "HelmSlot"
-	_helm_slot_button.pressed.connect(_show_gear_slot_editor.bind("Helm", _state.practice_helm, false))
-	doll.add_child(_helm_slot_button)
 
-	var middle_row := HBoxContainer.new()
-	middle_row.alignment = BoxContainer.ALIGNMENT_CENTER
-	middle_row.add_theme_constant_override("separation", 8)
-	doll.add_child(middle_row)
 
-	_weapon_slot_button = _make_gear_slot_button(PAPER_DOLL_WEAPON_SLOT_SIZE, GearItem.SlotType.WEAPON)
-	_weapon_slot_button.name = "WeaponSlot"
-	_weapon_slot_button.pressed.connect(_show_gear_slot_editor.bind("Weapon", _state.practice_weapon, true))
-	middle_row.add_child(_weapon_slot_button)
+func _add_practice_slot(parent: Container, slot_size: Vector2, slot_id: int, label: String) -> Button:
+	var button := _make_gear_slot_button(slot_size, slot_id)
+	button.name = "%sSlot" % label
+	# Resolve the current shell on click: loading a setup replaces item resources.
+	button.pressed.connect(func(): _show_gear_slot_editor(label, _state.get("practice_" + GearItem.SlotType.keys()[slot_id].to_lower()), slot_id == GearItem.SlotType.WEAPON))
+	button.gui_input.connect(func(event: InputEvent): _on_practice_slot_gui_input(event, slot_id, button))
+	parent.add_child(button)
+	_gear_slot_buttons[slot_id] = button
+	return button
 
-	_armor_slot_button = _make_gear_slot_button(PAPER_DOLL_ARMOR_SLOT_SIZE, GearItem.SlotType.ARMOR)
-	_armor_slot_button.name = "ArmorSlot"
-	_armor_slot_button.pressed.connect(_show_gear_slot_editor.bind("Armor", _state.practice_armor, false))
-	middle_row.add_child(_armor_slot_button)
 
-	# P5M8 equipment layout source of truth matches the live Gear panel:
-	# Charm/Necklace should sit above Trinket/Ring on the right stack.
-	var right_stack := VBoxContainer.new()
-	right_stack.alignment = BoxContainer.ALIGNMENT_CENTER
-	right_stack.add_theme_constant_override("separation", 6)
-	middle_row.add_child(right_stack)
-
-	_charm_slot_button = _make_gear_slot_button(PAPER_DOLL_SMALL_SLOT_SIZE, GearItem.SlotType.CHARM)
-	_charm_slot_button.name = "CharmSlot"
-	_charm_slot_button.pressed.connect(_show_gear_slot_editor.bind("Charm", _state.practice_charm, false))
-	right_stack.add_child(_charm_slot_button)
-
-	_trinket_slot_button = _make_gear_slot_button(PAPER_DOLL_SMALL_SLOT_SIZE, GearItem.SlotType.TRINKET)
-	_trinket_slot_button.name = "TrinketSlot"
-	_trinket_slot_button.pressed.connect(_show_gear_slot_editor.bind("Trinket", _state.practice_trinket, false))
-	right_stack.add_child(_trinket_slot_button)
-
-	_gear_slot_buttons = {
-		_state.practice_weapon: _weapon_slot_button,
-		_state.practice_helm: _helm_slot_button,
-		_state.practice_armor: _armor_slot_button,
-		_state.practice_trinket: _trinket_slot_button,
-		_state.practice_charm: _charm_slot_button,
-	}
-
-	_carried_button = Button.new()
-	_carried_button.name = "CarriedGearButton"
-	_carried_button.text = "Carried Gear (0/3)"
-	_carried_button.pressed.connect(_show_carried_editor)
-	content.add_child(_carried_button)
+func _on_practice_slot_gui_input(event: InputEvent, slot_id: int, button: Button) -> void:
+	if not event is InputEventMouseButton or event.button_index != MOUSE_BUTTON_RIGHT or not event.pressed:
+		return
+	button.accept_event()
+	if _state.allocation_locked:
+		return
+	# Resolve the current custom shell, even when a Legendary occupies the slot
+	# or a restored setup has replaced the original resource.
+	_state.clear_slot(_state.get("practice_" + GearItem.SlotType.keys()[slot_id].to_lower()))
 
 
 func _show_carried_editor() -> void:
@@ -568,25 +562,6 @@ func _refresh_carried_editor() -> void:
 	add.disabled = _state.carried_items.size() >= TrainingRoomState.MAX_CARRIED_ITEMS
 	add.pressed.connect(func(): _state.add_carried_item())
 	_carried_rows.add_child(add)
-
-
-func _build_practice_logo(parent: Container) -> void:
-	var holder := CenterContainer.new()
-	holder.name = "PracticeLogoHolder"
-	holder.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	holder.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	parent.add_child(holder)
-
-	var logo := TextureRect.new()
-	logo.name = "PracticeLogo"
-	logo.texture = _texture_from_path(PRACTICE_LOGO_PATH)
-	logo.custom_minimum_size = Vector2(270, 170)
-	logo.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
-	logo.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	logo.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	logo.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	logo.modulate = Color(1, 1, 1, 0.92)
-	holder.add_child(logo)
 
 
 func _texture_from_path(path: String) -> Texture2D:
@@ -644,6 +619,11 @@ func _make_gear_slot_button(slot_size: Vector2, gear_slot: int) -> Button:
 	slot_background.texture = GearIcons.slot_background_for(gear_slot)
 	slot_background.modulate = Color(1, 1, 1, 0.46)
 	slot_background.set_anchors_preset(Control.PRESET_FULL_RECT)
+	if gear_slot in [GearItem.SlotType.LEGS, GearItem.SlotType.HANDS]:
+		slot_background.offset_left = 4
+		slot_background.offset_top = 4
+		slot_background.offset_right = -4
+		slot_background.offset_bottom = -4
 	slot.add_child(slot_background)
 
 	var icon := TextureRect.new()
@@ -652,6 +632,11 @@ func _make_gear_slot_button(slot_size: Vector2, gear_slot: int) -> Button:
 	icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	icon.set_anchors_preset(Control.PRESET_FULL_RECT)
+	if gear_slot in [GearItem.SlotType.LEGS, GearItem.SlotType.HANDS]:
+		icon.offset_left = 4
+		icon.offset_top = 4
+		icon.offset_right = -4
+		icon.offset_bottom = -4
 	slot.add_child(icon)
 	return slot
 
@@ -688,7 +673,7 @@ func _build_gear_editor_overlay() -> void:
 	_carried_slot_row = _build_labeled_row(content, "Slot")
 	_carried_slot_option = OptionButton.new()
 	for slot in GearItem.SlotType.values():
-		_carried_slot_option.add_item(GearGenerator.universal_slot_label(slot), slot)
+		_carried_slot_option.add_item("Pants" if slot == GearItem.SlotType.LEGS else ("Gloves" if slot == GearItem.SlotType.HANDS else GearGenerator.universal_slot_label(slot)), slot)
 	_carried_slot_option.item_selected.connect(func(index): _state.set_carried_slot(_editing_gear_item, _carried_slot_option.get_item_id(index)))
 	_carried_slot_row.add_child(_carried_slot_option)
 	var rarity_row := _build_labeled_row(content, "Rarity")
@@ -723,22 +708,28 @@ func _build_gear_editor_overlay() -> void:
 
 
 func _show_gear_slot_editor(slot_name: String, item: GearItem, is_weapon: bool) -> void:
+	if _state.allocation_locked:
+		return
 	_editing_gear_slot_name = slot_name
 	_editing_gear_item = item
 	_editing_gear_is_weapon = is_weapon
-	_gear_editor_title.text = "%s Gear" % slot_name
-	_populate_rarity_option(is_weapon)
-	if _state.carried_items.has(item):
-		_gear_rarity_option.remove_item(_gear_rarity_option.get_item_index(NONE_RARITY_ID))
-		if item.tier == GearItem.Tier.LEGENDARY:
-			_gear_rarity_option.add_item("Legendary (fixed)", GearItem.Tier.LEGENDARY)
-	var fixed_carried := _state.carried_items.has(item) and item.tier == GearItem.Tier.LEGENDARY
-	_gear_rarity_option.disabled = fixed_carried
-	_carried_slot_option.disabled = fixed_carried
+	_gear_editor_title.text = slot_name
 	_refresh_gear_editor()
 	if _carried_overlay != null: _carried_overlay.hide()
 	move_child(_gear_editor_overlay, get_child_count() - 1)
 	_gear_editor_overlay.visible = true
+
+
+func _configure_editor_rarity() -> void:
+	var item := _editing_gear_item
+	_populate_rarity_option(_editing_gear_is_weapon)
+	if _state.carried_items.has(item):
+		_gear_rarity_option.remove_item(_gear_rarity_option.get_item_index(NONE_RARITY_ID))
+		if item.tier == GearItem.Tier.LEGENDARY and _gear_rarity_option.get_item_index(GearItem.Tier.LEGENDARY) < 0:
+			_gear_rarity_option.add_item("Legendary (fixed)", GearItem.Tier.LEGENDARY)
+	var fixed_carried := _state.carried_items.has(item) and item.tier == GearItem.Tier.LEGENDARY
+	_gear_rarity_option.disabled = fixed_carried
+	_carried_slot_option.disabled = fixed_carried
 
 
 func _populate_rarity_option(is_weapon: bool) -> void:
@@ -748,7 +739,8 @@ func _populate_rarity_option(is_weapon: bool) -> void:
 		_gear_rarity_option.add_item(RARITY_NAMES[GearItem.Tier.CRUDE], GearItem.Tier.CRUDE)
 	for tier in PRACTICE_CUSTOM_TIERS:
 		_gear_rarity_option.add_item(RARITY_NAMES[tier], tier)
-	_gear_rarity_option.add_item("Legendary", GearItem.Tier.LEGENDARY)
+	if not _state.carried_items.has(_editing_gear_item) and not _legendary_items_for_editor().is_empty():
+		_gear_rarity_option.add_item("Legendary", GearItem.Tier.LEGENDARY)
 
 
 func _on_editor_rarity_selected(index: int) -> void:
@@ -760,7 +752,11 @@ func _on_editor_rarity_selected(index: int) -> void:
 func _on_rarity_selected(index: int, option: OptionButton, item: GearItem, is_weapon: bool) -> void:
 	var tier: int = option.get_item_id(index)
 	if tier == GearItem.Tier.LEGENDARY:
+		if _state.carried_items.has(item):
+			return
 		var items := _legendary_items_for_editor()
+		if items.is_empty():
+			return
 		var current_index := items.find(_equipped_editor_item())
 		_state.equip_legendary(items[current_index] if current_index >= 0 else items[0])
 		return
@@ -774,7 +770,7 @@ func _on_rarity_selected(index: int, option: OptionButton, item: GearItem, is_we
 
 func _on_weapon_legendary_selected(index: int) -> void:
 	var items := _legendary_items_for_editor()
-	if index >= 0 and index < items.size():
+	if not _state.carried_items.has(_editing_gear_item) and index >= 0 and index < items.size():
 		_state.equip_legendary(items[index])
 
 
@@ -783,10 +779,13 @@ func _refresh_gear_editor() -> void:
 	_refresh_paper_doll_slots()
 	if _editing_gear_item == null or _gear_affix_column == null:
 		return
+	var content := _gear_affix_column.get_parent() as Control
+	content.custom_minimum_size.x = 550.0 if _editing_gear_item.tier == GearItem.Tier.CHAOS else GEAR_EDITOR_POPUP_SIZE.x
+	_configure_editor_rarity()
 	_carried_slot_row.visible = _state.carried_items.has(_editing_gear_item)
 	_carried_slot_option.select(_carried_slot_option.get_item_index(_editing_gear_item.slot))
 	_refresh_gear_validation()
-	_refresh_popup_slot(_editing_gear_item, _editing_gear_item.tier == GearItem.Tier.LEGENDARY or (_equipped_editor_item() != null and _equipped_editor_item().tier == GearItem.Tier.LEGENDARY))
+	_refresh_popup_slot(_editing_gear_item, _editing_gear_item.tier == GearItem.Tier.LEGENDARY or (not _state.carried_items.has(_editing_gear_item) and _equipped_editor_item() != null and _equipped_editor_item().tier == GearItem.Tier.LEGENDARY))
 
 
 func _refresh_paper_doll_slots() -> void:
@@ -795,6 +794,8 @@ func _refresh_paper_doll_slots() -> void:
 	_update_paper_doll_slot(_armor_slot_button, "Armor", _state.equipped_armor)
 	_update_paper_doll_slot(_charm_slot_button, "Charm", _state.equipped_charm)
 	_update_paper_doll_slot(_trinket_slot_button, "Trinket", _state.equipped_trinket)
+	_update_paper_doll_slot(_legs_slot_button, "Pants", _state.equipped_legs)
+	_update_paper_doll_slot(_hands_slot_button, "Gloves", _state.equipped_hands)
 
 
 func _update_paper_doll_slot(slot: Button, slot_name: String, gear: GearItem) -> void:
@@ -876,6 +877,8 @@ func _equipped_editor_item() -> GearItem:
 		GearItem.SlotType.ARMOR: return _state.equipped_armor
 		GearItem.SlotType.CHARM: return _state.equipped_charm
 		GearItem.SlotType.TRINKET: return _state.equipped_trinket
+		GearItem.SlotType.LEGS: return _state.equipped_legs
+		GearItem.SlotType.HANDS: return _state.equipped_hands
 	return null
 
 
@@ -893,22 +896,26 @@ func _build_affix_row(item: GearItem, index: int) -> HBoxContainer:
 	row.add_theme_constant_override("separation", 4)
 
 	var stat_option := OptionButton.new()
+	stat_option.name = "StatOption"
 	stat_option.fit_to_longest_item = false
 	stat_option.clip_text = true
 	stat_option.custom_minimum_size.x = 230
 	stat_option.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	for stat_id in pool:
 		stat_option.add_item(StatCatalog.label_for(stat_id))
+		stat_option.set_item_tooltip(stat_option.item_count - 1, StatCatalog.label_for(stat_id))
 		stat_option.set_item_metadata(stat_option.item_count - 1, stat_id)
 	var current_id := StatCatalog.canonical_id_for_modifier(modifier)
-	if not pool.has(current_id):
+	if not pool.has(current_id) and item.tier != GearItem.Tier.CHAOS:
 		stat_option.add_item("Legacy: " + StatCatalog.label_for(current_id))
 		stat_option.set_item_metadata(stat_option.item_count - 1, current_id)
 	stat_option.select(_stat_option_index(stat_option, current_id))
+	stat_option.tooltip_text = StatCatalog.label_for(current_id)
 	stat_option.item_selected.connect(_on_affix_stat_selected.bind(item, index, stat_option))
 	row.add_child(stat_option)
 
 	var value_spin := SpinBox.new()
+	value_spin.name = "AffixValue"
 	value_spin.custom_minimum_size.x = 110
 	value_spin.min_value = -1000.0
 	value_spin.max_value = 1000.0
@@ -920,7 +927,22 @@ func _build_affix_row(item: GearItem, index: int) -> HBoxContainer:
 	value_spin.value_changed.connect(_on_affix_value_changed.bind(modifier))
 	row.add_child(value_spin)
 
+	if item.tier == GearItem.Tier.CHAOS:
+		var type_option := OptionButton.new()
+		type_option.name = "AffixTypeOption"
+		type_option.add_item("Positive Basic", StatModifier.StatCategory.BASIC)
+		type_option.add_item("Positive Rare", StatModifier.StatCategory.RARE)
+		type_option.add_item("Negative Basic", StatModifier.StatCategory.DRAWBACK)
+		type_option.select(type_option.get_item_index(modifier.category))
+		type_option.tooltip_text = "Affix type: positive Basic, positive Rare, or negative Basic"
+		type_option.item_selected.connect(_on_chaos_affix_type_selected.bind(item, index, type_option))
+		row.add_child(type_option)
+
 	return row
+
+
+func _on_chaos_affix_type_selected(index: int, item: GearItem, affix_index: int, type_option: OptionButton) -> void:
+	_state.set_chaos_affix_type(item, affix_index, type_option.get_item_id(index))
 
 
 func _on_affix_stat_selected(index: int, item: GearItem, affix_index: int, stat_option: OptionButton) -> void:
@@ -932,6 +954,8 @@ func _on_affix_stat_selected(index: int, item: GearItem, affix_index: int, stat_
 ## per the confirmed design -- this preserves the raw editor's original
 ## magnitude-testing power on top of the new rarity-first defaults.
 func _on_affix_value_changed(new_value: float, modifier: StatModifier) -> void:
+	if _state.allocation_locked:
+		return
 	modifier.value = _modifier_value_from_editor(modifier, new_value)
 	_state.notify_gear_edited()
 
@@ -988,8 +1012,6 @@ func _value_kind_for_modifier(modifier: StatModifier) -> String:
 func _stat_ids_for_affix_slot(item: GearItem, index: int) -> Array[String]:
 	if item == null or index < 0 or index >= item.affixes.size():
 		return []
-	if item.tier == GearItem.Tier.CHAOS and item.affixes[index].category != StatModifier.StatCategory.DRAWBACK:
-		return _chaos_stat_ids_for_slot(item.slot)
 	var modifier: StatModifier = item.affixes[index]
 	if modifier.category == StatModifier.StatCategory.DRAWBACK:
 		return StatCatalog.drawback_stat_ids_for_slot(item.slot)
@@ -999,18 +1021,6 @@ func _stat_ids_for_affix_slot(item: GearItem, index: int) -> Array[String]:
 	elif modifier.category == StatModifier.StatCategory.SPECIAL:
 		category = StatCatalog.CATEGORY_SPECIAL
 	return StatCatalog.stat_ids_for_slot(item.slot, category)
-
-
-func _chaos_stat_ids_for_slot(slot: GearItem.SlotType) -> Array[String]:
-	var ids: Array[String] = []
-	for category in [StatCatalog.CATEGORY_BASIC, StatCatalog.CATEGORY_RARE]:
-		for stat_id in StatCatalog.stat_ids_for_slot(slot, category):
-			if not ids.has(stat_id):
-				ids.append(stat_id)
-	for stat_id in StatCatalog.drawback_stat_ids_for_slot(slot):
-		if not ids.has(stat_id):
-			ids.append(stat_id)
-	return ids
 
 
 func _stat_option_index(option: OptionButton, stat_id: String) -> int:
@@ -1270,8 +1280,7 @@ func _base_poison_damage_for_stats(stats: PlayerStats) -> float:
 func _on_combat_view_finished() -> void:
 	_state.allocation_locked = false
 	_state.lock_changed.emit()
-	_log_inspector.set_result(_state.last_result, _state.selected_target, true)
-	_result_log.text = CombatResultFormatter.format_practice(_state.last_result, _state.selected_target)
+	_log_overlay.set_result(_state.last_result, _state.selected_target, CombatResultFormatter.format_practice(_state.last_result, _state.selected_target))
 	_view_log_button.disabled = false
 
 
@@ -1280,60 +1289,19 @@ func _invalidate_result_review() -> void:
 		_view_log_button.disabled = true
 	if _log_overlay != null:
 		_log_overlay.visible = false
-	if _log_inspector != null:
-		_log_inspector.clear()
-	if _result_log != null:
-		_result_log.text = ""
+	if _log_overlay != null:
+		_log_overlay.set_result_text("")
 
 
 ## Dimmed backdrop (click to dismiss) + a centered card holding the actual
 ## log -- same shape as combat_screen.gd's _build_log_overlay(). Hidden until
 ## the first fight resolves.
 func _build_log_overlay() -> void:
-	_log_overlay = Control.new()
-	_log_overlay.name = "LogOverlay"
-	_log_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	_log_overlay.visible = false
+	_log_overlay = LOG_OVERLAY_SCENE.instantiate()
+	_log_overlay.practice_mode = true
 	add_child(_log_overlay)
-
-	var panel := CardStyle.build_modal_panel(_log_overlay, true)
-	panel.add_theme_stylebox_override("panel", CardStyle.make_stylebox())
-
-	var content := VBoxContainer.new()
-	content.add_theme_constant_override("separation", 8)
-	panel.add_child(content)
-
-	var header := HBoxContainer.new()
-	var header_title := Label.new()
-	header_title.text = "Combat Log"
-	header_title.theme_type_variation = &"PanelHeader"
-	header_title.add_theme_font_size_override("font_size", CARD_TITLE_FONT_SIZE)
-	header.add_child(header_title)
-	var header_spacer := Control.new()
-	header_spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	header.add_child(header_spacer)
-	var close_button := Button.new()
-	close_button.text = "Close"
-	close_button.pressed.connect(func(): _log_overlay.visible = false)
-	header.add_child(close_button)
-	content.add_child(header)
-
-	_log_inspector = COMBAT_LOG_INSPECTOR_SCRIPT.new()
-	_log_inspector.visible = false
-	content.add_child(_log_inspector)
-
-	var detail_title := Label.new()
-	detail_title.text = "Event Log"
-	detail_title.theme_type_variation = &"PanelHeader"
-	content.add_child(detail_title)
-
-	_result_log = RichTextLabel.new()
-	_result_log.name = "ResultLog"
-	_result_log.bbcode_enabled = false
-	_result_log.custom_minimum_size = Vector2(760, 180)
-	_result_log.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_result_log.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	content.add_child(_result_log)
+	_log_inspector = _log_overlay._inspector
+	_result_log = _log_overlay._log_label
 
 
 func _queue_setup_save() -> void:
@@ -1342,11 +1310,13 @@ func _queue_setup_save() -> void:
 	_setup_save_queued = true
 	call_deferred("_commit_setup_save")
 
-func _commit_setup_save() -> void:
+func _commit_setup_save(replace_existing: bool = false) -> void:
 	_setup_save_queued = false
-	if not PracticeSaveSystem.save_setup(_state):
+	if not PracticeSaveSystem.save_setup(_state, replace_existing):
+		_setup_autosave = false
 		_persistence_notice.text = PracticeSaveSystem.last_error
 	else:
+		_setup_autosave = true
 		_persistence_notice.text = ""
 	var changes: Dictionary = _state.rotation_changes
 	if not changes.get("removed", []).is_empty() or not changes.get("overflow", []).is_empty():
@@ -1359,14 +1329,6 @@ func _refresh_legendary_details(item: GearItem, showing: bool) -> void:
 		child.queue_free()
 	_legendary_details.visible = showing and item != null
 	if not _legendary_details.visible: return
-	var header := HBoxContainer.new()
-	header.add_theme_constant_override("separation", 8)
-	header.add_child(CardStyle.make_pixel_icon(GearIcons.icon_for(item), Vector2(36, 36)))
-	var name_label := Label.new()
-	name_label.text = "Fixed Legendary stats"
-	name_label.add_theme_color_override("font_color", UIColors.TEXT_GOLD)
-	header.add_child(name_label)
-	_legendary_details.add_child(header)
 	var text := Label.new()
 	text.custom_minimum_size.x = GEAR_EDITOR_POPUP_SIZE.x
 	text.add_theme_font_size_override("font_size", 17)

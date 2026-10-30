@@ -35,9 +35,9 @@ func _run() -> void:
 	await process_frame
 	panel.begin(result)
 	panel.advance_to(1699)
-	var inspector: Button = panel._inspect
+	var grid: GridContainer = panel._grid
 	panel.advance_to(1700)
-	check(inspector == panel._inspect, "Timer refresh preserves inspection control")
+	check(grid == panel._grid, "Timer refresh preserves buff container")
 	check(panel.model.units("buff.readiness") == 0 and panel._chips.has("buff.readiness"), "Spent Readiness stays visible during Parry windup only")
 	panel.advance_to(2200)
 	check(not panel._chips.has("buff.readiness"), "Parry impact removes spent Readiness")
@@ -111,7 +111,7 @@ func _run() -> void:
 		synthetic.trace.record("effect_lifecycle", 0, {"effect_instance_id": "instance%d" % i, "source_id": "talent.synthetic"}, {"effect_id": "footwork" if i == 0 else "synthetic_%d" % i, "after": {"units": 3, "expires_at_ms": 3000, "unit": "stacks"}})
 	synthetic.trace.record("effect_lifecycle", 3000, {"effect_instance_id": "instance0", "lifecycle_reason": "consumed"}, {"effect_id": "footwork", "after": {}, "consumed": 3})
 	panel.begin(synthetic)
-	check(panel.active.size() == 12 and panel._grid.get_child_count() == 4 and panel._inspect.text.contains("+8"), "Bounded summary exposes overflow")
+	check(panel.active.size() == 12 and panel._grid.get_child_count() == 12, "All active buff types visible in wrapped rows")
 	panel._open_inspector()
 	check(panel._details.text.contains("Synthetic 11"), "Inspector includes final overflow item")
 	panel._dialog.hide()
@@ -135,7 +135,7 @@ func _run() -> void:
 	for row in [{"time": 0, "expiry": 3000, "units": 1}, {"time": 2000, "expiry": 5000, "units": 2}, {"time": 2500, "expiry": 5000, "units": 1}]:
 		timer_fixture.trace.record("effect_lifecycle", row.time, {"effect_instance_id": "clock"}, {"effect_id": "footwork", "after": {"units": row.units, "expires_at_ms": row.expiry}})
 	panel.begin(timer_fixture)
-	check(not panel._inspect.visible and panel._chips["buff.footwork"].text.is_empty(), "No large player-buff labels or header")
+	check(panel._chips["buff.footwork"].text.is_empty(), "No large player-buff labels or header")
 	check(not panel._chips["buff.readiness"].get_node("Countdown").visible, "Untimed charge has no false clock")
 	check(panel._chips["buff.readiness"].tooltip_text.contains("1 stacks") and not panel._chips["buff.readiness"].tooltip_text.contains("charge"), "Readiness visible count/rule uses stacks")
 	check(preload("res://scripts/ui/combat_effect_text.gd").count_for("buff.virulent_poison", {"charges":5})=="5 stacks", "Internal charge snapshot uses player stack label")

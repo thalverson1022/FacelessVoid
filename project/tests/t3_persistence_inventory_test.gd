@@ -59,9 +59,9 @@ func _run() -> void:
 		assert(SaveSystem.load_run_result(state).status == "failed")
 		assert(FileAccess.get_file_as_bytes(SaveSystem.save_path) == failed_bytes)
 		assert(state.inventory.size() == 2)
-	# Supported old envelope preserves removed pool affixes and exact rolls.
+	# The seven-slot epoch rejects old envelopes; current versions retain exact rolls.
 	var old := data.duplicate(true)
-	old.save_version = 2
+	old.save_version = SaveSystem.SAVE_VERSION
 	old.equipped_armor = null
 	old.inventory = [SaveSystem._gear_entry_to_data(_item("increased_magic_find", .371, GearItem.SlotType.HELM))]
 	assert(SaveSystem.write_json(SaveSystem.save_path, old))
@@ -69,6 +69,7 @@ func _run() -> void:
 	assert(SaveSystem.load_run_result(state).status == "loaded")
 	assert(state.inventory[0].affixes[0].value == .371)
 	assert(FileAccess.get_file_as_bytes(SaveSystem.save_path) == bytes)
+	old.save_version = 2
 	old.inventory = [SaveSystem._gear_entry_to_data(_item("cooldown_reduction", .10))]
 	assert(SaveSystem.write_json(SaveSystem.save_path, old))
 	assert(SaveSystem.load_run_result(state).status == "failed")
@@ -111,6 +112,6 @@ func _check_practice() -> void:
 	data.erase("carried_items")
 	assert(SaveSystem.write_json(PracticeSaveSystem.save_path, data))
 	var old_bytes := FileAccess.get_file_as_bytes(PracticeSaveSystem.save_path)
-	assert(PracticeSaveSystem.load_setup(restored).status == "loaded")
-	assert(restored.carried_items.is_empty())
+	assert(PracticeSaveSystem.load_setup(restored).status == "failed")
+	assert(restored.carried_items.size() == 2)
 	assert(FileAccess.get_file_as_bytes(PracticeSaveSystem.save_path) == old_bytes)

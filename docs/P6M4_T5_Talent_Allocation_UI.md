@@ -1,5 +1,7 @@
 # M4-T5 — Ranked talent allocation UI
 
+> **Historical record — not an active work plan.** Status labels, next-step instructions and milestone numbering below describe the recorded checkpoint. M8 is closed; consult the current M9 tracker for authorized work. Retained at this path when tooling/manifests depend on it. [Current context](P6_Project_Onboarding_Context.md).
+
 Completed 2026-10-02 for the supported Bladedancer core. T6 is next; T8 remains the full core playtest checkpoint.
 
 ## Delivered

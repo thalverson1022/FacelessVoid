@@ -1,7 +1,7 @@
 class_name GearIcons
 extends RefCounted
 ## Maps a GearItem to its icon texture for display in the shop, inventory,
-## and equipment slots. Named items (the 16 Rogue Legendaries, Lucky Coin) get
+## and equipment slots. Named items (the 20 Rogue Legendaries, Lucky Coin) get
 ## their own hand-authored icon; generated Rogue gear resolves by slot+tier;
 ## unexpected future gear falls back to a generic rarity icon. All are
 ## transparent-background PNGs meant to sit on top of the existing tier-colored
@@ -72,6 +72,8 @@ const SLOT_HELM_BACKGROUND := preload("res://assets/ui/equipment_slots/slot_helm
 const SLOT_ARMOR_BACKGROUND := preload("res://assets/ui/equipment_slots/slot_armor.png")
 const SLOT_TRINKET_BACKGROUND := preload("res://assets/ui/equipment_slots/slot_trinket.png")
 const SLOT_CHARM_BACKGROUND := preload("res://assets/ui/equipment_slots/slot_charm.png")
+const SLOT_LEGS_BACKGROUND := preload("res://assets/ui/equipment_slots/slot_legs.png")
+const SLOT_HANDS_BACKGROUND := preload("res://assets/ui/equipment_slots/slot_hands.png")
 const SLOT_EMPTY_BACKGROUND := preload("res://assets/ui/equipment_slots/slot_empty.png")
 
 ## Keyed by GearItem.id -- only items with real, hand-authored art. Procedurally
@@ -95,12 +97,32 @@ const NAMED_ICONS := {
 	"gear.legendary.umbral_stiletto": UMBRAL_STILETTO_ICON,
 	"gear.legendary.wyvern_kriss": WYVERN_KRISS_ICON,
 	"gear.lucky_coin": LUCKY_COIN_ICON,
+	"gear.legendary.serpents_scales": preload("res://assets/ui/assigned_flat/gear/serpents_scales.png"),
+	"gear.legendary.golden_greeves": preload("res://assets/ui/assigned_flat/gear/golden_greeves.png"),
+	"gear.legendary.arctic_mittens": preload("res://assets/ui/assigned_flat/gear/arctic_mittens.png"),
+	"gear.legendary.hands_of_the_lightning_lord": preload("res://assets/ui/assigned_flat/gear/hands_of_the_lightning_lord.png"),
 }
 
 ## [slot][tier] -> icon, for Rogue generated/custom item families without
 ## named art above. No Legendary entries here -- every retained Rogue
 ## Legendary is a named item.
 const ROGUE_GENERATED_ICONS := {
+	GearItem.SlotType.LEGS: {
+		GearItem.Tier.BASIC: preload("res://assets/Items/Rogue/Generated/rogue_pants_basic.png"),
+		GearItem.Tier.MASTER: preload("res://assets/Items/Rogue/Generated/rogue_pants_master.png"),
+		GearItem.Tier.EPIC: preload("res://assets/Items/Rogue/Generated/rogue_pants_epic.png"),
+		GearItem.Tier.CURSED: preload("res://assets/Items/Rogue/Generated/rogue_pants_cursed.png"),
+		GearItem.Tier.CHAOS: preload("res://assets/Items/Rogue/Generated/rogue_pants_chaos.png"),
+		GearItem.Tier.UNIQUE: preload("res://assets/Items/Rogue/Generated/rogue_pants_unique.png"),
+	},
+	GearItem.SlotType.HANDS: {
+		GearItem.Tier.BASIC: preload("res://assets/Items/Rogue/Generated/rogue_gloves_basic.png"),
+		GearItem.Tier.MASTER: preload("res://assets/Items/Rogue/Generated/rogue_gloves_master.png"),
+		GearItem.Tier.EPIC: preload("res://assets/Items/Rogue/Generated/rogue_gloves_epic.png"),
+		GearItem.Tier.CURSED: preload("res://assets/Items/Rogue/Generated/rogue_gloves_cursed.png"),
+		GearItem.Tier.CHAOS: preload("res://assets/Items/Rogue/Generated/rogue_gloves_chaos.png"),
+		GearItem.Tier.UNIQUE: preload("res://assets/Items/Rogue/Generated/rogue_gloves_unique.png"),
+	},
 	GearItem.SlotType.WEAPON: {
 		GearItem.Tier.CRUDE: CRUDE_DAGGER_ICON,
 		GearItem.Tier.BASIC: BASIC_WEAPON_ICON,
@@ -182,5 +204,9 @@ static func slot_background_for(gear_slot: int) -> Texture2D:
 			return SLOT_TRINKET_BACKGROUND
 		GearItem.SlotType.CHARM:
 			return SLOT_CHARM_BACKGROUND
+		GearItem.SlotType.LEGS:
+			return SLOT_LEGS_BACKGROUND
+		GearItem.SlotType.HANDS:
+			return SLOT_HANDS_BACKGROUND
 		_:
 			return SLOT_EMPTY_BACKGROUND

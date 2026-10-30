@@ -1,5 +1,7 @@
 # P6M2-T3 Progression and Allocation Rules
 
+> **Historical record — not an active work plan.** Status labels, next-step instructions and milestone numbering below describe the recorded checkpoint. M8 is closed; consult the current M9 tracker for authorized work. Retained at this path when tooling/manifests depend on it. [Current context](P6_Project_Onboarding_Context.md).
+
 Date: 2026-09-22. Status: **Complete — design specification and handoff.**
 
 This finalizes the user decisions following the [T2 audit](P6M2_T2_Cross_Tree_Draft_Audit.md).

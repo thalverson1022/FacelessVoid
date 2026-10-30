@@ -103,9 +103,9 @@ func _run() -> void:
  var ranks = screen._talent_overlay._talent_panel._ranked_view
  await allocate(ranks, state)
  await build_rotation(screen, state)
- # Refund crossing loses automatic skills and names removed macro entries.
+ # Refund crossing loses automatic skills and prunes macro entries silently.
  await press_rank(ranks, "reset:tree.bladedancer")
- check(state.ranked_build.points_spent() == 0 and state.rotation.is_empty() and "Removed from rotation" in ranks.feedback, "Refund resets ranks and names removed macro skills")
+ check(state.ranked_build.points_spent() == 0 and state.rotation.is_empty() and ranks.feedback == "Allocation updated.", "Refund resets ranks and prunes macro skills without removal status")
  await allocate(ranks, state)
  check(state.rotation.is_empty(), "Reallocation does not silently restore macro")
  await build_rotation(screen, state)
@@ -192,11 +192,11 @@ func _run() -> void:
  var practice = game._current_screen
  var p = practice._state
  var practice_ranks = practice._talent_panel._ranked_view
- practice_ranks.actions["budget"].get_parent().value = 0
+ check(p.set_talent_budget(0), "Set isolated zero-budget model fixture")
  await settle()
  await press_rank(practice_ranks, "buy:talent.bladedancer.wet_stone")
  check(p.ranked_build.points_spent() == 0 and "No unspent" in practice_ranks.feedback, "Zero Practice budget rejects purchase")
- practice_ranks.actions["budget"].get_parent().value = 10
+ check(p.set_talent_budget(10), "Set isolated ten-point model fixture")
  await settle()
  await allocate(practice_ranks, p)
  await build_rotation(practice, p)

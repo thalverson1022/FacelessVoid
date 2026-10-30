@@ -200,7 +200,7 @@ static func build_gear_box_content(button: Button, gear: GearItem) -> void:
 
 ## The regular tooltip lines for one gear item -- slot/name, tier, affixes,
 ## and any triggered-skill effects. Shared by combat_screen.gd's shop/reward
-## offer tooltips and gear-compare "Equipped" box, and gear_panel.gd's
+## offer tooltips and gear_panel.gd's
 ## inventory/equipped-slot tooltips, so the same item can't show different
 ## information in different screens.
 static func gear_tooltip_lines(gear: GearItem) -> PackedStringArray:
@@ -228,11 +228,7 @@ static func unidentified_gear_tooltip_lines(gear: GearItem) -> PackedStringArray
 	if gear == null:
 		return lines
 	lines.append("Unidentified")
-	lines.append("%s %s / %s" % [
-		GearGenerator.tier_name(gear.tier),
-		GearGenerator.universal_slot_label(gear.slot),
-		GearGenerator.item_family_for(gear),
-	])
+	lines.append(LegendaryCatalog.header_text(gear))
 	lines.append("Stats:")
 	lines.append("Unidentified")
 	return lines
@@ -243,11 +239,7 @@ static func gear_header_lines(gear: GearItem) -> PackedStringArray:
 	if gear == null:
 		return lines
 	lines.append(gear.display_name)
-	lines.append("%s %s / %s" % [
-		GearGenerator.tier_name(gear.tier),
-		GearGenerator.universal_slot_label(gear.slot),
-		GearGenerator.item_family_for(gear),
-	])
+	lines.append(LegendaryCatalog.header_text(gear))
 	if gear.slot == GearItem.SlotType.WEAPON:
 		var damage_range := WeaponDamageCatalog.damage_range_for_weapon(gear)
 		lines.append("Weapon Damage: %d-%d" % [int(damage_range["min"]), int(damage_range["max"])])
@@ -269,7 +261,7 @@ static func _legendary_tooltip_lines(gear: GearItem) -> PackedStringArray:
 			lines.append(LegendaryCatalog.stat_text(affix))
 	var text := LegendaryCatalog.effect_text(gear)
 	if text != "":
-		lines.append("Legendary:")
+		lines.append("Legendary Effect:")
 		lines.append(text)
 	return lines
 
@@ -400,7 +392,7 @@ static func _display_order_for_stat_id(stat_id: String) -> int:
 ## decision (accept a contract, choose a reward, pick a route) with no
 ## defined "cancel" behavior stay locked -- see combat_screen.gd's overlay
 ## builders for which is which.
-static func build_modal_panel(root: Control, dismissable: bool) -> PanelContainer:
+static func build_modal_panel(root: Control, dismissable: bool, dimmed: bool = false) -> PanelContainer:
 	root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	root.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	root.grow_vertical = Control.GROW_DIRECTION_BOTH
@@ -409,13 +401,17 @@ static func build_modal_panel(root: Control, dismissable: bool) -> PanelContaine
 
 	if dismissable:
 		var backdrop := Button.new()
-		backdrop.flat = true
+		backdrop.flat = not dimmed
+		backdrop.focus_mode = Control.FOCUS_NONE
 		backdrop.z_index = 100
 		backdrop.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		var backdrop_style := StyleBoxFlat.new()
 		backdrop_style.bg_color = UIColors.OVERLAY_BACKDROP
-		for state in ["normal", "hover", "pressed", "focus"]:
+		for state in ["normal", "hover", "pressed"]:
 			backdrop.add_theme_stylebox_override(state, backdrop_style)
+		# Godot draws focus over the normal style; an opaque focus fill
+		# would double the dimming until a talent takes keyboard focus.
+		backdrop.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
 		backdrop.pressed.connect(func(): root.visible = false)
 		root.add_child(backdrop)
 	else:
@@ -439,29 +435,12 @@ static func build_modal_panel(root: Control, dismissable: bool) -> PanelContaine
 	return panel
 
 
-## P2:R7 second playtest-feedback pass (replaces the first pass's rejected
-## large side-by-side comparison panel): the on-hover visual for a
-## shop/reward gear box is two SMALL boxes side by side, each styled
-## identically to the default Godot tooltip -- the first carries the item's
-## regular tooltip text unchanged, the second is headed "Equipped" and
-## carries the equipped item's regular tooltip-style lines (or "Nothing
-## equipped."). Returned from GearCompareButton's _make_custom_tooltip()
-## override; Godot handles showing/hiding it like any other tooltip.
-##
-## `theme_owner` supplies the theme lookup (get_theme_stylebox/get_theme_color
-## need a Control in the scene tree to resolve the active theme) -- pass the
-## calling screen/overlay's own `self`. Shared by combat_screen.gd's
-## reward-choice tooltip and shop_overlay.gd's shop-offer tooltip so the two
-## can't drift apart.
-static func build_gear_compare_tooltip(theme_owner: Control, item_text: String, equipped: GearItem, item: GearItem = null) -> Control:
+## Gear hovers show only the hovered item's details in every mode. Keep the
+## shared builder signature and wrapper for existing shop/inventory callers;
+## equipped references and projected equip deltas are intentionally hidden.
+static func build_gear_compare_tooltip(theme_owner: Control, item_text: String, _equipped: GearItem, item: GearItem = null, _include_equip_preview: bool = true) -> Control:
 	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 6)
-	var preview := gear_comparison_lines(item, theme_owner)
-	if not preview.is_empty():
-		item_text += "\n" + "\n".join(preview)
 	row.add_child(_make_tooltip_box(theme_owner, "", item_text, item))
-	var equipped_text := "\n".join(gear_tooltip_lines(equipped)) if equipped != null else "Nothing equipped."
-	row.add_child(_make_tooltip_box(theme_owner, "Equipped", equipped_text, equipped))
 	return row
 
 
@@ -479,7 +458,7 @@ static func gear_comparison_lines(item: GearItem, theme_owner: Control) -> Packe
 		return lines
 	var equipped: Array[GearItem] = state.equipped_gear().duplicate()
 	if equipped.has(item):
-		lines.append("Already equipped; no equipment change.")
+		lines.append("Already equipped.")
 		return lines
 	var carried: Array[GearItem] = []
 	var owned = state.get("carried_items") if state is TrainingRoomState else state.get("inventory")
@@ -521,28 +500,31 @@ static func gear_comparison_lines(item: GearItem, theme_owner: Control) -> Packe
 	var stolen := int(state.get("combat_stolen_gold"))
 	before = preload("res://scripts/systems/legendary_live_stats.gd").resolve(before, state.gold, stolen)
 	after = preload("res://scripts/systems/legendary_live_stats.gd").resolve(after, preview_gold, stolen)
-	var legendary_preview := item.tier == GearItem.Tier.LEGENDARY or (replaced != null and replaced.tier == GearItem.Tier.LEGENDARY)
-	lines.append("Equip preview at current stash; owned carried gear included." if preview_gold == state.gold else "Equip preview after replacement resale (%d gold); owned carried gear included." % preview_gold)
-	for field in ["cooldown_reduction", "increased_buff_duration", "crit_applies_penetration", "crit_applies_potency", "shop_discount", "magic_find", "shred_chance", "decay_chance", "elemental_proc_chance", "retrigger_chance", "min_cast_time_proc_chance"]:
+	lines.append("On equip:")
+	var labels := {
+		"cooldown_reduction": "Cooldown Reduction", "increased_buff_duration": "Buff Duration",
+		"crit_applies_penetration": "Crits Apply Penetration", "crit_applies_potency": "Crits Apply Potency",
+		"shop_discount": "Shop Discount", "magic_find": "Magic Find",
+		"shred_chance": "Chance to Shred", "decay_chance": "Chance to Decay",
+		"elemental_proc_chance": "Poison Proc Chance", "retrigger_chance": "Retrigger Chance",
+		"min_cast_time_proc_chance": "Minimum Cast Time Chance", "attack_speed": "Attack Speed",
+		"gold_reward_multiplier": "Increased Gold", "bonus_physical_damage": "Base Physical Damage",
+		"physical_damage_multiplier": "Physical Damage", "elemental_damage_multiplier": "Elemental Damage",
+		"bonus_poison_stacks": "Bonus Poison Stacks", "bonus_shred_stacks": "Bonus Shred Stacks",
+		"bonus_decay_stacks": "Bonus Decay Stacks", "shred_value": "Armor Decrease per Shred Stack",
+		"poison_stack_cap": "Poison Stack Cap", "poison_tick_interval_multiplier": "Poison Tick Interval",
+	}
+	for field in ["cooldown_reduction", "increased_buff_duration", "crit_applies_penetration", "crit_applies_potency", "shop_discount", "magic_find", "shred_chance", "decay_chance", "elemental_proc_chance", "retrigger_chance", "min_cast_time_proc_chance", "attack_speed"]:
 		if not is_equal_approx(before.get(field), after.get(field)):
-			if legendary_preview:
-				var labels := {"increased_buff_duration": "Buff Duration", "crit_applies_penetration": "Crits Apply Penetration", "crit_applies_potency": "Crits Apply Potency", "elemental_proc_chance": "Crits Apply Poison", "min_cast_time_proc_chance": "Minimum Cast Time Chance"}
-				lines.append("%s: %s%% -> %s%%" % [labels.get(field, field.replace("_", " ").capitalize()), LegendaryCatalog.number_text(before.get(field) * 100.0), LegendaryCatalog.number_text(after.get(field) * 100.0)])
-			else:
-				lines.append("%s: %.4f%% -> %.4f%%" % [field.replace("_", " ").capitalize(), before.get(field) * 100.0, after.get(field) * 100.0])
-	for field in ["gold_reward_multiplier", "attack_speed", "bonus_physical_damage", "physical_damage_multiplier", "elemental_damage_multiplier", "bonus_poison_stacks", "bonus_shred_stacks", "bonus_decay_stacks", "shred_value", "poison_stack_cap", "poison_tick_interval_multiplier"]:
+			lines.append("%s: %s%% -> %s%%" % [labels[field], _comparison_number(before.get(field) * 100.0), _comparison_number(after.get(field) * 100.0)])
+	for field in ["gold_reward_multiplier", "bonus_physical_damage", "physical_damage_multiplier", "elemental_damage_multiplier", "bonus_poison_stacks", "bonus_shred_stacks", "bonus_decay_stacks", "shred_value", "poison_stack_cap", "poison_tick_interval_multiplier"]:
 		if not is_equal_approx(before.get(field), after.get(field)):
-			if legendary_preview:
-				if field == "attack_speed":
-					lines.append("Attack Speed: %s%% -> %s%%" % [LegendaryCatalog.number_text(before.attack_speed * 100.0), LegendaryCatalog.number_text(after.attack_speed * 100.0)])
-				elif field == "gold_reward_multiplier":
-					lines.append("Increased Gold: %s%% -> %s%%" % [LegendaryCatalog.number_text((before.gold_reward_multiplier - 1.0) * 100.0), LegendaryCatalog.number_text((after.gold_reward_multiplier - 1.0) * 100.0)])
-				elif field.ends_with("multiplier"):
-					lines.append("%s: x%s -> x%s" % [field.trim_suffix("_multiplier").replace("_", " ").capitalize(), LegendaryCatalog.number_text(before.get(field)), LegendaryCatalog.number_text(after.get(field))])
-				else:
-					lines.append("%s: %s -> %s" % [field.replace("_", " ").capitalize(), LegendaryCatalog.number_text(before.get(field)), LegendaryCatalog.number_text(after.get(field))])
+			if field == "gold_reward_multiplier":
+				lines.append("%s: %s%% -> %s%%" % [labels[field], _comparison_number((before.gold_reward_multiplier - 1.0) * 100.0), _comparison_number((after.gold_reward_multiplier - 1.0) * 100.0)])
+			elif field.ends_with("multiplier"):
+				lines.append("%s: x%s -> x%s" % [labels[field], _comparison_number(before.get(field)), _comparison_number(after.get(field))])
 			else:
-				lines.append("%s: %.4f -> %.4f" % [field.replace("_", " ").capitalize(), before.get(field), after.get(field)])
+				lines.append("%s: %s -> %s" % [labels[field], _comparison_number(before.get(field)), _comparison_number(after.get(field))])
 	var before_crit := effective_crit_text(before, state.gold, stolen)
 	var after_crit := effective_crit_text(after, preview_gold, stolen)
 	if before_crit != after_crit:
@@ -552,20 +534,19 @@ static func gear_comparison_lines(item: GearItem, theme_owner: Control) -> Packe
 	var before_poison := before.base_poison_damage + before.bonus_base_elemental_damage
 	var after_poison := after.base_poison_damage + after.bonus_base_elemental_damage
 	if not is_equal_approx(before_poison, after_poison):
-		lines.append("Base Poison Damage: %.1f -> %.1f" % [before_poison, after_poison])
+		lines.append("Base Poison Damage: %s -> %s" % [_comparison_number(before_poison), _comparison_number(after_poison)])
 	var before_skills: Array[Skill] = state.unlocked_skills()
 	for skill in after_skills:
 		if not _has_skill(before_skills, skill.id): lines.append("Skill gained: " + skill.display_name)
 	for skill in before_skills:
 		if not _has_skill(after_skills, skill.id): lines.append("Skill lost: " + skill.display_name)
-	if replaced != null and replaced.legendary_effect_id != "" and replaced.id != item.id:
-		lines.append("Signature lost: " + replaced.display_name)
-	if item.legendary_effect_id != "" and (replaced == null or replaced.id != item.id):
-		lines.append("Signature gained: " + item.display_name)
-		# Full conditions are on the adjacent item card; these are current outputs.
-		lines.append_array(legendary_stat_lines(after, before.special_effects.get("legendary", {})))
 	if lines.size() == 1: lines.clear()
 	return lines
+
+
+## Keep comparison totals compact; detailed derivation remains in Character Stats.
+static func _comparison_number(value: float) -> String:
+	return LegendaryCatalog.number_text(snappedf(value, 0.01))
 
 
 static func _has_skill(skills: Array[Skill], id: String) -> bool:
@@ -601,15 +582,16 @@ static func legendary_stat_lines(stats: PlayerStats, unchanged: Dictionary = {})
 	return lines
 
 
-static func build_gear_tooltip(theme_owner: Control, gear: GearItem) -> Control:
-	return _make_tooltip_box(theme_owner, "", "\n".join(gear_tooltip_lines(gear)), gear)
+static func build_gear_tooltip(theme_owner: Control, gear: GearItem, body_override: String = "") -> Control:
+	var body := body_override if not body_override.is_empty() else "\n".join(gear_tooltip_lines(gear))
+	return _make_tooltip_box(theme_owner, "", body, gear)
 
 
-## One compact box of build_gear_compare_tooltip()'s pair, deliberately
+## One compact item box, deliberately
 ## styled to be visually identical to a standard tooltip: the theme chain's
 ## own TooltipPanel stylebox and TooltipLabel font color, default font and
 ## size, no extra padding. `header`, when non-empty, renders as an
-## accent-colored first line ("Equipped").
+## accent-colored first line.
 static func _make_tooltip_box(theme_owner: Control, header: String, body: String, gear: GearItem = null) -> Control:
 	var panel := PanelContainer.new()
 	var tooltip_style := theme_owner.get_theme_stylebox("panel", "TooltipPanel").duplicate() as StyleBox
@@ -665,7 +647,7 @@ static func _add_gear_tooltip_line_labels(vbox: VBoxContainer, theme_owner: Cont
 		_add_affix_group_labels(vbox, "Stats:", legendary_affixes, gear, default_color)
 		var legendary_text := LegendaryCatalog.effect_text(gear)
 		if legendary_text != "":
-			_add_plain_tooltip_label(vbox, "Legendary:", default_color)
+			_add_plain_tooltip_label(vbox, "Legendary Effect:", default_color)
 			_add_plain_tooltip_label(vbox, legendary_text, STAT_COLOR_SPECIAL)
 		return
 	if gear.tier == GearItem.Tier.CHAOS:
@@ -739,7 +721,7 @@ static func _add_rich_tooltip_label(vbox: VBoxContainer, bbcode: String, visible
 
 
 static func _add_extra_tooltip_body_lines(vbox: VBoxContainer, body: String, gear: GearItem, color: Color) -> void:
-	var base_lines := gear_tooltip_lines(gear)
+	var base_lines := "\n".join(gear_tooltip_lines(gear)).split("\n", false)
 	var body_lines := body.split("\n", false)
 	for i in range(base_lines.size(), body_lines.size()):
 		var line := String(body_lines[i])

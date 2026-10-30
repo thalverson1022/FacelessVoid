@@ -105,6 +105,8 @@ class CritCrossOutOverlay:
 ## headless tests don't have to wait out a real-time animation.
 var _instant_playback: bool = DisplayServer.get_name() == "headless"
 var _playback: CombatPlayback = null
+var _presentation_owner: Object
+var _owned_presentation_model
 var _playback_intro_remaining_sec := 0.0
 var _playback_intro_duration_sec := 0.0
 ## Running damage total for the current fight (post-R10 UI-feedback pass:
@@ -142,6 +144,7 @@ var _resist_label: Label
 var _mechanic_row: FlowContainer
 var _status_row: HBoxContainer
 var _fight_timer_badge: PanelContainer
+var _clock_frost: Control
 var _fight_timer_label: Label
 var _combat_stage
 var _category_preview
@@ -374,6 +377,7 @@ func _ready() -> void:
 	# matches combat_screen.gd's own tavern-background-only approach).
 	_popup_layer = Control.new()
 	_popup_layer.name = "PopupLayer"
+	_popup_layer.set_meta("target_near_poison_ticks", true)
 	_popup_layer.z_index = 35
 	_popup_layer.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_popup_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -436,6 +440,8 @@ func _build_fight_timer_badge() -> PanelContainer:
 	badge_style.content_margin_bottom = 6
 	badge.add_theme_stylebox_override("panel", badge_style)
 	_fight_timer_badge = badge
+	_clock_frost = preload("res://scripts/ui/combat_clock_frost.gd").new()
+	badge.add_child(_clock_frost)
 
 	var row := HBoxContainer.new()
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -478,7 +484,7 @@ func _refresh_fight_timer_badge() -> void:
 func _update_fight_timer_countdown() -> void:
 	if _fight_timer_label == null or _playback == null:
 		return
-	var remaining_ms := maxf(0.0, float(_playback.window_ms()) - _playback.elapsed_ms())
+	var remaining_ms := _playback.countdown_remaining_ms()
 	_fight_timer_label.text = _format_fight_timer_ms(roundi(remaining_ms), true)
 
 
@@ -498,6 +504,7 @@ func play(result: CombatResolver.CombatResult, monster: Monster, equipped_gear: 
 	_cancel_combat_audio()
 	_monster = monster
 	_current_result = result
+	_clock_frost.set_active(result.countdown_rate < 1.0 and not _instant_playback)
 	_shred_value = shred_value
 	_poison_base_damage = poison_base_damage
 	_decay_value = decay_value
@@ -522,6 +529,7 @@ func play(result: CombatResolver.CombatResult, monster: Monster, equipped_gear: 
 	_combat_stage.configure("Rogue", monster.display_name, PRACTICE_TARGET_VISUAL_NAME, monster.combat_role)
 	_combat_stage.set_bandit_blade_effect_active(_gear_has_id(equipped_gear, _combat_stage.BANDIT_BLADE_ID))
 	_combat_stage.reset_state()
+	_combat_stage.configure_legendary_effects(result.presentation_initial.get("legendary_visuals", {}))
 	_combat_stage.set_slow_effect_active(slow > 0.0, slow, not _instant_playback and not CombatEffectIcons.reduced_motion)
 	if skill_build_panel != null and skill_build_panel.has_method("clear_combat_highlight"):
 		skill_build_panel.clear_combat_highlight()
@@ -541,12 +549,15 @@ func play(result: CombatResolver.CombatResult, monster: Monster, equipped_gear: 
 	_playback.cast_start_callback = _on_playback_cast_start
 	_playback.finished_callback = _on_playback_finished
 	_playback.start(result)
+	if skill_build_panel != null: skill_build_panel.clear_presentation()
 	_effect_icons.begin(result)
 	if skill_build_panel != null:
 		skill_build_panel.state.set_meta("combat_presentation", _effect_icons.model)
+		_presentation_owner = skill_build_panel.state
+		_owned_presentation_model = _effect_icons.model
 	_playback_intro_duration_sec = _combat_stage.play_fight_intro(not _instant_playback and not CombatEffectIcons.reduced_motion) if _combat_stage != null else 0.0
 	_playback_intro_remaining_sec = _playback_intro_duration_sec
-	_fight_window_ms = _playback.window_ms()
+	_fight_window_ms = _playback.nominal_window_ms()
 
 	if _instant_playback:
 		_playback_intro_remaining_sec = 0.0
@@ -607,10 +618,15 @@ func _on_playback_event(event: CombatPlayback.PlaybackEvent) -> void:
 		# should animate/log as 0 damage.
 		if event.tick.had_active_stack:
 			_combat_stage.play_poison_tick_pulse(not _instant_playback and event.chain_count <= 1 and not CombatEffectIcons.reduced_motion)
-			if event.chain_count <= 1: _spawn_popup(event)
+			_combat_stage.play_poison_retrigger_event(event, _playback.speed if _playback != null else 1.0, not _instant_playback and not _playback_skipping and not CombatEffectIcons.reduced_motion)
+			if event.tick.keyword_consume:
+				_combat_stage.play_legendary_poison_consume(not _instant_playback and not _playback_skipping and not CombatEffectIcons.reduced_motion)
+			if event.chain_count <= 1 or event.tick.stacks_preserved: _spawn_popup(event)
 		_sync_presentation()
 		return
 	var cast := event.cast
+	if event.chain_count <= 1 and _category_preview.handles(cast):
+		_category_preview.activate(cast,_playback.speed if _playback != null else _last_speed,not _instant_playback and not _playback_skipping)
 	if cast.gold_stolen > 0 and gold_stolen_callback.is_valid():
 		gold_stolen_callback.call(cast.gold_stolen)
 	var popup_delay := 0.0
@@ -618,14 +634,12 @@ func _on_playback_event(event: CombatPlayback.PlaybackEvent) -> void:
 		_combat_stage.play_retrigger_event(event, _playback.speed, not CombatEffectIcons.reduced_motion)
 	elif not cast.cooldown_blocked and not cast.resource_unavailable and not _category_preview.handles(cast):
 		popup_delay = _combat_stage.play_cast_impact(cast, not _instant_playback and not _playback_skipping and not CombatEffectIcons.reduced_motion)
-	if (cast.was_dodged or cast.physical_damage > 0.0 or cast.blocked_amount > 0.0) and not _instant_playback and not _playback_skipping:
+	if event.chain_count <= 1 and _category_preview.handles(cast):
+		_combat_stage.play_legendary_cast_effect(cast, not _instant_playback and not _playback_skipping and not CombatEffectIcons.reduced_motion)
+	if not _instant_playback and not _playback_skipping:
 		var audio_manager := get_node_or_null("/root/AudioManager")
-		if audio_manager != null and audio_manager.has_method("play_attack_sfx_for_cast"):
-			if event.chain_count > 1:
-				if event.visual_beat:
-					audio_manager.play_retrigger_sfx(cast, _playback.speed)
-			else:
-				audio_manager.play_attack_sfx_for_cast(cast, _playback.speed, false)
+		if audio_manager != null and audio_manager.has_method("play_skill_sfx_for_cast"):
+			audio_manager.play_skill_sfx_for_cast(cast, _playback.speed, false, event.chain_count > 1, event.visual_beat)
 	if not cast.triggered_skill_names.is_empty() and skill_build_panel != null and skill_build_panel.has_method("highlight_rotation_index"):
 		skill_build_panel.highlight_rotation_index(cast.rotation_index, true)
 	_armor_reduced += cast.armor_reduction_applied
@@ -698,15 +712,18 @@ func _skill_lock_key(skill: Skill) -> String:
 
 
 func _update_macro_cast_progress() -> void:
-	if _playback == null or skill_build_panel == null or not skill_build_panel.has_method("set_cast_progress"):
+	if _playback == null:
 		return
 	var cast := _playback.active_cast()
 	if cast == null:
 		return
-	skill_build_panel.set_cast_progress(cast.rotation_index, _playback.active_cast_progress(), cast.min_cast_time_proc_applied)
+	_category_preview.update_cast_progress(cast,_playback.active_cast_progress(),_playback.speed)
+	if skill_build_panel != null and skill_build_panel.has_method("set_cast_progress"):
+		skill_build_panel.set_cast_progress(cast.rotation_index, _playback.active_cast_progress(), cast.min_cast_time_proc_applied)
 
 
 func _on_playback_finished() -> void:
+	_clock_frost.set_active(false)
 	_clear_retrigger_popups()
 	var audio := get_node_or_null("/root/AudioManager")
 	if audio != null: audio.cancel_combat_sfx(false)
@@ -875,7 +892,7 @@ func _flash_status_chips() -> void:
 func _set_speed(speed: float, clear_skip_mode: bool = true) -> void:
 	if _combat_stage != null: _combat_stage._clear_flurry()
 	_cancel_combat_audio()
-	if _category_preview != null: _category_preview.clear()
+	if _category_preview != null: _category_preview.clear_feedback()
 	_last_speed = speed
 	if clear_skip_mode:
 		_skip_playback_on_fight = false
@@ -959,7 +976,10 @@ func _spawn_popup(event: CombatPlayback.PlaybackEvent) -> void:
 	if CombatEffectIcons.reduced_motion or (not event.is_tick and (event.cast.cooldown_blocked or event.cast.resource_unavailable)):
 		return
 	if event.is_tick:
-		_spawn_text_popup(_popup_text(event), UIColors.TEXT_POISON, _poison_tick_font_size(), false, POPUP_TICK_RISE_SEC, true)
+		var critical := event.tick != null and event.tick.is_crit
+		var tick_size := roundi(_poison_tick_font_size() * 1.5) if critical else _poison_tick_font_size()
+		var label := _spawn_text_popup(_popup_text(event), UIColors.TEXT_POISON, tick_size, critical, POPUP_TICK_RISE_SEC, true)
+		if event.tick.stacks_preserved: preload("res://scripts/ui/poison_preservation_feedback.gd").apply(label)
 		return
 	var cast := event.cast
 	if _category_preview.handles(cast):
@@ -978,7 +998,7 @@ func _spawn_popup(event: CombatPlayback.PlaybackEvent) -> void:
 		color = UIColors.TEXT_MAGIC
 		font_size = POPUP_PROC_FONT_SIZE
 	var category_style = preload("res://scripts/ui/skill_category_preview_style.gd")
-	if category_style.selected(cast.skill): color = category_style.COLORS[cast.skill.category]
+	if category_style.popup_selected(cast.skill): color = category_style.COLORS[cast.skill.category]
 	if cast.is_crit and cast.crit_negation_damage_prevented > 0.0:
 		_spawn_crit_negation_popup(cast)
 	elif cast.gold_stolen > 0:
@@ -1006,7 +1026,7 @@ func _spawn_retrigger_popup(event: CombatPlayback.PlaybackEvent) -> Label:
 	var chain_index := event.chain_index
 	var color_override := Color.TRANSPARENT
 	var category_style = preload("res://scripts/ui/skill_category_preview_style.gd")
-	if category_style.selected(cast.skill): color_override = category_style.COLORS[cast.skill.category]
+	if category_style.popup_selected(cast.skill): color_override = category_style.COLORS[cast.skill.category]
 	if _playback_skipping or cast.cooldown_blocked or cast.resource_unavailable:
 		return null
 	var skill_name := cast.skill.display_name if cast.skill != null else "Attack"
@@ -1029,6 +1049,9 @@ func _spawn_retrigger_popup(event: CombatPlayback.PlaybackEvent) -> Label:
 	if cast.gold_stolen > 0: text += " +%d gold" % cast.gold_stolen
 	if color_override.a > 0 and cast.crit_negation_damage_prevented <= 0 and cast.gold_stolen <= 0:
 		color = color_override
+	if cast.skill != null and cast.skill.category in [Skill.Category.DEBUFF, Skill.Category.SELF_BUFF]:
+		text = skill_name + "\n" + category_style.outcome(cast)
+		color = category_style.COLORS[cast.skill.category]
 	var label := _make_popup_label(text, color, roundi(font_size * 0.75))
 	label.name = "RetriggerHitText"
 	label.set_meta("retrigger_hit", true)
@@ -1112,11 +1135,14 @@ func _spawn_gold_hit_popup(cast: CombatResolver.CastEvent, color: Color, font_si
 
 func _spawn_text_popup(text: String, color: Color, font_size: int = POPUP_FONT_SIZE, punch: bool = false, rise_sec: float = POPUP_RISE_SEC, is_poison_tick: bool = false) -> Label:
 	var label := Label.new()
+	if is_poison_tick and punch:
+		label.set_meta("critical_poison", true)
 	label.text = text
 	label.add_theme_font_override("font", POPUP_FONT)
 	label.add_theme_color_override("font_color", color)
 	label.add_theme_font_size_override("font_size", font_size)
 	_popup_layer.add_child(label)
+	preload("res://scripts/ui/combat_gold_text_icon.gd").decorate(label)
 	label.reset_size()
 	var area_size := _popup_layer.size
 	var fit := PopupLayout.place(label, _popup_layer, _combat_stage, is_poison_tick)
@@ -1190,6 +1216,7 @@ func _make_popup_label(text: String, color: Color, font_size: int) -> Label:
 	label.add_theme_font_size_override("font_size", font_size)
 	label.add_theme_color_override("font_outline_color", UIColors.TEXT_OUTLINE_STRONG)
 	label.add_theme_constant_override("outline_size", 5)
+	preload("res://scripts/ui/combat_gold_text_icon.gd").decorate(label)
 	return label
 
 
@@ -1212,7 +1239,7 @@ func _poison_tick_font_size() -> int:
 
 func _popup_text(event: CombatPlayback.PlaybackEvent) -> String:
 	if event.is_tick:
-		return "Poison %.1f" % event.damage
+		return "Poison %.1f%s" % [event.damage, "!" if event.tick != null and event.tick.is_crit else ""]
 	var cast := event.cast
 	var skill_name := cast.skill.display_name if cast.skill != null else "Attack"
 	if cast.was_interrupted:
@@ -1234,7 +1261,7 @@ func _sync_presentation() -> void:
 		_armor_reduced = _monster.armor - int(snapshot.get("armor", _monster.armor - _armor_reduced))
 	_update_status_readout()
 	if skill_build_panel != null:
-		skill_build_panel.update_presentation(_effect_icons.model)
+		skill_build_panel.update_presentation(_effect_icons.model, not _instant_playback and not _playback_skipping)
 
 
 func _on_motion_changed(enabled: bool) -> void:
@@ -1249,6 +1276,7 @@ func _on_motion_changed(enabled: bool) -> void:
 		child.queue_free()
 	if skill_build_panel != null:
 		skill_build_panel.clear_stun_effect()
+		skill_build_panel.clear_legendary_feedback()
 
 
 func _cancel_combat_audio() -> void:
@@ -1258,3 +1286,6 @@ func _cancel_combat_audio() -> void:
 
 func _exit_tree() -> void:
 	_cancel_combat_audio()
+	if is_instance_valid(_presentation_owner) and _presentation_owner.has_meta("combat_presentation"):
+		if _presentation_owner.get_meta("combat_presentation") == _owned_presentation_model:
+			_presentation_owner.remove_meta("combat_presentation")

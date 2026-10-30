@@ -67,7 +67,7 @@ func preview_execution_ms(skill_id: String, ordinary_ms: int, minimum_ms: int, t
 	return maxi(maxi(500, minimum_ms), ceili(duration * (1.0 - 0.04 * _footwork_rank * _strength * count)))
 
 
-func begin_cast(skill_id: String, ordinary_ms: int, minimum_ms: int, time_ms: int, context: Dictionary = {}) -> Dictionary:
+func begin_cast(skill_id: String, ordinary_ms: int, minimum_ms: int, time_ms: int, context: Dictionary = {}, is_direct_attack: bool = false) -> Dictionary:
 	if initialization_error != "":
 		return {"error": initialization_error}
 	var error: String = state.advance(time_ms, true)
@@ -96,7 +96,8 @@ func begin_cast(skill_id: String, ordinary_ms: int, minimum_ms: int, time_ms: in
 			output["precision_consumed"] = used.consumed
 			if int(used.consumed) > 0:
 				guarantees.append("precision")
-		if _dance_enabled and context.get("origin_kind", "macro") == "macro" and _has_dance():
+		# The scheduler classifies the actual skill; IDs alone cannot establish an attack.
+		if _dance_enabled and is_direct_attack and context.get("origin_kind", "macro") == "macro" and _has_dance():
 			guarantees.append("dance")
 		output["guaranteed_repeat_sources"] = guarantees
 	return output

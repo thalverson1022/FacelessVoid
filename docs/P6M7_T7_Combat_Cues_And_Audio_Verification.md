@@ -1,5 +1,7 @@
 # M7-T7 — Mixed combat cues and audio lifecycle verification
 
+> **Historical record — not an active work plan.** Status labels, next-step instructions and milestone numbering below describe the recorded checkpoint. M8 is closed; consult the current M9 tracker for authorized work. Retained at this path when tooling/manifests depend on it. [Current context](P6_Project_Onboarding_Context.md).
+
 **Complete under D046 (2026-10-15).** The user accepted the [ghost/retrigger/proc treatment](P6M7_T7_Ghost_Retrigger_Prototype.md) through D045, requested the remaining verification/fixes, and accepted both actual listening clips. The scoped G06/G10 repairs, rendered review and affected regression are complete. T1–T7 Complete; T8–T11 Not started; M7 remains In progress.
 
 ## Scope

@@ -1,14 +1,13 @@
 class_name SaveSystem
 extends RefCounted
-## Version-4 Adventure envelope; versions 2/3/4 share the build codec.
-## Current Adventure rejects old saves without mutation; explicit compatibility
-## registries retain their version-1 reset policy. Current saves
+## Version-5 seven-slot Adventure envelope. Older envelopes cannot restore.
+## The shared epoch boundary retires old gameplay envelopes. Current saves
 ## decode on a detached candidate; malformed/future data is never overwritten.
 ## Gear and generated-contract value encodings retain their inherited policies.
 
 const LEGACY_SAVE_PATH := "user://save.json"
 const SAVE_PATH := "user://adventure_p6_m6.json"
-const SAVE_VERSION := 4
+const SAVE_VERSION := 5
 const T3_STAT_IDS := ["cooldown_reduction", "increased_buff_duration", "crit_applies_penetration", "crit_applies_potency", "inventory_economy_stats"]
 const GENERATED_CONTRACT_SAVE_SCHEMA_VERSION := 1
 const ContractRouteGeneratorScript := preload("res://scripts/systems/contract_route_generator/contract_route_generator.gd")
@@ -24,19 +23,30 @@ static var last_gear_load_notices := PackedStringArray()
 
 
 static func has_save() -> bool:
-	return FileAccess.file_exists(save_path)
+	if session_only or not SevenSlotSaveBoundary.ensure_ready(save_path):
+		return false
+	if not FileAccess.file_exists(save_path): return false
+	var parsed := StrictSaveJson.read(FileAccess.get_file_as_string(save_path))
+	return parsed.error == "" and typeof(parsed.data) == TYPE_DICTIONARY and parsed.data.get("save_version") == SAVE_VERSION and _valid_run_shapes(parsed.data) and _valid_build_shape(parsed.data.get("build"))
 
 
-static func delete_save() -> void:
-	if session_only:
-		return
-	if has_save():
-		if save_path.begins_with("user://"):
-			var user_dir := DirAccess.open("user://")
-			if user_dir != null:
-				user_dir.remove(save_path.trim_prefix("user://"))
-		else:
-			DirAccess.remove_absolute(ProjectSettings.globalize_path(save_path))
+## Used for explicit replacement confirmation, including unreadable/future files.
+static func has_saved_file() -> bool:
+	return not session_only and SevenSlotSaveBoundary.ensure_ready(save_path) and FileAccess.file_exists(save_path)
+
+
+static func delete_save() -> bool:
+	if session_only: return true
+	if not SevenSlotSaveBoundary.ensure_ready(save_path):
+		last_error = SevenSlotSaveBoundary.last_error
+		return false
+	for path in [save_path + ".tmp", save_path]:
+		if FileAccess.file_exists(path):
+			var error: int = SevenSlotSaveBoundary.remove_override.call(path) if SevenSlotSaveBoundary.remove_override.is_valid() else DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
+			if error != OK:
+				last_error = "Could not remove Adventure save; the current run was retained."
+				return false
+	return true
 
 
 ## Normal temp-file replacement. This does not claim power-loss durability.
@@ -68,6 +78,19 @@ static func save_run(state) -> bool:
 	last_error = ""
 	if session_only:
 		return true
+	if not SevenSlotSaveBoundary.ensure_ready(save_path):
+		last_error = SevenSlotSaveBoundary.last_error
+		return false
+	if FileAccess.file_exists(save_path + ".tmp"):
+		last_error = "An uncommitted Adventure temporary save was preserved; explicitly start a New Adventure to replace it."
+		return false
+	if FileAccess.file_exists(save_path):
+		var existing = state.get_script().new()
+		var outcome := load_run_result(existing)
+		existing.free()
+		if outcome.status != "loaded":
+			last_error = "Existing Adventure save could not be validated; start a confirmed New Adventure to replace it. " + String(outcome.message)
+			return false
 	var build := BuildSaveCodec.encode(state, registry())
 	var decoded := BuildSaveCodec.decode(build, registry())
 	if decoded.error != "":
@@ -100,7 +123,9 @@ static func _outcome(status: String, message: String = "", persisted: bool = fal
 static func load_run_result(state) -> Dictionary:
 	if session_only:
 		return _outcome("failed", "Test Mode does not load Adventure saves.")
-	if not has_save():
+	if not SevenSlotSaveBoundary.ensure_ready(save_path):
+		return _outcome("failed", SevenSlotSaveBoundary.last_error)
+	if not FileAccess.file_exists(save_path):
 		return _outcome("missing")
 	var file := FileAccess.open(save_path, FileAccess.READ)
 	if file == null:
@@ -112,27 +137,13 @@ static func load_run_result(state) -> Dictionary:
 	var data: Dictionary = parsed.data
 	if typeof(data.get("save_version")) != TYPE_INT:
 		return _outcome("failed", "Invalid save version.")
-	var old_revision := ""
-	if typeof(data.get("build")) == TYPE_DICTIONARY and typeof(data.build.get("content_revision")) == TYPE_STRING:
-		old_revision = data.build.content_revision
-	if data.save_version == 1 and registry().revision == BuildContentRegistry.ADVENTURE_REVISION:
-		return _outcome("failed", "This save uses the previous Adventure rules. It has been preserved; start a new Adventure to use the redesigned trees.")
-	# Primitive validation also precedes the historical incompatible-reset path:
-	# malformed supported envelopes must never cause a reset or overwrite. Old
-	# build identities are deliberately not resolved during this preflight.
-	if data.save_version in [2, 3, SAVE_VERSION]:
-		if not _valid_run_shapes(data) or not _valid_build_shape(data.get("build")):
-			return _outcome("failed", "Invalid Adventure run data.")
-		var preflight_error := gear_payload_error(data, data.save_version >= 3)
-		if preflight_error != "":
-			return _outcome("failed", preflight_error)
-	if data.save_version == 1 or (data.save_version in [2, 3, SAVE_VERSION] and registry().incompatible.has(old_revision)):
-		state.reset()
-		state.set_adventure_seed(state.DEFAULT_ADVENTURE_SEED)
-		var written := save_run(state)
-		return _outcome("reset-incompatible", "The skill-tree redesign invalidated the old save. A fresh run has started." + ("" if written else " The new save could not be written."), written)
-	if data.save_version not in [2, 3, SAVE_VERSION]:
-		return _outcome("failed", "Unsupported future save version.")
+	if data.save_version != SAVE_VERSION:
+		return _outcome("failed", "Unsupported save version: seven-slot Adventure requires version 5.")
+	if not _valid_run_shapes(data) or not _valid_build_shape(data.get("build")):
+		return _outcome("failed", "Invalid Adventure run data.")
+	var preflight_error := gear_payload_error(data, true)
+	if preflight_error != "":
+		return _outcome("failed", preflight_error)
 	for obsolete_field in ["selected_class", "selected_trees", "selected_talents", "rotation_skill_ids", "earned_talent_points"]:
 		if data.has(obsolete_field):
 			return _outcome("failed", "Duplicate legacy build fields in version-2 save.")
@@ -211,6 +222,7 @@ static func _valid_build_shape(value: Variant) -> bool:
 	return true
 
 static func _valid_run_shapes(data: Dictionary) -> bool:
+	if gear_payload_error(data, true) != "": return false
 	if data.has("mysterious_coin_unlocked") and typeof(data.mysterious_coin_unlocked) != TYPE_BOOL:
 		return false
 	if data.get("run_phase", 0) not in [0, 1, 2, 3, 4, 5] or data.get("run_outcome", 0) not in [0, 1, 2, 3, 4, 5, 6]:
@@ -224,10 +236,16 @@ static func _valid_run_shapes(data: Dictionary) -> bool:
 		for entry in data.get(field, []):
 			if typeof(entry) == TYPE_DICTIONARY and _gear_shape_error(entry) != "":
 				return false
-	for field in ["equipped_weapon", "equipped_helm", "equipped_armor", "equipped_trinket", "equipped_charm"]:
+	for field in ["equipped_weapon", "equipped_helm", "equipped_armor", "equipped_trinket", "equipped_charm", "equipped_legs", "equipped_hands"]:
+		if not data.has(field): return false
 		var entry: Variant = data.get(field)
-		if typeof(entry) == TYPE_DICTIONARY and _gear_shape_error(entry) != "":
-			return false
+		if entry != null and typeof(entry) != TYPE_DICTIONARY: return false
+		if typeof(entry) == TYPE_DICTIONARY:
+			if _gear_shape_error(entry) != "": return false
+			var item := _gear_from_entry(entry)
+			if item == null or not _is_valid_slot(item.slot): return false
+			var expected: int = {"equipped_weapon": 0, "equipped_trinket": 1, "equipped_charm": 2, "equipped_helm": 3, "equipped_armor": 4, "equipped_legs": 5, "equipped_hands": 6}[field]
+			if item.slot != expected: return false
 	for id in data.get("secondary_subclass_offer_ids", []):
 		if typeof(id) != TYPE_STRING:
 			return false
@@ -274,6 +292,12 @@ static func _valid_run_shapes(data: Dictionary) -> bool:
 	for field in ["shop_unlocked", "shop_round_pending", "shop_reroll_used", "last_fight_won", "tavern_map_choice_made"]:
 		if typeof(data.get(field, false)) != TYPE_BOOL:
 			return false
+	if data.has("reward_result_basis"):
+		var basis = data.reward_result_basis
+		if typeof(basis) != TYPE_DICTIONARY or typeof(basis.get("is_valid")) != TYPE_BOOL or typeof(basis.get("is_win")) != TYPE_BOOL:
+			return false
+		if typeof(basis.get("overkill_damage")) not in [TYPE_INT, TYPE_FLOAT] or not is_finite(float(basis.overkill_damage)) or float(basis.overkill_damage) < 0.0:
+			return false
 	return true
 
 static func _serialize(state) -> Dictionary:
@@ -314,6 +338,8 @@ static func _serialize_run_fields(state) -> Dictionary:
 		"equipped_armor": _gear_entry_to_data(state.equipped_armor),
 		"equipped_trinket": _gear_entry_to_data(state.equipped_trinket),
 		"equipped_charm": _gear_entry_to_data(state.equipped_charm),
+		"equipped_legs": _gear_entry_to_data(state.equipped_legs),
+		"equipped_hands": _gear_entry_to_data(state.equipped_hands),
 		"pending_contract_offers": _pending_contract_offers_to_data(state.pending_contract_offers),
 		"active_contract": null if active_generated_contract else _resource_path_or_null(state.active_contract),
 		"current_route_node": null if active_generated_contract else _resource_path_or_null(state.current_route_node),
@@ -342,6 +368,10 @@ static func _serialize_run_fields(state) -> Dictionary:
 		),
 		"run_outcome": state.run_outcome,
 		"last_fight_won": state.last_fight_won,
+		# Original result basis only: reward-time equipment derives its component afresh.
+		"reward_result_basis": {"is_valid": state.last_combat_result.is_valid if state.last_combat_result != null else bool(state.reward_result_basis.get("is_valid", false)),
+			"is_win": state.last_combat_result.is_win if state.last_combat_result != null else bool(state.reward_result_basis.get("is_win", false)),
+			"overkill_damage": state.last_combat_result.overkill_damage if state.last_combat_result != null else float(state.reward_result_basis.get("overkill_damage", 0.0))},
 		"tavern_map_choice_made": state.tavern_map_choice_made,
 		# build_locked is intentionally not persisted -- any load should
 		# require re-confirming the build lock before fighting again.
@@ -428,6 +458,8 @@ static func _deserialize(data: Dictionary, state) -> bool:
 	state.equipped_armor = resolved_equipped.get(GearItem.SlotType.ARMOR)
 	state.equipped_trinket = resolved_equipped.get(GearItem.SlotType.TRINKET)
 	state.equipped_charm = resolved_equipped.get(GearItem.SlotType.CHARM)
+	state.equipped_legs = resolved_equipped.get(GearItem.SlotType.LEGS)
+	state.equipped_hands = resolved_equipped.get(GearItem.SlotType.HANDS)
 	state.pending_contract_offers = resolved_pending_contract_offers
 	state.active_contract = resolved_active_contract
 	state.current_route_node = resolved_route_node
@@ -449,6 +481,9 @@ static func _deserialize(data: Dictionary, state) -> bool:
 	state.run_phase = state.RunPhase.PLANNING if saved_phase == state.RunPhase.FIGHTING else saved_phase
 	state.run_outcome = int(data.get("run_outcome", state.RunOutcome.NONE))
 	state.last_fight_won = bool(data.get("last_fight_won", false))
+	state.last_combat_result = null
+	# This basis is reward-only. No combat timeline, duration or DPS is restored.
+	state.reward_result_basis = data.get("reward_result_basis", {}).duplicate(true)
 	state.tavern_map_choice_made = bool(data.get("tavern_map_choice_made", false))
 	state.build_locked = false
 
@@ -656,6 +691,8 @@ static func _equipped_gear_from_save_data(data: Dictionary) -> Dictionary:
 		["equipped_helm", GearItem.SlotType.HELM],
 		["equipped_armor", GearItem.SlotType.ARMOR],
 		["equipped_charm", GearItem.SlotType.CHARM],
+		["equipped_legs", GearItem.SlotType.LEGS],
+		["equipped_hands", GearItem.SlotType.HANDS],
 		["equipped_trinket", GearItem.SlotType.TRINKET],
 	]
 	for field in field_slots:

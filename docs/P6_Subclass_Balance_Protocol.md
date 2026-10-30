@@ -1,5 +1,7 @@
 # Rogue subclass balance protocol
 
+> **Historical record — not an active work plan.** Status labels, next-step instructions and milestone numbering below describe the recorded checkpoint. M8 is closed; consult the current M9 tracker for authorized work. Retained at this path when tooling/manifests depend on it. [Current context](P6_Project_Onboarding_Context.md).
+
 This protocol uses current live content and fixed allocations at 1, 10, 21 and 35 points for Bladedancer, Thief, Assassin and Shadow. It changes rotations only; it never changes gameplay values or player saves. User-approved scope excludes boss/mechanic and resource evaluation.
 
 ## Test conditions

@@ -51,7 +51,7 @@ func run() -> void:
 		context.set_meta("category_preview",false)
 		check(Hover.model(skill,context)==data,skill.id+" category override cannot Bypass")
 		context.set_meta("category_preview",true)
-	check(Hover.model(skills["skill.parry_strike"],context).effect=="Requires and consumes 1 Readiness stack","Parry uses stack terminology")
+	check(Hover.model(skills["skill.parry_strike"],context).effect=="Requires and consumes Readiness. Readiness is granted by any skill Retrigger","Parry explains Readiness requirement and source")
 	check(Hover.model(skills["skill.dance_of_death"],context).effect=="The first hit of all attacks have 100% Retrigger Chance","Dance first-hit Retrigger scope")
 	check(Hover.model(skills["skill.virulent_poison"],context).effect=="Next 5 ticks of Poison deal 2x damage","Virulent stack count and multiplier retained")
 	check(Hover.model(skills["skill.venom_jab"],context).damage=="22-22 damage","Venom weapon scaling")

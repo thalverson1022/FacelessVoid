@@ -1,5 +1,7 @@
 # M7-T6 — Temporary-effect display completion
 
+> **Historical record — not an active work plan.** Status labels, next-step instructions and milestone numbering below describe the recorded checkpoint. M8 is closed; consult the current M9 tracker for authorized work. Retained at this path when tooling/manifests depend on it. [Current context](P6_Project_Onboarding_Context.md).
+
 2026-10-15. **Complete under user acceptance P6M7-D041.** The user tested the buffs, accepted the T6 changes and explicitly requested closeout. M7 remains In progress; T1–T6 Complete, T7–T11 Not started. The user requested the T6 audit, display/overflow improvements, lifecycle verification, cross-mode rendered checks and review. T5 remains complete under D039; T7 popup/audio work remains separate.
 
 ## Scope and current-state audit

@@ -1,5 +1,7 @@
 # M7-T10 — Feedback Refinement and Acceptance
 
+> **Historical record — not an active work plan.** Status labels, next-step instructions and milestone numbering below describe the recorded checkpoint. M8 is closed; consult the current M9 tracker for authorized work. Retained at this path when tooling/manifests depend on it. [Current context](P6_Project_Onboarding_Context.md).
+
 2026-10-17. **Complete under D052:** user accepted the final M7 presentation with the recorded limits and requested T10 closeout. T1–T10 Complete; T11 Not started; M7 In progress.
 
 ## Review outcome
@@ -10,12 +12,12 @@ No unresolved reported M7 fix was identified. The four T9 requests were implemen
 
 | Area | Final treatment and evidence |
 | --- | --- |
-| Icons and visual identity | All 93 mapped identities, 84 installed Flat charcoal textures, five approved refinements and intentional source-linked reuse. Original tree backgrounds and accepted skill/category framing retained. [T4](P6M7_T4_Icon_Production_And_Integration.md), D018 and later T5 art review. |
+| Icons and visual identity | All 93 mapped identities, 84 installed Flat charcoal textures, five approved refinements and intentional source-linked reuse. Original tree backgrounds and accepted skill/category framing retained. [T4](archive/m7/P6M7_T4_Icon_Production_And_Integration.md), D018 and later T5 art review. |
 | Descriptions and build information | Accepted minimal skill/talent hovers for 44 talents / 140 ranks and 23 skills; gold scaling values, changed-only Next rank, cyan named Buff references and shared current-only Active Talents. Detailed formulas remain in reference/internal inspection. [T5](P6M7_T5_Closeout_And_Accepted_Conventions.md), D039. |
 | Temporary effects | Compact groups with readable overflow, independently inspectable active/held instances, timers/uses, activation counts and lifecycle/focus fixes. [T6](P6M7_T6_Temporary_Effect_Display_Completion.md), D041. |
 | Combat and audio | Main actor anchored during follow-ups; faded ghost attacks, subordinate impact labels, no combo text/X effect, paced high-speed contacts and up to sixteen visible strikes including opener. Bounded mixed-popup lanes, Poison/footer clearance and exit-audio cancellation. Adventure, Practice and Test internals share the treatment. [T7](P6M7_T7_Combat_Cues_And_Audio_Verification.md), D043–D046. |
-| Integrated readability and access | Reviewed three modes and three physical sizes, distributed all-four-tree roles, diagnostic enlarged text, inspector/hover/focus/motion cases. Six scoped repairs retain accepted art/layout. [T8](P6M7_T8_Integrated_UI_And_Accessibility_Review.md), D047. |
-| Adventure preparation | Test Mode entry/selectors and map Archetype guide hidden; Tavern-planning refunds; existing Talent Trees opens before first/later contract offers after reward/shop progression. Normal intermediate Tavern shop progression and active-contract refund locks retained. [T9](P6M7_T9_User_Playtesting_And_Feedback.md), D049–D050. |
+| Integrated readability and access | Reviewed three modes and three physical sizes, distributed all-four-tree roles, diagnostic enlarged text, inspector/hover/focus/motion cases. Six scoped repairs retain accepted art/layout. [T8](archive/m7/P6M7_T8_Integrated_UI_And_Accessibility_Review.md), D047. |
+| Adventure preparation | Test Mode entry/selectors and map Archetype guide hidden; Tavern-planning refunds; existing Talent Trees opens before first/later contract offers after reward/shop progression. Normal intermediate Tavern shop progression and active-contract refund locks retained. [T9](archive/m7/P6M7_T9_User_Playtesting_And_Feedback.md), D049–D050. |
 
 ## Reconciled audit and feedback register
 

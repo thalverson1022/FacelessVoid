@@ -55,22 +55,23 @@ func normal_contracts() -> void:
 	check(Hover.model(skills["skill.touch_of_darkness"], state).duration == "Duration: 12s", "Normal Touch duration")
 	check(Hover.model(skills["skill.master_of_poisons"], state).duration == "Duration: 5s", "Normal Master duration")
 	check(Hover.model(skills["skill.blinding_powder"], state).duration == "Duration: 3s", "Normal Potency duration")
-	check(Hover.model(skills["skill.exsanguinate"], state).effect.contains("%d health" % (2*state.current_player_stats().shred_value)), "Exsanguinate works without Nightkiss flag too")
+	check(Hover.model(skills["skill.exsanguinate"], state).effect.contains("%d health" % state.current_player_stats().shred_value), "Exsanguinate works without Nightkiss flag too")
 
 func legendary_skills() -> void:
 	var state := context()
 	state.equipped_weapon = gear("nightkiss_kitana")
 	var exsanguinate: Skill = state.unlocked_skills().filter(func(s): return s.id == "skill.exsanguinate")[0]
 	var data := Hover.model(exsanguinate, state)
-	var coefficient := 2 * state.current_player_stats().shred_value
+	var coefficient := state.current_player_stats().shred_value
 	check(data.category == "Debuff" and data.damage == "", "Exsanguinate remains health-removing Debuff")
 	check(data.cooldown == "Cooldown: 8s" and data.duration == "Duration: Instant", "Exsanguinate timing rows")
-	check(data.effect.contains("Remove %d health per stack" % coefficient), "Exsanguinate uses resolved Shred Value including Nightkiss")
-	check(data.effect.contains("Retriggers repeat the same health removal"), "Exsanguinate captured repeats described")
+	check(data.effect == "Removes %d health per stack of Shred consumed\nCannot Retrigger" % coefficient, "Exsanguinate requested effect uses resolved Shred Value including Nightkiss")
+	check(Formatter.effect_summary(exsanguinate, state) == data.effect, "compact and detailed Exsanguinate effects agree")
 	check(Formatter.unlock_source(exsanguinate, state) == "Gear: Nightkiss Kitana", "Nightkiss named as gear-only source")
 	var detail := Formatter.conditions_for(exsanguinate, state)
-	for expected in ["all actual Shred once", "2 x resolved Shred Value", "Bypasses mitigation", "cannot crit or gain damage bonuses", "without consuming more Shred", "does not grant Death Pact"]:
+	for expected in ["all actual Shred once", "1 x resolved Shred Value", "Bypasses mitigation", "cannot crit or gain damage bonuses", "Cannot Retrigger", "does not grant Death Pact"]:
 		check(detail.contains(expected), "Exsanguinate detail: " + expected)
+	check(not Formatter.details_for(exsanguinate, state).contains("captured"), "detailed Exsanguinate no longer describes repeated removal")
 	state.equipped_weapon = gear("decrepit_blade")
 	var poison_strike: Skill = state.unlocked_skills().filter(func(s): return s.id == "skill.poison_strike")[0]
 	data = Hover.model(poison_strike, state)
@@ -117,11 +118,11 @@ func crown_and_timers() -> void:
 	check(Hover.model(skills["skill.virulent_poison"], state).duration == "", "Crown preserves untimed Virulent omission")
 	check(Category.tooltip(skills["skill.virulent_poison"], state).contains("3x damage"), "Category preview cannot bypass resolved Crown strength")
 	state.equipped_charm = gear("signet_of_the_old_kings")
-	check(Hover.model(skills["skill.beguiling_presence"], state).effect.contains("+2 Base Elemental Damage and +8% Attack Speed"), "Crown and Signet show actual converted per-stack bonuses")
+	check(Hover.model(skills["skill.beguiling_presence"], state).effect.contains("+2 Base Elemental Damage and +6% Attack Speed"), "Crown and Signet show actual converted per-stack bonuses")
 	var detail := Formatter.conditions_for(skills["skill.beguiling_presence"], state)
 	check(detail.contains("uncapped critical chance") and detail.contains("cannot crit") and not detail.contains("caps at 100%"), "Signet details preserve uncapped conversion input")
 	state.equipped_helm = null
-	check(Hover.model(skills["skill.beguiling_presence"], state).effect.contains("+1 Base Elemental Damage and +4% Attack Speed"), "Signet alone conversion")
+	check(Hover.model(skills["skill.beguiling_presence"], state).effect.contains("+1 Base Elemental Damage and +3% Attack Speed"), "Signet alone conversion")
 	state.equipped_charm = null
 	check(not Hover.model(skills["skill.beguiling_presence"], state).effect.contains("Attack Speed"), "Unequip refresh removes conversion wording")
 	# Fractional authored affix tests the ceiling to milliseconds used by combat.

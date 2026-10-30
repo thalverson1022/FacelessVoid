@@ -1,7 +1,7 @@
 class_name CombatEffectIcons
 extends VBoxContainer
 const EffectText = preload("res://scripts/ui/combat_effect_text.gd")
-## Shared, bounded presentation observer. Timer refreshes preserve controls/focus.
+## Shared presentation observer. Active buff types wrap in four-icon rows.
 const RadialCountdown = preload("res://scripts/ui/combat_radial_countdown.gd")
 const BODY_FONT = preload("res://assets/fonts/VT323-Regular.ttf")
 const PresentationState = preload("res://scripts/ui/combat_presentation_state.gd")
@@ -16,7 +16,6 @@ var records: Array:
 var cursor: int:
 	get: return model.cursor
 var _grid: GridContainer
-var _inspect: Button
 var _dialog: AcceptDialog
 var _details: RichTextLabel
 var _signature := ""
@@ -27,23 +26,10 @@ var _return_focus_id := ""
 func _ready() -> void:
 	custom_minimum_size.x = 220
 	add_theme_constant_override("separation", 3)
-	_inspect = Button.new()
-	_inspect.text = ""
-	_inspect.custom_minimum_size.y = 32
-	_inspect.add_theme_font_size_override("font_size", 22)
-	_inspect.add_theme_font_override("font", BODY_FONT)
-	_inspect.clip_text = false
-	_inspect.pressed.connect(func():
-		_return_focus_id = "overflow"
-		_open_inspector()
-	)
 	_grid = GridContainer.new()
 	_grid.columns = 4
 	_grid.add_theme_constant_override("h_separation", 4)
 	add_child(_grid)
-	add_child(_inspect)
-	_inspect.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-	_inspect.hide()
 	_dialog = AcceptDialog.new()
 	_dialog.title = "Combat effects and event history"
 	_dialog.get_ok_button().text = "Close"
@@ -69,10 +55,8 @@ func _ready() -> void:
 	box.add_child(_details)
 	_dialog.visibility_changed.connect(func():
 		if not _dialog.visible and visible:
-			if _return_focus_id == "overflow" and _inspect.visible: _inspect.grab_focus()
-			elif _chips.has(_return_focus_id): _chips[_return_focus_id].grab_focus()
+			if _chips.has(_return_focus_id): _chips[_return_focus_id].grab_focus()
 			elif not _chips.is_empty(): _chips.values()[0].grab_focus()
-			elif _inspect.visible: _inspect.grab_focus()
 	)
 	hide()
 
@@ -136,7 +120,7 @@ func _render() -> void:
 			_grid.remove_child(child)
 			child.queue_free()
 		_chips.clear()
-		for id in ids.slice(0, 4):
+		for id in ids:
 			var chip := IconTooltipButton.new()
 			chip.custom_minimum_size = Vector2(52, 52)
 			chip.clip_contents = true
@@ -196,9 +180,6 @@ func _render() -> void:
 		clock.visible = deadline >= 0 and duration > 0
 		clock.progress = clampf(float(deadline - model.time_ms) / duration, 0.0, 1.0) if clock.visible else 0.0
 		_chips[id].tooltip_text = _summary(id, values) + "\nClick to inspect"
-	_inspect.visible = ids.size() > 4
-	_inspect.text = "+%d more" % (ids.size() - 4) if ids.size() > 4 else ""
-	_inspect.tooltip_text = "Inspect all %d player effect types, including independent instances" % ids.size()
 	visible = model.running and not ids.is_empty()
 	if _dialog.visible and _time_bucket != model.time_ms / 100:
 		_refresh_inspector()

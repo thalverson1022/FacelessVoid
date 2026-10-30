@@ -118,7 +118,7 @@ func _run() -> void:
 	var practice = game._current_screen
 	var p = practice._state
 	var view = practice._talent_panel._ranked_view
-	view.actions["budget"].get_parent().value = 20
+	check(p.set_talent_budget(20), "Set isolated mixed-budget model fixture")
 	await settle()
 	await select_secondary(view)
 	check(p.selected_trees.size() == 2 and is_equal_approx(p.current_player_stats().gold_reward_multiplier, 1.1), "Zero-point Thief grants base intrinsic")
@@ -150,7 +150,7 @@ func _run() -> void:
 	await settle()
 	for reverse in [false, true]:
 		if reverse:
-			view.actions["swap"].pressed.emit()
+			check(p.swap_tree_roles(), "Swap isolated model roles for reverse-build coverage")
 			await settle()
 		verify_stats(p, reverse)
 		check(ids(p.rotation) == Mixed.ROTATION, "Role swap preserves ordered duplicate rotation")

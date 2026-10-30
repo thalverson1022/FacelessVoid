@@ -177,7 +177,7 @@ The approved Wet Stone → Whetstone display-name correction preserves the stabl
 
 ## M7-T4 candidate review
 
-[Comparison](proposals/m7-t4/comparison.png) and [portable candidate workspace](proposals/m7-t4/workspace.json) contain five proposed refinements. The five refinements and Flat charcoal treatment were approved under P6M7-D018; the proposal remains historical evidence. Exact prompts, generated masters, normalized 32px assets and hashes accompany the proposal. See [T4 status](../../docs/P6M7_T4_Icon_Production_And_Integration.md).
+[Comparison](proposals/m7-t4/comparison.png) and [portable candidate workspace](proposals/m7-t4/workspace.json) contain five proposed refinements. The five refinements and Flat charcoal treatment were approved under P6M7-D018; the proposal remains historical evidence. Exact prompts, generated masters, normalized 32px assets and hashes accompany the proposal. See [T4 status](../../docs/archive/m7/P6M7_T4_Icon_Production_And_Integration.md).
 
 ## Approved flat-charcoal installation
 

@@ -1,5 +1,7 @@
 # M7-T2 live presentation inventory
 
+> **Historical record — not an active work plan.** Status labels, next-step instructions and milestone numbering below describe the recorded checkpoint. M8 is closed; consult the current M9 tracker for authorized work. Retained at this path when tooling/manifests depend on it. [Current context](P6_Project_Onboarding_Context.md).
+
 Generated with `python tools/p6/audit_m7_presentation.py`. Full rank descriptions, unlocks and asset hashes: [coverage JSON](../project/reports/p6_m7_t2_audit/coverage.json).
 
 Mappings are retained as the baseline; flagged readability candidates need T3/T4 review before changes. Text dispositions are audit findings, not final T5 acceptance. Skill text uses default planning stats; conditional build wording needs the T5 matrix. Gap IDs refer to the [audit](P6M7_T2_Presentation_And_Asset_Audit.md).

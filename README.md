@@ -1,12 +1,12 @@
 # Project FacelessVoid
 
-M1–M7 are Complete within their recorded scopes. Adventure is enabled with all four redesigned Rogue trees. M8 Legendary Item Revamp and Expansion is In progress: T1–T8 Complete; T9 presentation and combat feedback await user review under D084; T10–T12 Not started. All16 approved Legendaries are implemented. M9 owns broader integrated playtesting/refinement, and M10 owns final regression/closeout. See the [M8 tracker](docs/P6M8_Legendary_Item_Revamp_And_Expansion_Tracker.md) and [current checkpoint scope](docs/P6_2026-10-24_Git_Checkpoint.md).
+**Phase 6 is Complete. M1–M11 and M11 T1–T6 are Complete within their accepted scopes.** Final user acceptance is recorded under M11 D012 (2026-10-30). [Current documentation](docs/README.md), [Phase 6 roadmap](docs/P6_Milestone_Tracker.md) and [accepted regression/closeout record](docs/P6M11_Regression_And_Closeout_Tracker.md) summarize verification, retained engine/environment limitations and deferred economy/trigger/balance work. Export/package readiness is conditional on separate validation.
 
 Combat rules: [Combat Mechanics Reference](docs/Combat_Mechanics_Reference.md) — current formulas, skill values, interaction exceptions and implementation status.
 
 ## Design labs
 
-- [Icon Lab](tools/icon-lab/README.md): 92-entry mechanics icon library, image
+- [Icon Lab](tools/icon-lab/README.md): mechanics icon library, image
   imports, assignment previews and portable JSON workspaces. Open
   `tools/icon-lab/index.html` directly in a browser.
 
@@ -27,8 +27,10 @@ decisions.
 Phase 5 replaces the old gear assumptions with a five-slot Rogue gear system:
 Dagger, Hood, Doublet, Ring, and Necklace. It adds deterministic item
 generation, new rarity rules, Cursed and Chaos drawbacks, Unique Specials,
-fixed retained Rogue Legendary daggers, reward/shop integration, readable item
+fixed Legendary equipment, reward/shop integration, readable item
 cards, Practice Room validation, and Balance Lab coverage.
+
+Seven-slot Legs/Pants and Hands/Gloves ownership/save and ordinary acquisition are implemented under M9-T5/T6, with approved stat pools and equal eligible-slot selection. Fresh Adventures equip only Crude Dagger. Seven-slot UI is implemented, verified and accepted under D018; T8 supplied artwork, catalog20 and four new Legendary signatures are integrated, verified and accepted; M9–M11 closeout records retain their evidence and limits.
 
 ## Repository Setup
 
@@ -41,9 +43,7 @@ cards, Practice Room validation, and Balance Lab coverage.
 - Audited source baseline: Enigma `d0e025ae9ff6b86aa389582443be6382547cb4cc`
 - Start here: [Phase 6 onboarding](docs/P6_Project_Onboarding_Context.md)
 - Progress and decisions: [Phase 6 milestone tracker](docs/P6_Milestone_Tracker.md)
-- M2 tasks: [Build model and progression foundations tracker](docs/P6M2_Build_Model_And_Progression_Foundations_Tracker.md)
-- Phase status: M1–M7 Complete within their scopes; M8 In progress, T9 Pending input; M9/M10 Not started. [M7 final closeout, regression exceptions and M8 handoff](docs/P6M7_T11_Closeout_And_M8_Handoff.md); [M8 tracker](docs/P6M8_Legendary_Item_Revamp_And_Expansion_Tracker.md).
-- M2 closeout: [Evidence and M3 handoff](docs/P6M2_T9_Closeout_And_M3_Handoff.md)
+- Phase status and milestone boundaries: [current roadmap](docs/P6_Milestone_Tracker.md).
 - Integration and validation: [audited baseline](docs/P6_Audited_Baseline_Integration.md)
 
 ## Inherited validation and export tools

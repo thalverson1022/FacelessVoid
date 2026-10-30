@@ -1,5 +1,7 @@
 # P6M3-T4 Timed Effects and Charges
 
+> **Historical record — not an active work plan.** Status labels, next-step instructions and milestone numbering below describe the recorded checkpoint. M8 is closed; consult the current M9 tracker for authorized work. Retained at this path when tooling/manifests depend on it. [Current context](P6_Project_Onboarding_Context.md).
+
 **T9 update (D024):** Natural and forced Poison ticks now both deplete actual fuel (one/two/three stacks), without keyword Consume or Death Pact. Earlier no-depletion forced-tick statements below are superseded. See [T9 final contract](P6M3_T9_Poison_Timing_And_Consumption.md).
 
 Last reconciled: 2026-09-24. Status: **Complete — shared lifecycle, approved effects and opt-in implementation.**

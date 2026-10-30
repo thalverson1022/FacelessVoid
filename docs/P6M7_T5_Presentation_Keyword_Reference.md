@@ -1,5 +1,7 @@
 # Presentation keyword reference
 
+> **Retained mechanics/presentation reference.** Work status and scope are maintained in the current M9 tracker and phase roadmap. Older checkpoint/save-policy labels below are historical; the approved M9 save reset applies at implementation. [Current context](P6_Project_Onboarding_Context.md).
+
 Current task status: **Complete — user accepted T5 under D039 on 2026-10-15.** See [closeout and accepted conventions](P6M7_T5_Closeout_And_Accepted_Conventions.md).
 
 The dated status, proposals and evidence below are historical snapshots; later accepted conventions and D039 supersede earlier In progress/closeout-excluded instructions.
@@ -118,4 +120,4 @@ Matching priority resolves a shared spelling to its explicit Buff/status entry b
 | Weapon Master | talent | `talent.bladedancer.weapon_master` | - |
 | Whetstone | talent | `talent.bladedancer.wet_stone` | - |
 
-Source snapshot: [validated registry entries](../project/reports/p6_m7_keyword_coding_focused_final/p6_m7_keyword_coding_test/keyword_glossary/entries.json). UI scope and verification: [D038 evidence](P6M7_T5_Keyword_Capitalization_And_Buff_Coding.md).
+Source snapshot: [validated registry entries](../project/reports/p6_m7_keyword_coding_focused_final/p6_m7_keyword_coding_test/keyword_glossary/entries.json). UI scope and verification: [D038 evidence](archive/m7/P6M7_T5_Keyword_Capitalization_And_Buff_Coding.md).

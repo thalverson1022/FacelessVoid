@@ -20,8 +20,8 @@ static func resolve(raw: PlayerStats, stash: int, stolen: int, buffs: Dictionary
 			p.stat_sources.remove_at(index)
 	if p.legendary_signet:
 		var inputs := Gold.crit_values(p, stash, stolen)
-		p.legendary_added_ias = 2.0 * maxf(0.0, inputs.crit_chance + float(buffs.get("crit_chance", 0.0)))
-		p.legendary_added_physical = 2.0 * maxf(0.0, inputs.crit_multiplier - 1.0)
+		p.legendary_added_ias = 1.5 * maxf(0.0, inputs.crit_chance + float(buffs.get("crit_chance", 0.0)))
+		p.legendary_added_physical = 1.5 * maxf(0.0, inputs.crit_multiplier - 1.0)
 		p.attack_speed += p.legendary_added_ias
 		p.gear_physical_damage_multiplier += p.legendary_added_physical
 		p.stat_sources.append({"source_id": "legendary.signet", "source_kind": "legendary_signature", "raw_crit_chance": inputs.crit_chance + float(buffs.get("crit_chance", 0.0)), "raw_crit_multiplier": inputs.crit_multiplier})

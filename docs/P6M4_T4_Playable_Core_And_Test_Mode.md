@@ -1,5 +1,7 @@
 # M4-T4 — Playable core and Test Mode
 
+> **Historical record — not an active work plan.** Status labels, next-step instructions and milestone numbering below describe the recorded checkpoint. M8 is closed; consult the current M9 tracker for authorized work. Retained at this path when tooling/manifests depend on it. [Current context](P6_Project_Onboarding_Context.md).
+
 Status: Complete for the representative playable content scope. M4-T5 is next; full UI and end-to-end milestone acceptance remain T5–T11.
 
 ## Entry and starting conditions

@@ -1,5 +1,7 @@
 # Approved icon assignment integration
 
+> **Retained mechanics/presentation reference.** Work status and scope are maintained in the current M9 tracker and phase roadmap. Older checkpoint/save-policy labels below are historical; the approved M9 save reset applies at implementation. [Current context](P6_Project_Onboarding_Context.md).
+
 Completed 2026-10-01. This closes the Icon Lab assignment handoff in M4-T3; full playable content and the remaining M4 UI work are still pending.
 
 ## Installed state

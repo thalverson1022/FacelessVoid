@@ -1,5 +1,7 @@
 # M7-T2 — Presentation and asset audit
 
+> **Historical record — not an active work plan.** Status labels, next-step instructions and milestone numbering below describe the recorded checkpoint. M8 is closed; consult the current M9 tracker for authorized work. Retained at this path when tooling/manifests depend on it. [Current context](P6_Project_Onboarding_Context.md).
+
 Date: 2026-10-08. **Complete — coverage and gaps recorded; T3 visual conventions and feedback design is next.** This is an audit closeout, not presentation acceptance or authorization to change mechanics.
 
 ## Scope and authority

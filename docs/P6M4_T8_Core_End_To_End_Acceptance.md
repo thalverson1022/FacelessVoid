@@ -1,5 +1,7 @@
 # M4-T8 - Practice Room and core end-to-end acceptance
 
+> **Historical record — not an active work plan.** Status labels, next-step instructions and milestone numbering below describe the recorded checkpoint. M8 is closed; consult the current M9 tracker for authorized work. Retained at this path when tooling/manifests depend on it. [Current context](P6_Project_Onboarding_Context.md).
+
 Completed 2026-10-02. The scoped Bladedancer core passes the complete Test Mode and Practice journeys. M4-T1 through T8 are Complete; T9 mixed-tree integration and role reversal are next.
 
 ## Accepted journeys

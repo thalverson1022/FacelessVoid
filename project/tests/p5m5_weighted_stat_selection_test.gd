@@ -7,6 +7,7 @@ const StatCatalog := preload("res://scripts/systems/stat_catalog.gd")
 func _initialize() -> void:
 	print("-- P5M5 weighted stat selection --")
 	_check_documented_weights()
+	_check_basic_picker_is_uniform_after_exclusions()
 	_check_weighted_picker_bias()
 	_check_disabled_and_used_entries_are_excluded()
 	_check_generated_items_use_enabled_slot_category_pools()
@@ -15,8 +16,8 @@ func _initialize() -> void:
 
 
 func _check_documented_weights() -> void:
-	_require_weight(GearItem.SlotType.WEAPON, StatCatalog.CATEGORY_BASIC, StatCatalog.BASE_DAMAGE, 20)
-	_require_weight(GearItem.SlotType.WEAPON, StatCatalog.CATEGORY_BASIC, StatCatalog.INCREASED_GOLD, 5)
+	_require_weight(GearItem.SlotType.WEAPON, StatCatalog.CATEGORY_BASIC, StatCatalog.BASE_DAMAGE, 1)
+	_require_weight(GearItem.SlotType.WEAPON, StatCatalog.CATEGORY_BASIC, StatCatalog.INCREASED_GOLD, 1)
 	_require_weight(GearItem.SlotType.WEAPON, StatCatalog.CATEGORY_BASIC, StatCatalog.SHOP_DISCOUNT, 0)
 	_require_weight(GearItem.SlotType.WEAPON, StatCatalog.CATEGORY_BASIC, StatCatalog.INCREASED_MAGIC_FIND, 0)
 	_require_weight(GearItem.SlotType.WEAPON, StatCatalog.CATEGORY_RARE, StatCatalog.CHANCE_TO_SHRED, 15)
@@ -26,22 +27,51 @@ func _check_documented_weights() -> void:
 	_require_weight(GearItem.SlotType.WEAPON, StatCatalog.CATEGORY_SPECIAL, StatCatalog.ALL_STATS_INCREASED, 5)
 	_require_weight(GearItem.SlotType.WEAPON, StatCatalog.CATEGORY_BASIC, StatCatalog.CRIT_CHANCE, 0)
 
-	_require_weight(GearItem.SlotType.HELM, StatCatalog.CATEGORY_BASIC, StatCatalog.CRIT_CHANCE, 15)
-	_require_weight(GearItem.SlotType.HELM, StatCatalog.CATEGORY_BASIC, StatCatalog.INCREASED_GOLD, 5)
+	_require_weight(GearItem.SlotType.HELM, StatCatalog.CATEGORY_BASIC, StatCatalog.CRIT_CHANCE, 1)
+	_require_weight(GearItem.SlotType.HELM, StatCatalog.CATEGORY_BASIC, StatCatalog.INCREASED_GOLD, 1)
 	_require_weight(GearItem.SlotType.HELM, StatCatalog.CATEGORY_SPECIAL, StatCatalog.DOUBLE_APPLIED_STACKS, 5)
 
-	_require_weight(GearItem.SlotType.ARMOR, StatCatalog.CATEGORY_BASIC, StatCatalog.PERCENT_PHYSICAL_DAMAGE, 15)
-	_require_weight(GearItem.SlotType.ARMOR, StatCatalog.CATEGORY_BASIC, StatCatalog.INCREASED_GOLD, 15)
+	_require_weight(GearItem.SlotType.ARMOR, StatCatalog.CATEGORY_BASIC, StatCatalog.PERCENT_PHYSICAL_DAMAGE, 1)
+	_require_weight(GearItem.SlotType.ARMOR, StatCatalog.CATEGORY_BASIC, StatCatalog.INCREASED_GOLD, 1)
 	_require_weight(GearItem.SlotType.ARMOR, StatCatalog.CATEGORY_SPECIAL, StatCatalog.DISABLE_ENEMY_DODGE, 10)
 	_require_weight(GearItem.SlotType.ARMOR, StatCatalog.CATEGORY_SPECIAL, StatCatalog.IMMUNE_TO_INTERRUPT, 5)
 
-	_require_weight(GearItem.SlotType.TRINKET, StatCatalog.CATEGORY_BASIC, StatCatalog.BASE_DAMAGE, 15)
+	_require_weight(GearItem.SlotType.TRINKET, StatCatalog.CATEGORY_BASIC, StatCatalog.BASE_DAMAGE, 1)
 	_require_weight(GearItem.SlotType.TRINKET, StatCatalog.CATEGORY_RARE, StatCatalog.CHANCE_FOR_RETRIGGER, 15)
 	_require_weight(GearItem.SlotType.TRINKET, StatCatalog.CATEGORY_SPECIAL, StatCatalog.CONVERT_DAMAGE_TO_PHYSICAL, 5)
 
-	_require_weight(GearItem.SlotType.CHARM, StatCatalog.CATEGORY_BASIC, StatCatalog.CRIT_CHANCE, 20)
+	_require_weight(GearItem.SlotType.CHARM, StatCatalog.CATEGORY_BASIC, StatCatalog.CRIT_CHANCE, 1)
 	_require_weight(GearItem.SlotType.CHARM, StatCatalog.CATEGORY_RARE, StatCatalog.CRIT_APPLIES_ELEMENT, 15)
 	_require_weight(GearItem.SlotType.CHARM, StatCatalog.CATEGORY_SPECIAL, StatCatalog.DISABLE_ENEMY_CLEANSE, 10)
+
+
+## Equal Basic likelihood is an exact uniform-index mapping, including after
+## item-level exclusions. Compare actual picks to an independent uniform oracle,
+## rather than estimating frequencies or trusting catalog weight constants alone.
+func _check_basic_picker_is_uniform_after_exclusions() -> void:
+	for slot in GearItem.universal_slot_order():
+		var basic_ids := StatCatalog.stat_ids_for_slot(slot, StatCatalog.CATEGORY_BASIC)
+		for pool in [StatCatalog.pool_for_slot(slot, StatCatalog.CATEGORY_BASIC), StatCatalog.drawback_pool_for_slot(slot)]:
+			for exclude_ends in [false, true]:
+				var used := {}
+				if exclude_ends:
+					used[basic_ids.front()] = true
+					used[basic_ids.back()] = true
+				var eligible: Array[String] = []
+				for id in basic_ids:
+					if not used.has(id):
+						eligible.append(id)
+				var picker_rng := RandomNumberGenerator.new()
+				var uniform_rng := RandomNumberGenerator.new()
+				picker_rng.seed = 90008 + slot
+				uniform_rng.seed = picker_rng.seed
+				var seen := {}
+				for draw in 64:
+					var expected := eligible[uniform_rng.randi_range(1, eligible.size()) - 1]
+					var actual := GearGenerator._pick_stat_id_from_pool(pool, used, picker_rng)
+					_require(actual == expected, "Expected uniform Basic/drawback selection among remaining IDs for slot %d, draw %d." % [slot, draw])
+					seen[actual] = true
+				_require(seen.size() == eligible.size(), "Expected each remaining Basic/drawback ID to be reachable.")
 
 
 func _check_weighted_picker_bias() -> void:

@@ -91,6 +91,9 @@ static func summarize(result: CombatResolver.CombatResult, monster: Monster = nu
 		required_dps = float(monster.hp) / (float(result.duration_ms) / 1000.0)
 
 	return {
+		"duration_ms": result.duration_ms,
+		"nominal_duration_ms": result.nominal_duration_ms if result.nominal_duration_ms > 0 else result.duration_ms,
+		"countdown_rate": result.countdown_rate,
 		"total_damage": result.total_damage,
 		"health_removed": result.total_health_removed,
 		"total_health_loss": result.total_health_loss(),

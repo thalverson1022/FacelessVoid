@@ -1,5 +1,7 @@
 # P6M3-T11 — Shared combat closeout and M4 handoff
 
+> **Historical record — not an active work plan.** Status labels, next-step instructions and milestone numbering below describe the recorded checkpoint. M8 is closed; consult the current M9 tracker for authorized work. Retained at this path when tooling/manifests depend on it. [Current context](P6_Project_Onboarding_Context.md).
+
 Date: 2026-09-24. Status: **Complete — M3 shared-mechanics scope**.
 
 All eleven M3 tasks are complete for their documented scopes. The reviewed

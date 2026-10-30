@@ -1,5 +1,7 @@
 # P6M2-T7 — Content conversion and persistence
 
+> **Historical record — not an active work plan.** Status labels, next-step instructions and milestone numbering below describe the recorded checkpoint. M8 is closed; consult the current M9 tracker for authorized work. Retained at this path when tooling/manifests depend on it. [Current context](P6_Project_Onboarding_Context.md).
+
 Completed for the M2 foundation scope: 2026-09-23. T8 integration validation subsequently completed; see the [acceptance report](P6M2_T8_Foundation_Integration_Validation.md).
 The redesigned four-tree release remains gated on M3/M5 mechanic review and M4 integration.
 

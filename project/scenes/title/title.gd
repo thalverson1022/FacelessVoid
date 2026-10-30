@@ -113,7 +113,8 @@ func _ready() -> void:
 	var adventure_button := Button.new()
 	adventure_button.text = FLOW_TEXT.ACTION_START_ADVENTURE
 	adventure_button.name = "AdventureButton"
-	adventure_button.disabled = not BuildContentRegistry.ADVENTURE_ENABLED
+	var boundary_ready := SevenSlotSaveBoundary.ensure_ready()
+	adventure_button.disabled = not BuildContentRegistry.ADVENTURE_ENABLED or not boundary_ready
 	adventure_button.tooltip_text = "Start with a Crude Dagger and earn your build through the Tavern and contracts."
 	adventure_button.pressed.connect(_on_adventure_button_pressed)
 	card_vbox.add_child(adventure_button)
@@ -129,13 +130,11 @@ func _ready() -> void:
 	continue_button.pressed.connect(func(): continue_pressed.emit())
 	card_vbox.add_child(continue_button)
 
-	if FileAccess.file_exists(SaveSystem.LEGACY_SAVE_PATH):
-		var legacy_notice := Label.new()
-		legacy_notice.text = "Your previous-rules save is preserved.
-The redesigned Adventure starts a separate run."
-		legacy_notice.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		legacy_notice.add_theme_font_size_override("font_size", 14)
-		card_vbox.add_child(legacy_notice)
+	if SevenSlotSaveBoundary.last_error != "":
+		var reset_notice := Label.new()
+		reset_notice.text = SevenSlotSaveBoundary.last_error
+		reset_notice.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		card_vbox.add_child(reset_notice)
 
 	var test_row := HBoxContainer.new()
 	test_row.visible = false
@@ -242,7 +241,7 @@ The redesigned Adventure starts a separate run."
 
 func _on_adventure_button_pressed() -> void:
 	if not BuildContentRegistry.ADVENTURE_ENABLED: return
-	if SaveSystem.has_save():
+	if SaveSystem.has_saved_file():
 		_new_game_confirm_dialog.popup_centered()
 	else:
 		adventure_pressed.emit()

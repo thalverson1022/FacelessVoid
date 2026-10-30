@@ -27,7 +27,7 @@ static func rule_for(id: String) -> String:
 		"buff.touch_of_darkness": return "Each consumed Poison stack grants +10% attack speed and +2 base physical damage for a base 12s. Crown doubles both bonuses. Independent activations add bonuses."
 		"buff.beguiling_presence": return "Each consumed Decay stack grants +1 base elemental damage and +2 percentage points critical chance for a base 10s. Crown doubles both bonuses. Independent activations add bonuses; Signet converts the uncapped critical chance input."
 		"buff.greed": return "Counts credited theft after Increased Gold; adds no independent stat bonus and resets each fight."
-		"buff.meditation": return "Retriggers grant one base stack, modified by All Stacks and normal stack doubling. Each gives 20% more physical damage, up to 5 stacks. Every grant refreshes the shared 3s base duration."
+		"buff.meditation": return "Retriggers grant one base stack, modified by All Stacks and normal stack doubling. Each gives 20% more damage (40% with Crown), up to 5 stacks. Every grant refreshes the shared 3s base duration."
 		"buff.dash": return "Critical packets have a 30% chance to grant one base stack, modified by All Stacks and normal stack doubling. Each grants +5% attack speed, or +10% with Crown, up to 20 stacks. Every grant refreshes the shared 3s base duration."
 		"status.penetration": return "Each stack removes 1 block. Further grants refresh the timer; Death Pact changes base duration to 4/5/6s."
 		"status.potency": return "Each stack removes 1 absorb. Further grants refresh the timer; Death Pact changes base duration to 4/5/6s."
@@ -40,7 +40,7 @@ static func magnitude_for(id: String, state: Dictionary) -> String:
 		"buff.bypass": return "Elemental damage bonus: +%.1f%%" % (amount * 100)
 		"buff.touch_of_darkness": return "Attack speed: +%.1f%% | Base physical damage: +%d" % [amount * 100.0, roundi(amount * 20.0)]
 		"buff.virulent_poison": return "Poison damage multiplier: ×%.1f" % float(state.get("poison_multiplier", 2.0))
-		"buff.meditation": return "Physical damage multiplier: ×%.1f" % (1.0 + amount)
+		"buff.meditation": return "All damage multiplier: ×%.1f" % (1.0 + amount)
 		"buff.dash": return "Attack speed: +%.1f%%" % (amount * 100.0)
 		"buff.beguiling_presence": return "Base elemental damage: +%.1f | Critical chance: +%.1f percentage points" % [amount, float(state.get("crit_chance_bonus", 0)) * 100]
 		"status.penetration": return "Block removed: %d" % units

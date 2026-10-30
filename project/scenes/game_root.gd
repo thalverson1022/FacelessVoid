@@ -73,8 +73,11 @@ func _show_training_room() -> void:
 
 func _on_new_game_pressed(seed: int = BuildState.DEFAULT_ADVENTURE_SEED) -> void:
 	if not BuildContentRegistry.ADVENTURE_ENABLED: return
+	SaveSystem.session_only = false
+	if not SaveSystem.delete_save():
+		_show_save_failure(SaveSystem.last_error)
+		return
 	BuildState.reset()
-	SaveSystem.delete_save()
 	BuildState.set_adventure_seed(seed)
 	_show_class_select()
 
@@ -295,7 +298,9 @@ func _on_adventure_restart_pressed() -> void:
 	if BuildState.is_test_mode:
 		_on_contract_test_pressed(BuildState.adventure_seed, _test_mode_points, _test_mode_main_tree, _test_mode_secondary_tree)
 		return
-	SaveSystem.delete_save()
+	if not SaveSystem.delete_save():
+		_show_save_failure(SaveSystem.last_error)
+		return
 	BuildState.reset(true)
 	_show_class_select()
 
@@ -304,3 +309,12 @@ func _on_save_and_quit_pressed() -> void:
 	if BuildState.is_test_mode:
 		BuildState.reset()
 	_show_title()
+
+
+func _show_save_failure(message: String) -> void:
+	var notice := AcceptDialog.new()
+	notice.title = "Adventure save"
+	notice.dialog_text = message
+	add_child(notice)
+	notice.confirmed.connect(notice.queue_free)
+	notice.popup_centered()

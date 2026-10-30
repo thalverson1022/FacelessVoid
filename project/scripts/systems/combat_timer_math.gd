@@ -42,3 +42,19 @@ static func validation_error(player: PlayerStats) -> String:
 		if check.error != "":
 			return check.error
 	return ""
+
+## Nominal encounter countdown and actual elapsed simulation are separate clocks.
+static func fight_window(nominal_ms: int, arctic_enabled: bool) -> Dictionary:
+	if nominal_ms <= 0:
+		return {"error": "Encounter duration must be positive."}
+	var effective_ms := nominal_ms
+	if arctic_enabled:
+		@warning_ignore("integer_division")
+		var extra_ms: int = nominal_ms / 3
+		if nominal_ms % 3 != 0:
+			extra_ms += 1
+		if nominal_ms > INT64_MAX - extra_ms:
+			return {"error": "Encounter duration is outside signed 64-bit range."}
+		effective_ms += extra_ms
+	return {"error": "", "nominal_duration_ms": nominal_ms, "duration_ms": effective_ms,
+		"countdown_rate": 0.75 if arctic_enabled else 1.0}

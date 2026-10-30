@@ -150,3 +150,8 @@ func sync_poison_damage_per_tick() -> void:
 @export var legendary_added_ias := 0.0
 @export var legendary_added_physical := 0.0
 @export var legendary_added_flat := 0.0
+
+@export var legendary_serpents_scales := false
+@export var legendary_golden_greeves := false
+@export var legendary_arctic_mittens := false
+@export var legendary_hands_of_the_lightning_lord := false

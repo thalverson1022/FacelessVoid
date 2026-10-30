@@ -30,7 +30,7 @@ value = 0.15
 [resource]
 script = ExtResource("1_gear")
 id = "gear.legendary.crown_of_concertation"
-display_name = "The Crown of Concertation"
+display_name = "Crown of Concentration"
 legendary_effect_id = "crown"
 slot = 3
 tier = 3

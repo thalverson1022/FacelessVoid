@@ -1,5 +1,7 @@
 # Combat Mechanics Reference
 
+> **Retained mechanics/presentation reference.** Work status and scope are maintained in the current M9 tracker and phase roadmap. Older checkpoint/save-policy labels below are historical; the approved M9 save reset applies at implementation. [Current context](P6_Project_Onboarding_Context.md).
+
 Last reconciled: 2026-10-22 · Baseline: all four M5 trees, approved tuning through P6M5-D023 and implemented gear rules P6M8-D008 · Revision: 11
 
 This is the **current rules reference for reviewed Phase 6 shared combat mechanics**. It consolidates accepted decisions through D025 and the subsequent Big Score correction. Use it to interpret interactions and author future content. Task handoffs retain decision history and test evidence; trackers retain work status. Draft prose and superseded proposals do not override these rules.
@@ -24,8 +26,9 @@ This is the **current rules reference for reviewed Phase 6 shared combat mechani
 
 ## M8 gear timing, crit procs and carried economy
 
-The [T3 specification](P6M8_T3_Gear_Stat_Implementation_Specification.md) is implemented under D008; [verification and retained exceptions](P6M8_T3_Closeout_And_Verification.md) establish its scoped evidence. The following rules qualify the authored/base timer values elsewhere in this reference:
+The [T3 specification](P6M8_T3_Gear_Stat_Implementation_Specification.md) is implemented under D008; [verification and retained exceptions](archive/m8/P6M8_T3_Closeout_And_Verification.md) establish its scoped evidence. The following rules qualify the authored/base timer values elsewhere in this reference:
 
+- P6M9-D008: generated Basic stats have equal selection weight within each slot. Ordinary exclusions renormalize over remaining eligible IDs; Basic-derived drawbacks inherit equal weights. Rare/Special weights and Chaos category odds remain unchanged. Pants/Gloves use this approved policy when integrated.
 - CDR retains `product(1 - min(1, c_i × a))` of a cooldown, where `a` is 1.2 with equipped All Stats and otherwise 1. Positive authored cooldowns resolve to `max(1, ceil(base_ms × factor))`; authored zero stays zero. No aggregate CDR cap. Cooldowns start at completion of eligible root windup, remain shared by stable skill ID and are not restarted by children. Blocked macro attempts remain 100ms.
 - Buff Duration sums additively, then receives equipped All Stats once; no balance cap. Multiply positive authored duration by `1 + increase` and round up to milliseconds. Eligible families are Footwork, Bypass, Dance of Death, Master of Poisons, Touch of Darkness, Beguiling Presence, Penetration and Potency. For the latter two, Death Pact's added seconds precede multiplication. Existing refresh/instance/consume/cleanse rules remain. Untimed Precision, Readiness and Virulent charges acquire no timer; Poison/Decay/Shred lifetimes and enemy controls are excluded.
 - A connected critical direct contribution tries Crits apply Penetration, then Crits apply Potency, after existing hit applications and before finalize, cleanse and descendants. A successful trial grants base one through ordinary bonus-stack/doubling/cap-50 accounting. Fully mitigated rolled crits qualify. Each eligible child contributes its own trials; natural/forced Poison tick crits do not. Chance zero adds no RNG draws; positive chance including 100% draws once per stat. Newly granted Potency can affect a later forced tick in finalize before cleanse, but cannot improve the triggering direct hit retroactively.
@@ -501,7 +504,7 @@ Related contracts: [progression/allocation](P6M2_T3_Progression_And_Allocation_R
 
 ## Complete Shadow binding — P6M5-D011
 
-The user approved all four [T8 review decisions](P6M5_T8_Shadow_Design_Review.md). All eleven talents / 35 ranks and automatic skills at 1/3/6/9/12 points are playable in Test Mode and Practice. Primary Shadow has 20% +2 percentage points per Shadow point conditional chance for direct crits to apply one base Poison; secondary has 20%. Poison tick crits do not qualify.
+The user approved all four [T8 review decisions](P6M5_T8_Shadow_Design_Review.md). All eleven talents / 35 ranks and automatic skills at 1/3/6/9/12 points are playable in Test Mode and Practice. Primary Shadow has 20% +2 percentage points per Shadow point conditional chance for direct crits to apply one base Poison; secondary has 20%. Poison tick crits do not qualify. Stab and Heavy Slash gain no guaranteed Poison from the intrinsic at zero ranks. P6M9-D023 removes the obsolete export fallback from ranked combat; Coated Weapons remains an intentional source of two base Poison.
 
 - Beguiling Strike (`skill.toxic_flurry`): 22% weapon damage, 1700/650 ms, no cooldown; one base Decay on connection.
 - Death Strike (`skill.killers_mark`): one physical packet, 111% × (weapon roll + 2 × actual current Poison count + applicable physical base bonuses), before ordinary multipliers/defenses. Timing 1500/650 ms, no cooldown; Poison is not consumed. Due natural ticks resolve before impact; this cast's new applications follow its damage.

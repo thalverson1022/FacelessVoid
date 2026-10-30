@@ -7,6 +7,8 @@ enum SlotType {
 	CHARM,
 	HELM,
 	ARMOR,
+	LEGS = 5,
+	HANDS = 6,
 }
 
 enum Tier {
@@ -65,6 +67,8 @@ static func universal_slot_order() -> Array[SlotType]:
 		SlotType.ARMOR,
 		SlotType.TRINKET,
 		SlotType.CHARM,
+		SlotType.LEGS,
+		SlotType.HANDS,
 	]
 
 

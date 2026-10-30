@@ -8,15 +8,19 @@ const EXPECTED := {
 	"bejeweled_push_dagger": ["Bejeweled Push Dagger", 0, ["+8 Base Physical Damage", "+20% Increased Physical Damage", "+10% Crit Chance"]],
 	"decrepit_blade": ["Decrepit Blade", 0, ["+10 Base Physical Damage", "+10 Base Elemental Damage", "+12% Retrigger Chance"]],
 	"nightkiss_kitana": ["Nightkiss Kitana", 0, ["+50 Armor Decrease per Shred Stack", "+5 All Stacks", "+20% Chance to Shred"]],
-	"crown_of_concertation": ["The Crown of Concertation", 3, ["+20% Increased Attack Speed", "+20% Buff Duration", "+15% Cooldown Reduction"]],
+	"crown_of_concertation": ["Crown of Concentration", 3, ["+20% Increased Attack Speed", "+20% Buff Duration", "+15% Cooldown Reduction"]],
 	"helm_of_the_samurai": ["Helm of the Samurai", 3, ["+12% Crit Chance", "+20% Increased Attack Speed", "+8% Retrigger Chance"]],
 	"cloak_of_speed": ["Cloak of Speed", 4, ["+70% Increased Physical Damage", "+25% Crits Apply Penetration"]],
 	"deaths_door": ["Death's Door", 4, ["+35% Increased Physical Damage", "+35% Increased Elemental Damage", "+60% Increased Gold"]],
 	"signet_of_the_old_kings": ["The Signet of the Old Kings", 2, ["+20% Crit Chance", "+100% Crit Damage", "+20% Chance to Shred"]],
 	"lolzorzs_locket": ["Lolzorz's Locket", 2, ["+15 Base Physical Damage", "+15 Base Elemental Damage", "+15% Cooldown Reduction"]],
 	"serpents_coil": ["Serpent's Coil", 1, ["+15% Crit Chance", "+15% Increased Attack Speed", "+10% Retrigger Chance"]],
-	"wingjammer": ["Wingjammer", 1, ["+15 Base Physical Damage", "+50% Increased Gold", "+30% Crits Apply Penetration"]],
+	"wingjammer": ["Wingjammer", 1, ["+15 Base Physical Damage", "+15 Base Elemental Damage", "+50% Increased Gold", "+30% Crits Apply Penetration", "+30% Crits Apply Potency"]],
 	"mysterious_lucky_coin": ["Mysterious Lucky Coin", 1, ["+100% Crit Chance", "+15% Cooldown Reduction"]],
+	"serpents_scales": ["Serpent’s Scales", 5, ["+12 Base Elemental Damage", "+70% Increased Elemental Damage", "+30% Crits Apply Potency"]],
+	"golden_greeves": ["Golden Greeves", 5, ["+100% Increased Gold", "+50% Increased Magic Find", "+40% Shop Discount"]],
+	"hands_of_the_lightning_lord": ["Hands of the Lightning Lord", 6, ["+12 Base Physical Damage", "+15% Crit Chance", "+120% Crit Damage"]],
+	"arctic_mittens": ["Arctic Mittens", 6, ["+30% Increased Attack Speed", "+25% Buff Duration", "+20% Cooldown Reduction"]],
 }
 
 var checks: Array[String] = []
@@ -54,7 +58,7 @@ func run() -> void:
 	root.add_child(owner)
 	await process_frame
 	var slots := {}
-	ck(LegendaryCatalog.all_items().size() == 16, "all16 fixed resources")
+	ck(LegendaryCatalog.all_items().size() == 20, "all20 fixed resources")
 	for item in LegendaryCatalog.all_items():
 		var key: String = item.id.trim_prefix("gear.legendary.")
 		var expected: Array = EXPECTED[key]
@@ -80,17 +84,22 @@ func run() -> void:
 		owner._refresh()
 		var before_equipment := state.equipped_gear().duplicate()
 		var before_gold := state.gold
-		var preview := CardStyle.build_gear_compare_tooltip(owner, text, replacement, item)
+		var preview := CardStyle.build_gear_compare_tooltip(owner, text + "\nPrice: 123 gold", replacement, item)
 		preview.position = Vector2(20, 20)
 		root.add_child(preview)
 		await process_frame
 		await process_frame
-		ck(preview.size.x <= 1240 and preview.size.y <= 680, key + " actual tooltip/comparison fits1280x720")
+		ck(preview.size.x <= 1240 and preview.size.y <= 680, key + " actual item tooltip fits1280x720")
 		var backing: StyleBox = preview.get_child(0).get_theme_stylebox("panel")
 		ck(backing is StyleBoxFlat and is_equal_approx(backing.bg_color.a, 1.0), key + " opaque tooltip backing preserves legibility")
 		var rendered_text := _visible_text(preview)
-		ck(rendered_text.contains(item.display_name) and rendered_text.contains(replacement.display_name), key + " actual comparison renders both identities")
-		ck(rendered_text.contains("Signature gained") and rendered_text.contains("Signature lost"), key + " actual comparison gains and losses")
+		var offer_text := _visible_text(preview.get_child(0))
+		for effect_line in LegendaryCatalog.effect_text(item).split("\n", false):
+			ck(offer_text.count(effect_line) == 1, key + " effect line appears once: " + effect_line)
+		ck(offer_text.count("Price: 123 gold") == 1, key + " shop footer retained once")
+		ck(preview.get_child_count() == 1 and rendered_text.contains(item.display_name) and not rendered_text.contains(replacement.display_name), key + " actual hover renders only candidate identity")
+		ck(not rendered_text.contains("Equipped") and not rendered_text.contains("On equip:") and not rendered_text.contains(" -> "), key + " actual hover hides all comparison text")
+		ck(not rendered_text.contains("Signature gained") and not rendered_text.contains("Signature lost") and not rendered_text.contains("owned carried gear") and not rendered_text.contains("replacement resale"), key + " actual comparison omits duplicate effects and ownership prose")
 		ck(state.gold == before_gold and state.equipped_gear() == before_equipment, key + " preview is read only")
 		witness.items[key] = {"tooltip": text, "comparison": compare(key), "size": [preview.size.x, preview.size.y], "icon": GearIcons.icon_for(item).resource_path}
 		if DisplayServer.get_name() != "headless":
@@ -99,20 +108,21 @@ func run() -> void:
 			root.get_texture().get_image().save_png("res://reports/t9_items/" + key + ".png")
 		root.remove_child(preview)
 		preview.free()
-	ck(slots.size() == 5, "all five equipment slots rendered")
+	ck(slots.size() == 7, "all seven equipment slots rendered")
+	ck(LegendaryCatalog.effect_text(gear("nightkiss_kitana")) == "Grants: Exsanguinate\nConsume all Shred to remove 1x the Armor Shred value in health.", "Nightkiss requested Armor Shred wording")
 	_test_conditions()
 	_test_skills()
 	_test_effective_stats()
 	# Refresh the real CharacterStatsPanel with its new state, including no-crit text.
 	owner._refresh()
-	ck(owner._stats_label.text.contains("Crit Chance: Cannot crit") and owner._stats_label.text.contains("Crit Damage: Converted (cannot crit)"), "actual stat card suppresses crit outputs under Signet")
+	ck(owner._stats_label.text.contains("Crit Chance: 0%") and owner._stats_label.text.contains("Crit Damage: 0%"), "actual stat card suppresses crit outputs under Signet")
 	var detail: String = stats_panel_script.stat_detail_text(state.current_player_stats())
-	ck(detail.contains("150% Crit Chance gives +300% Attack Speed") and detail.contains("uncapped"), "actual detail explains raw overcap conversion")
+	ck(detail.contains("150% Crit Chance gives +225% Attack Speed") and detail.contains("uncapped"), "actual detail explains raw overcap conversion")
 	DirAccess.make_dir_recursive_absolute("res://reports")
 	witness["checks"] = checks.size()
 	var output := FileAccess.open("res://reports/t9_items_witness.json", FileAccess.WRITE)
 	output.store_string(JSON.stringify(witness, "\t"))
-	print("T9 item presentation: PASS (%d checks,16 actual resource tooltips/comparisons, five slots, conditions, skills, effective stats)" % checks.size())
+	print("T9 item presentation: PASS (%d checks,20 actual resource tooltips/comparisons, seven slots, conditions, skills, effective stats)" % checks.size())
 	quit()
 
 func _replacement_for(item: GearItem) -> GearItem:
@@ -131,11 +141,11 @@ func _visible_text(node: Node) -> String:
 func _test_conditions() -> void:
 	ck(LegendaryCatalog.number_text(15.0) == "15" and LegendaryCatalog.number_text(12.3456) == "12.3456", "number formatting trims integer zeros and preserves actual fractions")
 	var mithril := LegendaryCatalog.effect_text(gear("mithril_karambit"))
-	ck(mithril.contains("Stab and Heavy Slash") and mithril.contains("+50 percentage points") and mithril.contains("does not increase"), "Mithril local roll is not a stat bonus")
-	ck(LegendaryCatalog.effect_text(gear("crown_of_concertation")).contains("x2 buff becomes x3"), "Crown doubles bonus above baseline")
+	ck(mithril == "Stab and Heavy Slash gain 50% Retrigger Chance", "Mithril approved concise copy")
+	ck(LegendaryCatalog.effect_text(gear("crown_of_concertation")) == "Doubles the effects of self buffs", "Crown approved concise copy")
 	ck(LegendaryCatalog.effect_text(gear("lolzorzs_locket")) == "Critical hits have a 20% chance to reduce all cooldowns by 1 sec.", "retains user fixed Locket sentence")
 	var coin := LegendaryCatalog.effect_text(gear("mysterious_lucky_coin"))
-	ck(coin.contains("150% becomes 300%") and coin.contains("current run") and coin.contains("no immediate grant"), "Coin explains actual total doubling and run unlock")
+	ck(coin == "Grants x100% Magic Find", "Coin approved concise copy")
 	fresh()
 	state.equip_legendary(gear("bandit_blade"))
 	for pair in [[9, 0], [10, 1], [999, 99], [1000, 100], [5000, 100]]:
@@ -173,18 +183,18 @@ func _test_skills() -> void:
 func _test_effective_stats() -> void:
 	fresh()
 	var mithril := compare("mithril_karambit")
-	ck(not mithril.contains("Retrigger Chance:") and mithril.contains("rolls only"), "Mithril does not create false numeric retrigger comparison")
+	ck(not mithril.contains("Retrigger Chance:") and not mithril.contains("rolls only"), "Mithril does not create false numeric retrigger comparison or duplicate effect explanation")
 	fresh()
 	state.equip_legendary(gear("mysterious_lucky_coin"))
 	var signet := compare("signet_of_the_old_kings")
 	var before: PlayerStats = state.current_player_stats()
 	var after := BuildResolver.resolve_stats(state.selected_class, [], [], [gear("mysterious_lucky_coin"), gear("signet_of_the_old_kings")])
-	ck(signet.contains("Cannot crit") and signet.contains("Signet conversion: +%.0f%% Attack Speed" % (after.legendary_added_ias * 100.0)), "overcap Coin input shown as actual Signet conversion")
+	ck(signet.contains("Cannot crit") and signet.contains("Attack Speed: 0%% -> %s%%" % LegendaryCatalog.number_text(after.attack_speed * 100.0)), "overcap Coin input shown as actual Signet conversion")
 	ck(signet.contains("Attack Speed: 0%% -> %s%%" % LegendaryCatalog.number_text(after.attack_speed * 100.0)) and not signet.contains(".0000"), "Legendary comparisons use readable percentages and multipliers")
-	ck(after.legendary_added_ias > 2.0 and before.crit_chance == 1.0, "fixture crosses100percent without inventing multiple crits")
+	ck(after.legendary_added_ias > 1.5 and before.crit_chance == 1.0, "fixture crosses100percent without inventing multiple crits")
 	state.equip_legendary(gear("signet_of_the_old_kings"))
-	ck(compare("signet_of_the_old_kings") == "Already equipped; no equipment change.", "already equipped preview does not duplicate owned contributions")
+	ck(compare("signet_of_the_old_kings") == "Already equipped.", "already equipped preview does not duplicate owned contributions")
 	var unequip := compare("lolzorzs_locket")
-	ck(unequip.contains("Cannot crit ->") and unequip.contains("Signature lost: The Signet"), "replacement restores actual crit output")
+	ck(unequip.contains("Cannot crit ->") and unequip.contains("Attack Speed:"), "replacement restores actual crit output")
 	witness.comparisons["signet_overcap"] = signet
 	witness.comparisons["signet_replaced"] = unequip

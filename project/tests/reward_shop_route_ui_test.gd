@@ -1,15 +1,7 @@
 extends SceneTree
-## Focused P2:R7:T6 check for the reward-claim, Tavern shop, and Gilded
-## Serpent route-choice UI: shop offer tier/slot/affix/afford-state
-## rendering with a known gold value, the two-box "item + Equipped" hover
-## tooltip (P2:R7 second playtest-feedback pass -- two compact
-## default-tooltip-styled boxes, no stat-diff text, replacing both the
-## T6-era appended comparison line and the first feedback pass's rejected
-## large comparison panel), route-branch tradeoff text differing between
-## two real Gilded Serpent branch pairs, and reward-claim (Legendary)
-## tier/slot/affix rendering. Same headless-only caveat as every prior
-## P2:R7 UI test -- no rendered click-through available in this
-## environment.
+## Reward-claim, shop offer affordability/details and route-choice checks.
+## Gear hovers retain the item's own details and action/cost hints while
+## hiding projected equip deltas and equipped-reference boxes in all modes.
 
 
 func _initialize() -> void:
@@ -20,6 +12,7 @@ func _initialize() -> void:
 	var combat_screen = combat_scene.instantiate()
 	root.add_child(combat_screen)
 	await process_frame
+	await _wait_for_reveals(combat_screen)
 
 	var rogue: ClassDef = load("res://data/classes/rogue.tres")
 	build_state.set_class(rogue)
@@ -38,6 +31,7 @@ func _initialize() -> void:
 	build_state.build_changed.emit()
 	combat_screen._shop_overlay.refresh()
 	await process_frame
+	await _wait_for_reveals(combat_screen)
 
 	_require(combat_screen._shop_overlay._shopkeeper_image != null, "Expected the shopkeeper image node to exist.")
 	_require(combat_screen._shop_overlay._shopkeeper_image.texture != null, "Expected the shopkeeper image texture to be loaded.")
@@ -83,21 +77,15 @@ func _initialize() -> void:
 	_require(not affordable_tooltip.contains("vs. equipped"), "Expected no stat-diff comparison text in the tooltip anymore, got: %s" % affordable_tooltip)
 	_require(not affordable_tooltip.contains("Upgrade --"), "Expected no upgrade-comparison text in the tooltip anymore, got: %s" % affordable_tooltip)
 
-	# -- Two-box hover tooltip (P2:R7 second playtest-feedback pass): the
-	# custom tooltip is a compact HBox of two default-tooltip-styled boxes --
-	# the item's regular tooltip text, and an "Equipped" box beside it. --
-	print("two-box gear tooltip checks")
+	# Empty-slot offers still have a single item card.
+	print("single item gear tooltip checks")
 	var tooltip_control: Control = affordable_button._make_custom_tooltip("")
-	_require(tooltip_control is HBoxContainer, "Expected the custom tooltip to be a compact HBox of two boxes.")
-	_require(tooltip_control.get_child_count() == 2, "Expected exactly two tooltip boxes.")
+	_require(tooltip_control is HBoxContainer and tooltip_control.get_child_count() == 1, "Expected one item tooltip box.")
 	var item_box: Control = tooltip_control.get_child(0)
-	var equipped_box: Control = tooltip_control.get_child(1)
-	_require(item_box is PanelContainer and equipped_box is PanelContainer, "Expected both tooltip boxes to be tooltip-styled panels.")
+	_require(item_box is PanelContainer, "Expected a tooltip-styled item panel.")
 	var item_box_text: String = _labels_text(item_box)
-	_require(item_box_text.contains(affordable_tooltip), "Expected the first box to carry the item's regular tooltip text, got: %s" % item_box_text)
-	var equipped_body: String = _labels_text(equipped_box)
-	_require(equipped_body.begins_with("Equipped"), "Expected the second box to be headed 'Equipped', got: %s" % equipped_body)
-	_require(equipped_body.contains("Nothing equipped."), "Expected 'Nothing equipped.' for the empty trinket slot, got: %s" % equipped_body)
+	_require(item_box_text.contains(affordable_tooltip), "Item details and purchase hint retained.")
+	_require(not item_box_text.contains("Equipped") and not item_box_text.contains("Nothing equipped.") and not item_box_text.contains("On equip:"), "Empty-slot references and equip deltas hidden.")
 	tooltip_control.free()
 
 	var equipped_weapon := GearItem.new()
@@ -122,38 +110,37 @@ func _initialize() -> void:
 	candidate_mod.value = 0.10
 	candidate_weapon.affixes = [candidate_mod]
 
-	# With a weapon equipped, hovering a weapon offer shows the equipped
-	# item's own regular tooltip lines in the second box -- still no diff
-	# text anywhere.
+	# A meaningful same-slot replacement cannot reveal comparisons in either mode.
 	build_state.equipped_weapon = equipped_weapon
 	var candidate_row: Button = combat_screen._shop_overlay._make_shop_offer_row(candidate_weapon)
-	var candidate_tooltip: Control = candidate_row._make_custom_tooltip("")
-	_require(candidate_tooltip.get_child_count() == 2, "Expected two tooltip boxes for the candidate weapon offer.")
-	var candidate_equipped_box: Control = candidate_tooltip.get_child(1)
-	var candidate_equipped_body: String = _labels_text(candidate_equipped_box)
-	print(candidate_equipped_body)
-	_require(candidate_equipped_body.begins_with("Equipped"), "Expected the 'Equipped' header on the second box.")
-	_require(candidate_equipped_body.contains("Test Equipped Dagger"), "Expected the equipped weapon's name in the Equipped box, got: %s" % candidate_equipped_body)
-	_require(candidate_equipped_body.contains("Basic Weapon / Dagger"), "Expected the equipped weapon's tier/slot/family in the Equipped box, got: %s" % candidate_equipped_body)
-	_require(candidate_equipped_body.contains("Weapon Damage:"), "Expected the equipped weapon's damage range in the Equipped box, got: %s" % candidate_equipped_body)
-	_require(candidate_equipped_body.contains("Attack Speed"), "Expected the equipped weapon's affix line in the Equipped box, got: %s" % candidate_equipped_body)
-	_require(not candidate_equipped_body.contains("vs. equipped"), "Expected no stat-diff text in the Equipped box, got: %s" % candidate_equipped_body)
-	candidate_tooltip.free()
+	_require(not CardStyle.gear_comparison_lines(candidate_weapon, combat_screen._shop_overlay).is_empty(), "Fixture exercises a meaningful equip comparison.")
+	for test_mode in [false, true]:
+		build_state.is_test_mode = test_mode
+		var candidate_tooltip: Control = candidate_row._make_custom_tooltip("")
+		_require(candidate_tooltip.get_child_count() == 1, "Shop has one tooltip card in Adventure and Test.")
+		var body := _labels_text(candidate_tooltip)
+		_require(body.contains(candidate_weapon.display_name) and body.contains("Attack Speed") and body.contains("Price:"), "Shop retains candidate stats and price.")
+		_require(not body.contains(equipped_weapon.display_name) and not body.contains("Equipped") and not body.contains("On equip:") and not body.contains(" -> "), "Shop hides all replacement comparison text.")
+		candidate_tooltip.free()
+	build_state.is_test_mode = false
 	candidate_row.free()
 	build_state.equipped_weapon = null
 
 	build_state.gold = 4
 	combat_screen._shop_overlay.refresh()
 	await process_frame
+	await _wait_for_reveals(combat_screen)
 	_require(combat_screen._shop_overlay._shop_reroll_button.disabled, "Expected reroll to disable below its current gold cost.")
 	_require(combat_screen._shop_overlay._shop_reroll_button.tooltip_text.contains("Need 5g"), "Expected reroll tooltip to explain the unaffordable cost.")
 	combat_screen._on_shop_reroll_pressed()
 	await process_frame
+	await _wait_for_reveals(combat_screen)
 	_require(combat_screen._shop_overlay._shop_status_label.text == "Not enough gold.", "Expected blocked reroll to explain the gold shortfall.")
 	_require(combat_screen._shop_overlay._shop_reroll_button.get_meta("reroll_blocked_pulse") == true, "Expected blocked reroll to pulse the reroll action.")
 	build_state.gold = 20
 	combat_screen._shop_overlay.refresh()
 	await process_frame
+	await _wait_for_reveals(combat_screen)
 
 	await _check_phase5_shop_offer_rarity_rendering(combat_screen, build_state)
 	_check_phase5_reward_visual_helpers(combat_screen)
@@ -197,6 +184,7 @@ func _initialize() -> void:
 	build_state.run_phase = BuildState.RunPhase.CONTRACT_ROUTE
 	build_state.run_state_changed.emit()
 	await process_frame
+	await _wait_for_reveals(combat_screen)
 	print(combat_screen._map_overlay._map_story_label.text)
 	_require(combat_screen._map_overlay._map_story_label.text.contains("Gilded Serpent's hideout"), "Expected the live route map story text to use the authored opener flavor.")
 
@@ -207,6 +195,7 @@ func _initialize() -> void:
 	build_state.run_state_changed.emit()
 	combat_screen._populate_reward_row()
 	await process_frame
+	await _wait_for_reveals(combat_screen)
 	var door_reward_row_text := _reward_row_text(combat_screen)
 	print(door_reward_row_text)
 	_require(door_reward_row_text.contains("Choice of Master Gear"), "Expected Door Guard result reward row to show the compact generated-gear label.")
@@ -298,6 +287,7 @@ func _check_phase5_shop_offer_rarity_rendering(combat_screen, build_state) -> vo
 	build_state.shop_offers = offers
 	combat_screen._shop_overlay.refresh()
 	await combat_screen.get_tree().process_frame
+	await _wait_for_reveals(combat_screen)
 	_require(combat_screen._shop_overlay._shop_offers_box.get_child_count() == offers.size(), "Expected one shop box for each Phase 5 shop rarity.")
 	for i in offers.size():
 		var offer: GearItem = offers[i]
@@ -332,6 +322,7 @@ func _check_mixed_rarity_reward_choice_rendering(combat_screen, build_state) -> 
 	build_state.equipped_weapon = GearGenerator.generate(GearItem.Tier.MASTER, GearItem.SlotType.WEAPON, rng, "test.reward.equipped")
 	combat_screen._show_reward_choice_overlay()
 	await combat_screen.get_tree().process_frame
+	await _wait_for_reveals(combat_screen)
 
 	var options: HBoxContainer = combat_screen._reward_choice_overlay.options_container()
 	_require(options.get_child_count() == 2, "Expected mixed-rarity reward pair to render two buttons.")
@@ -346,12 +337,12 @@ func _check_mixed_rarity_reward_choice_rendering(combat_screen, build_state) -> 
 		_require(icon.texture != null, "Expected reward choice icon for %s." % GearGenerator.tier_name(choice.tier))
 		var style := button.get_theme_stylebox("normal") as StyleBoxFlat
 		_require(style != null and style.bg_color == GearGenerator.tier_color(choice.tier).darkened(0.08), "Expected reward choice box color for %s." % GearGenerator.tier_name(choice.tier))
-		_require(not combat_screen._reward_choice_reveal_active, "Expected headless reward choice rendering to finish the reveal immediately.")
+		_require(not combat_screen._reward_choice_reveal_active, "Expected reward choices to be fully revealed before final-tier assertions.")
 		var tooltip: Control = button._make_custom_tooltip("")
-		_require(tooltip is HBoxContainer and tooltip.get_child_count() == 2, "Expected reward choice compare tooltip for %s." % GearGenerator.tier_name(choice.tier))
-		var equipped_box: Control = tooltip.get_child(1)
-		var equipped_body: String = _labels_text(equipped_box)
-		_require(equipped_body.contains("Master"), "Expected reward comparison tooltip to include currently equipped item.")
+		_require(tooltip is PanelContainer, "Expected one reward item tooltip card.")
+		var reward_body := _labels_text(tooltip)
+		_require(reward_body.contains(choice.display_name) and reward_body.contains("Click to choose."), "Reward card retains item details and choice hint.")
+		_require(not reward_body.contains("Equipped") and not reward_body.contains("On equip:"), "Reward card hides equipped references and projected stats.")
 		tooltip.free()
 
 	combat_screen._reward_choice_overlay.visible = false
@@ -396,3 +387,13 @@ func _collect_label_text(root_node: Node, parts: PackedStringArray) -> void:
 		parts.append((root_node as Label).text)
 	for child in root_node.get_children():
 		_collect_label_text(child, parts)
+
+
+func _wait_for_reveals(combat_screen) -> void:
+	# D053 starts the sequential rollout only when the real shop is visible.
+	if combat_screen._shop_overlay.is_busy():
+		combat_screen._shop_overlay.show()
+	var deadline := Time.get_ticks_msec() + 12000
+	while (combat_screen._shop_overlay.is_busy() or combat_screen._reward_choice_reveal_active) and Time.get_ticks_msec() < deadline:
+		await process_frame
+	_require(not combat_screen._shop_overlay.is_busy() and not combat_screen._reward_choice_reveal_active, "Actual shop/reward reveal completes before final-state assertions.")

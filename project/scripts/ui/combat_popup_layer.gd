@@ -155,7 +155,14 @@ func clear_transient_effects() -> void:
 		popup.queue_free()
 
 
-func spawn(text: String, kind: int, color_override: Color = Color.TRANSPARENT, static_motion: bool = false, size_override: int = 0) -> Label:
+func spawn_poison_tick(damage: float, critical: bool, preserved: bool = false) -> Label:
+	var label := spawn("Poison -%.0f%s" % [damage, "!" if critical else ""], Kind.POISON_TICK, Color.TRANSPARENT, false, 0, critical)
+	if preserved and label != null:
+		preload("res://scripts/ui/poison_preservation_feedback.gd").apply(label)
+	return label
+
+
+func spawn(text: String, kind: int, color_override: Color = Color.TRANSPARENT, static_motion: bool = false, size_override: int = 0, poison_critical: bool = false) -> Label:
 	if skip_active:
 		return null
 	if _visible_popup_count() >= POPUP_MAX_ACTIVE:
@@ -174,6 +181,9 @@ func spawn(text: String, kind: int, color_override: Color = Color.TRANSPARENT, s
 			color = POPUP_CRIT_COLOR
 		Kind.POISON_TICK:
 			font_size = _poison_tick_font_size()
+			if poison_critical:
+				font_size = roundi(font_size * 1.5)
+				label.set_meta("critical_poison", true)
 			color = POPUP_TICK_COLOR
 		Kind.PROC:
 			font_size = POPUP_PROC_FONT_SIZE
@@ -184,6 +194,7 @@ func spawn(text: String, kind: int, color_override: Color = Color.TRANSPARENT, s
 	if size_override > 0: font_size = size_override
 	label.add_theme_font_size_override("font_size", font_size)
 	label.add_theme_color_override("font_color", color)
+	preload("res://scripts/ui/combat_gold_text_icon.gd").decorate(label)
 	add_child(label)
 	label.reset_size()
 	label.pivot_offset = label.size * 0.5
@@ -199,7 +210,7 @@ func spawn(text: String, kind: int, color_override: Color = Color.TRANSPARENT, s
 	tween.set_parallel(true)
 	if static_motion:
 		label.scale = Vector2.ONE * fit
-	elif kind == Kind.CRIT:
+	elif kind == Kind.CRIT or (kind == Kind.POISON_TICK and poison_critical):
 		label.scale = Vector2.ONE * POPUP_CRIT_PUNCH_SCALE * fit
 		tween.tween_property(label, "scale", Vector2.ONE * fit, POPUP_CRIT_PUNCH_SEC)
 	else:
@@ -246,6 +257,10 @@ func spawn_retrigger(cast: CombatResolver.CastEvent, chain_index: int, color_ove
 	if cast.gold_stolen > 0: text += " +%d gold" % cast.gold_stolen
 	if color_override.a > 0 and cast.crit_negation_damage_prevented <= 0 and cast.gold_stolen <= 0:
 		color = color_override
+	if cast.skill != null and cast.skill.category in [Skill.Category.DEBUFF, Skill.Category.SELF_BUFF]:
+		var category_style = preload("res://scripts/ui/skill_category_preview_style.gd")
+		text = skill_name + "\n" + category_style.outcome(cast)
+		color = category_style.COLORS[cast.skill.category]
 	var label := _make_popup_label(text, roundi(font_size * 0.75), color)
 	label.name = "RetriggerHitText"
 	label.set_meta("retrigger_hit", true)
@@ -381,6 +396,7 @@ func _make_popup_label(text: String, font_size: int, color: Color) -> Label:
 	label.add_theme_color_override("font_color", color)
 	label.add_theme_color_override("font_outline_color", UIColors.TEXT_OUTLINE_STRONG)
 	label.add_theme_constant_override("outline_size", 5)
+	preload("res://scripts/ui/combat_gold_text_icon.gd").decorate(label)
 	return label
 
 

@@ -44,6 +44,7 @@ static var MECHANIC_INTERRUPT_ICON: Texture2D = GameIcons.icon_for("defense.inte
 
 var skipping := false
 var effect_icons: CombatEffectIcons
+var clock_frost: Control
 
 var _playback: CombatPlayback = null
 var _intro_remaining_sec := 0.0
@@ -51,6 +52,8 @@ var _intro_duration_sec := 0.0
 var _intro_scales_with_playback_speed := true
 var _result: CombatResolver.CombatResult = null
 var _monster: Monster = null
+var _presentation_owner: Object
+var _owned_presentation_model
 
 var _hp := 0.0
 var _armor := 0
@@ -110,6 +113,10 @@ func elapsed_ms() -> float:
 	return _playback.elapsed_ms() if _playback != null else 0.0
 
 
+func countdown_remaining_ms() -> float:
+	return _playback.countdown_remaining_ms() if _playback != null else 0.0
+
+
 func window_ms() -> int:
 	return _playback.window_ms() if _playback != null else 0
 
@@ -117,7 +124,7 @@ func window_ms() -> int:
 func set_speed(speed: float) -> void:
 	if _combat_stage != null: _combat_stage._clear_flurry()
 	_cancel_combat_audio()
-	if category_preview != null: category_preview.clear()
+	if category_preview != null: category_preview.clear_feedback()
 	if _playback != null:
 		_playback.speed = speed
 
@@ -135,12 +142,16 @@ func start(result: CombatResolver.CombatResult, monster: Monster, wyvern_effect_
 	if category_preview != null: category_preview.clear()
 	play_intro_animation = play_intro_animation and not CombatEffectIcons.reduced_motion
 	_result = result
+	if clock_frost != null: clock_frost.set_active(result.countdown_rate < 1.0)
+	if _skill_build_panel != null: _skill_build_panel.clear_presentation()
 	if effect_icons != null:
 		if not effect_icons.motion_changed.is_connected(_on_motion_changed):
 			effect_icons.motion_changed.connect(_on_motion_changed)
 		effect_icons.begin(result)
 		if _skill_build_panel != null:
 			_skill_build_panel.state.set_meta("combat_presentation", effect_icons.model)
+			_presentation_owner = _skill_build_panel.state
+			_owned_presentation_model = effect_icons.model
 	_monster = monster
 	_hp = float(monster.hp)
 	_armor = monster.armor
@@ -157,6 +168,7 @@ func start(result: CombatResolver.CombatResult, monster: Monster, wyvern_effect_
 		_popup_layer.wyvern_tick_font_active = wyvern_effect_active
 	if _combat_stage != null:
 		_combat_stage.reset_state()
+		_combat_stage.configure_legendary_effects(result.presentation_initial.get("legendary_visuals", {}))
 		_combat_stage.set_bandit_blade_effect_active(bandit_blade_effect_active)
 		_combat_stage.set_slow_effect_active(slow > 0.0, slow, play_intro_animation)
 	if _skill_build_panel != null and _skill_build_panel.has_method("clear_combat_highlight"):
@@ -236,12 +248,14 @@ func skip() -> void:
 
 
 func _update_macro_progress() -> void:
-	if _playback == null or _skill_build_panel == null or not _skill_build_panel.has_method("set_cast_progress"):
+	if _playback == null:
 		return
 	var cast := _playback.active_cast()
 	if cast == null:
 		return
-	_skill_build_panel.set_cast_progress(cast.rotation_index, _playback.active_cast_progress(), cast.min_cast_time_proc_applied)
+	if category_preview != null: category_preview.update_cast_progress(cast,_playback.active_cast_progress(),_playback.speed)
+	if _skill_build_panel != null and _skill_build_panel.has_method("set_cast_progress"):
+		_skill_build_panel.set_cast_progress(cast.rotation_index, _playback.active_cast_progress(), cast.min_cast_time_proc_applied)
 
 
 ## Applies one fired timeline event to the live HUD: drains HP with a quick
@@ -259,15 +273,19 @@ func _on_event(event: CombatPlayback.PlaybackEvent) -> void:
 		if event.tick.had_active_stack:
 			if _combat_stage != null:
 				_combat_stage.play_poison_tick_pulse(not skipping and event.chain_count <= 1 and not CombatEffectIcons.reduced_motion)
+				_combat_stage.play_poison_retrigger_event(event, _playback.speed if _playback != null else 1.0, not skipping and not CombatEffectIcons.reduced_motion)
+				if event.tick.keyword_consume:
+					_combat_stage.play_legendary_poison_consume(not skipping and not CombatEffectIcons.reduced_motion)
 			_hp = maxf(_hp - event.tick.damage, 0.0)
 			_apply_hp(PLAYBACK_TICK_HP_TWEEN_SEC)
-			# "Poison -N" matches the "SkillName -N" pattern the physical
-			# cast popups use, for visual cohesion; font size/color are
-			# unchanged, only the text gained a label.
-			if _popup_layer != null and event.chain_count <= 1 and not CombatEffectIcons.reduced_motion:
-				_popup_layer.spawn("Poison -%.0f" % event.tick.damage, CombatPopupLayer.Kind.POISON_TICK)
+			# Critical Poison keeps its green/tick lane and gains the same
+			# size emphasis, punctuation and punch used for critical attacks.
+			if _popup_layer != null and (event.chain_count <= 1 or event.tick.stacks_preserved) and not CombatEffectIcons.reduced_motion:
+				_popup_layer.spawn_poison_tick(event.tick.damage, event.tick.is_crit, event.tick.stacks_preserved)
 	else:
 		var cast := event.cast
+		if event.chain_count <= 1 and category_preview != null and category_preview.handles(cast):
+			category_preview.activate(cast,_playback.speed,not skipping)
 		if cast.gold_stolen > 0:
 			gold_stolen_played.emit(cast.gold_stolen)
 		var popup_delay := 0.0
@@ -275,14 +293,12 @@ func _on_event(event: CombatPlayback.PlaybackEvent) -> void:
 			_combat_stage.play_retrigger_event(event, _playback.speed, not CombatEffectIcons.reduced_motion)
 		elif _combat_stage != null and not cast.cooldown_blocked and not cast.resource_unavailable and not (category_preview != null and category_preview.handles(cast)):
 			popup_delay = _combat_stage.play_cast_impact(cast, not skipping and not CombatEffectIcons.reduced_motion)
-		if (cast.was_dodged or cast.physical_damage > 0.0 or cast.blocked_amount > 0.0) and not skipping:
+		if event.chain_count <= 1 and _combat_stage != null and category_preview != null and category_preview.handles(cast):
+			_combat_stage.play_legendary_cast_effect(cast, not skipping and not CombatEffectIcons.reduced_motion)
+		if not skipping:
 			var audio_manager := get_node_or_null("/root/AudioManager")
-			if audio_manager != null and audio_manager.has_method("play_attack_sfx_for_cast"):
-				if event.chain_count > 1:
-					if event.visual_beat:
-						audio_manager.play_retrigger_sfx(cast, _playback.speed)
-				else:
-					audio_manager.play_attack_sfx_for_cast(cast, _playback.speed, false)
+			if audio_manager != null and audio_manager.has_method("play_skill_sfx_for_cast"):
+				audio_manager.play_skill_sfx_for_cast(cast, _playback.speed, false, event.chain_count > 1, event.visual_beat)
 		if not cast.triggered_skill_names.is_empty() and _skill_build_panel != null and _skill_build_panel.has_method("highlight_rotation_index"):
 			_skill_build_panel.highlight_rotation_index(cast.rotation_index, true)
 		if cast.total_health_loss() > 0.0:
@@ -319,7 +335,7 @@ func _on_event(event: CombatPlayback.PlaybackEvent) -> void:
 			_schedule_cast_popups(cast, popup_delay)
 		elif event.visual_beat and not skipping and not CombatEffectIcons.reduced_motion and _popup_layer != null and not _is_hold_cast(cast):
 			var echo_color := Color.TRANSPARENT
-			if category_preview != null and category_preview.enabled and category_preview.Style.selected(cast.skill):
+			if category_preview != null and category_preview.enabled and category_preview.Style.popup_selected(cast.skill):
 				echo_color = category_preview.Style.COLORS[cast.skill.category]
 			_popup_layer.spawn_retrigger(cast, event.chain_index, echo_color)
 	_update_hud_readout()
@@ -399,7 +415,7 @@ func _spawn_cast_popups(cast: CombatResolver.CastEvent) -> void:
 	# any triggered-skill damage folded into the same cast by the resolver;
 	# presentation splits the attack, but combat math stays merged.
 	var category_color := Color.TRANSPARENT
-	if category_preview != null and category_preview.enabled and category_preview.Style.selected(cast.skill):
+	if category_preview != null and category_preview.enabled and category_preview.Style.popup_selected(cast.skill):
 		category_color = category_preview.Style.COLORS[cast.skill.category]
 	var damage_suffix := ""
 	if cast.was_dodged:
@@ -473,6 +489,7 @@ func _update_hud_readout() -> void:
 ## reads elapsed_ms()/window_ms()/is_active() during the signal still sees
 ## the fight's final values, not already-reset defaults.
 func _on_finished() -> void:
+	if clock_frost != null: clock_frost.set_active(false)
 	if _popup_layer != null: _popup_layer.clear_retrigger_popups()
 	var audio := get_node_or_null("/root/AudioManager")
 	if audio != null: audio.cancel_combat_sfx(false)
@@ -526,7 +543,7 @@ func _sync_presentation() -> void:
 	_resist = float(snapshot.get("poison_resistance", _resist))
 	_update_hud_readout()
 	if _skill_build_panel != null:
-		_skill_build_panel.update_presentation(effect_icons.model)
+		_skill_build_panel.update_presentation(effect_icons.model, not skipping)
 
 
 func _on_motion_changed(enabled: bool) -> void:
@@ -540,6 +557,7 @@ func _on_motion_changed(enabled: bool) -> void:
 		_popup_layer.clear_transient_effects()
 	if _skill_build_panel != null:
 		_skill_build_panel.clear_stun_effect()
+		_skill_build_panel.clear_legendary_feedback()
 	if _hp_bar_tween != null and _hp_bar_tween.is_valid():
 		_hp_bar_tween.kill()
 	if _hud_health_bar != null:
@@ -553,3 +571,6 @@ func _cancel_combat_audio() -> void:
 
 func _exit_tree() -> void:
 	_cancel_combat_audio()
+	if is_instance_valid(_presentation_owner) and _presentation_owner.has_meta("combat_presentation"):
+		if _presentation_owner.get_meta("combat_presentation") == _owned_presentation_model:
+			_presentation_owner.remove_meta("combat_presentation")

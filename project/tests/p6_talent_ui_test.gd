@@ -65,7 +65,7 @@ func _run() -> void:
 	state.set_rotation(macro)
 	await settle()
 	await press(view, "refund:talent.bladedancer.fancy_footwork")
-	check("Parry" in view.feedback and "Removed from rotation" in view.feedback, "Named rotation removal shown")
+	check(view.feedback == "Allocation updated.", "Refund keeps rotation removal status silent")
 	await press(view, "buy:talent.bladedancer.fancy_footwork")
 	check(state.rotation.is_empty(), "Reunlock does not restore rotation")
 	state.accept_contract_offer()

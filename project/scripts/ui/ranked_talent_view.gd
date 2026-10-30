@@ -83,13 +83,12 @@ func refresh() -> void:
 	actions.clear()
 	var model: RankedBuild = state.ranked_build
 	var toolbar := HBoxContainer.new()
+	toolbar.visible = not practice()
 	add_child(toolbar)
 	var summary := Control.new()
 	toolbar.add_child(summary)
 	summary.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	if practice():
-		build_pickers(toolbar)
-	elif state.get("is_test_mode") == true:
+	if not practice() and state.get("is_test_mode") == true:
 		var comparison := OptionButton.new()
 		comparison.name = "CategoryTreeIconStyle"
 		for text in ["Unlocks: Outline", "Unlocks: Bottom edge", "Unlocks: Filled box", "Unlocks: Off"]:
@@ -136,45 +135,9 @@ func build_tree_picker(slot: int, parent: Container) -> void:
 		var tree: SubclassTree = null if index == 0 else state.selected_class.trees[index - 1]
 		var ok: bool = state.set_primary_tree(tree) if slot == 0 else state.set_secondary_tree(tree)
 		feedback = "Tree selection updated." if ok else friendly(state.last_build_error)
-		append_rotation_notice()
 		schedule_refresh()
 	)
 	parent.add_child(picker)
-
-func build_pickers(row: HBoxContainer) -> void:
-	var budget_group := HBoxContainer.new()
-	budget_group.custom_minimum_size.x = 120
-	row.add_child(budget_group)
-	label("Point budget", budget_group).autowrap_mode = TextServer.AUTOWRAP_OFF
-	var budget := SpinBox.new()
-	budget.name = "PracticePointBudget"
-	budget.custom_minimum_size.x = 80
-	budget.min_value = 0
-	budget.max_value = 45
-	budget.value = state.earned_talent_points
-	budget.get_line_edit().set_meta("action_key", "budget")
-	actions["budget"] = budget.get_line_edit()
-	budget.editable = edit_block() == ""
-	budget.value_changed.connect(func(value: float):
-		var ok: bool = state.set_talent_budget(int(value))
-		feedback = "Point budget updated." if ok else friendly(state.last_build_error)
-		schedule_refresh()
-	)
-	budget_group.add_child(budget)
-	var swap := Button.new()
-	swap.text = "Swap trees"
-	swap.disabled = state.ranked_build.secondary_tree() == null or edit_block() != ""
-	swap.tooltip_text = "Retains allocations. Only the primary tree gains per-point intrinsic scaling."
-	actions["swap"] = swap
-	swap.set_meta("action_key", "swap")
-	swap.pressed.connect(func():
-		var ok: bool = state.swap_tree_roles()
-		feedback = "Roles swapped; retained ranks and updated intrinsics." if ok else friendly(state.last_build_error)
-		schedule_refresh()
-	)
-	row.add_child(swap)
-	swap.size_flags_vertical = Control.SIZE_SHRINK_END
-	swap.visible = state.selected_class.trees.size() > 1
 
 static func effects(talent: Talent, rank: int) -> String:
 	if rank == 0:
@@ -327,10 +290,13 @@ func build_tree(tree: SubclassTree, parent: Container, role: String) -> void:
 	if tree == null:
 		column.alignment = BoxContainer.ALIGNMENT_CENTER
 		centered_label(role, column, 26).theme_type_variation = &"PanelHeader"
+		if practice() and role == "Secondary":
+			centered_label("Choose a secondary subclass", column, 16)
+			return
 		centered_label("Second Subclass" if role == "Secondary" else "Primary Subclass", column, 28)
 		centered_label(("Choose one of your earned subclass offers." if practice() or state.needs_secondary_subclass_choice() else "Complete your first contract to unlock a second subclass.") if role == "Secondary" else "Choose a primary tree to begin.", column, 16)
-		if role == "Secondary" and (practice() or state.needs_secondary_subclass_choice()) and model.primary_tree() != null:
-			for choice in (state.selected_class.trees if practice() else state.secondary_subclass_choices()):
+		if role == "Secondary" and state.needs_secondary_subclass_choice() and model.primary_tree() != null:
+			for choice in state.secondary_subclass_choices():
 				if choice == model.primary_tree(): continue
 				var card := PanelContainer.new()
 				card.name = "SecondaryChoice_" + choice.id.replace(".", "_")
@@ -473,7 +439,6 @@ func build_tree(tree: SubclassTree, parent: Container, role: String) -> void:
 	reset.pressed.connect(func():
 		focus_key = key
 		feedback = "Allocation updated." if state.refund_tree_talents(tree.id) else friendly(state.last_build_error)
-		append_rotation_notice()
 		schedule_refresh()
 	)
 	column.add_child(reset)
@@ -686,23 +651,4 @@ func transact(action: String, id: String, key: String) -> void:
 		feedback = ""
 		return
 	feedback = "Allocation updated."
-	append_rotation_notice()
 	schedule_refresh()
-
-func append_rotation_notice() -> void:
-	var removed: Array = state.rotation_changes.get("removed", [])
-	if removed.is_empty():
-		return
-	var names: PackedStringArray = []
-	for id in removed:
-		var name: String = str(id)
-		for tree in state.selected_class.trees:
-			for unlock in tree.automatic_unlocks:
-				if unlock.skill != null and unlock.skill.id == id:
-					name = unlock.skill.display_name
-			for talent in tree.talents:
-				for skill in talent.unlocked_skills:
-					if skill.id == id:
-						name = skill.display_name
-		names.append(name)
-	feedback += " Removed from rotation: " + ", ".join(names) + ". Reunlocking does not restore slots."

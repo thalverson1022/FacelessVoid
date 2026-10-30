@@ -1,5 +1,7 @@
 # Compact combat UI - user-directed revision
 
+> **Historical record — not an active work plan.** Status labels, next-step instructions and milestone numbering below describe the recorded checkpoint. M8 is closed; consult the current M9 tracker for authorized work. Retained at this path when tooling/manifests depend on it. [Current context](P6_Project_Onboarding_Context.md).
+
 **Current talent-tree status (2026-10-02):** The subsequent T10 talent-tree UI/UX
 is accepted by the user. The [accepted baseline and remaining checks](P6M4_T10_Full_Tree_UI_UX_Plan.md#accepted-baseline-and-remaining-t10-work)
 supersede this document's historical provisional-layout statements and tree

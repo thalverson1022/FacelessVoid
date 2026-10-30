@@ -1,5 +1,7 @@
 # M7-T5 closeout and accepted conventions
 
+> **Retained mechanics/presentation reference.** Work status and scope are maintained in the current M9 tracker and phase roadmap. Older checkpoint/save-policy labels below are historical; the approved M9 save reset applies at implementation. [Current context](P6_Project_Onboarding_Context.md).
+
 2026-10-15. **T5 Complete under user acceptance P6M7-D039. M7 remains In progress: T1–T5 Complete; T6–T11 Not started. Next: T6 temporary-effect display completion.** This is a documentation-only closeout; T6 implementation has not started.
 
 The user accepted the finished tooltip work and explicitly requested closeout and documentation updates. This acceptance supersedes earlier instructions excluding step 7 and dated “T5 In progress” statements. Those records remain historical evidence, not current next-step instructions. Human acceptance of this format is distinct from automated checks and does not complete later integrated accessibility, user playtesting or milestone acceptance.
@@ -19,16 +21,16 @@ The keyword registry/reference is a foundation for a possible future compendium.
 
 | Decisions | Accepted result / evidence |
 | --- | --- |
-| D025–D026 | [Minimal skill format](P6M7_T5_Minimal_Skill_Tooltip_Design_And_Implementation.md) and [all-talent structured format](P6M7_T5_Minimal_Talent_Tooltip_Design_And_Implementation.md). |
-| D027–D028 | Active Talents icon simplification, [tree backgrounds and shared current effect text](P6M7_T5_Tree_Backgrounds_And_Active_Talent_Text.md). |
-| D029 | [Neutral talent rules, no Requires and stack terminology](P6M7_T5_Neutral_Talent_And_Stack_Wording.md). |
-| D030–D032 | Source-backed [Thief](P6M7_T5_Thief_Tooltip_Revision.md), [Assassin](P6M7_T5_Assassin_Tooltip_Revision.md) and [Shadow](P6M7_T5_Shadow_Tooltip_Revision.md) revisions, including dynamic application counts and user-clarified Death Pact scope. |
-| D033 | [Gold scaling values, spacing and changed-only Next](P6M7_T5_Talent_Value_Hierarchy_And_Next_Rank_Polish.md). |
+| D025–D026 | [Minimal skill format](archive/m7/P6M7_T5_Minimal_Skill_Tooltip_Design_And_Implementation.md) and [all-talent structured format](archive/m7/P6M7_T5_Minimal_Talent_Tooltip_Design_And_Implementation.md). |
+| D027–D028 | Active Talents icon simplification, [tree backgrounds and shared current effect text](archive/m7/P6M7_T5_Tree_Backgrounds_And_Active_Talent_Text.md). |
+| D029 | [Neutral talent rules, no Requires and stack terminology](archive/m7/P6M7_T5_Neutral_Talent_And_Stack_Wording.md). |
+| D030–D032 | Source-backed [Thief](archive/m7/P6M7_T5_Thief_Tooltip_Revision.md), [Assassin](archive/m7/P6M7_T5_Assassin_Tooltip_Revision.md) and [Shadow](archive/m7/P6M7_T5_Shadow_Tooltip_Revision.md) revisions, including dynamic application counts and user-clarified Death Pact scope. |
+| D033 | [Gold scaling values, spacing and changed-only Next](archive/m7/P6M7_T5_Talent_Value_Hierarchy_And_Next_Rank_Polish.md). |
 | D034–D037 | Later per-tree wording/punctuation refinements retained in the linked tree/design evidence and tracker. |
-| D038 | [Canonical keywords and cyan Buff references](P6M7_T5_Keyword_Capitalization_And_Buff_Coding.md), shared rich/plain output and glossary. |
+| D038 | [Canonical keywords and cyan Buff references](archive/m7/P6M7_T5_Keyword_Capitalization_And_Buff_Coding.md), shared rich/plain output and glossary. |
 | D039 | User accepts T5 as finished and requests this closeout; no additional implementation or numerical change. |
 
-The [original audit](P6M7_T5_Tooltip_Audit_And_Verification.md) retains live inventory, all-rank dispositions, source mechanics review and earlier verbose-format evidence. Later accepted minimal-format decisions supersede that historical player-facing wording; its original closeout exclusion is superseded by D039.
+The [original audit](archive/m7/P6M7_T5_Tooltip_Audit_And_Verification.md) retains live inventory, all-rank dispositions, source mechanics review and earlier verbose-format evidence. Later accepted minimal-format decisions supersede that historical player-facing wording; its original closeout exclusion is superseded by D039.
 
 ## Evidence and closeout verification
 

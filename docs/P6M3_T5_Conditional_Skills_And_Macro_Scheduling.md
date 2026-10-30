@@ -1,5 +1,7 @@
 # P6M3-T5 Conditional Skills and Macro Scheduling
 
+> **Historical record — not an active work plan.** Status labels, next-step instructions and milestone numbering below describe the recorded checkpoint. M8 is closed; consult the current M9 tracker for authorized work. Retained at this path when tooling/manifests depend on it. [Current context](P6_Project_Onboarding_Context.md).
+
 **Later T4 closeout:** [T4 is Complete under D023](P6M3_T4_Timed_Effects_And_Charges.md#final-t4-contracts--d023).
 Earlier statements assigning remaining T4 review/implementation describe that
 handoff's original checkpoint. Riposte, Bypass and Touch are now implemented;

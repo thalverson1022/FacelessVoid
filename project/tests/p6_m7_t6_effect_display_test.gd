@@ -37,17 +37,12 @@ func run() -> void:
 		panel.begin(fixture(count))
 		panel.advance_to(1500)
 		check(panel.active.size() == count, "All fixture instances retained")
-		check(panel._chips.size() == 4, "Retained four visible groups")
+		check(panel._chips.size() == count, "Every active buff type visible")
 		panel._open_inspector()
 		check(panel._details.text.count("Source:") == count, "Every independent instance inspectable")
 		panel.begin(fixture(count))
 		check(not panel._dialog.visible, "Retry closes prior inspector")
 	panel.begin(fixture(10))
-	panel._inspect.grab_focus()
-	await key(KEY_ENTER)
-	check(panel._dialog.visible, "Keyboard Enter activates overflow")
-	await key(KEY_ESCAPE)
-	check(not panel._dialog.visible and panel._inspect.has_focus(), "Escape returns focus to overflow opener")
 	var chip: Button = panel._chips["buff.footwork"]
 	chip.grab_focus()
 	await key(KEY_ENTER)
@@ -110,10 +105,8 @@ func run() -> void:
 				for count in [5,10,12]:
 					icons.begin(fixture(count))
 					icons.advance_to(1500)
-					icons._inspect.add_theme_font_size_override("font_size",roundi(22 * scale))
 					icons._details.add_theme_font_size_override("normal_font_size",roundi(20 * scale))
 					await settle()
-					check(icons._inspect.size.x >= icons._inspect.get_minimum_size().x, "125% overflow text fits")
 					check(icons._grid.size.x <= icons.size.x, "Chip row fits")
 					var r: Rect2 = icons.get_global_rect()
 					check(r.position.x >= 0 and r.end.x <= root.size.x and r.end.y <= root.size.y, "Effects within viewport")
@@ -122,7 +115,7 @@ func run() -> void:
 					await settle()
 					check(icons._dialog.size.x <= width and icons._dialog.size.y <= root.size.y, "Inspector fits viewport")
 					check(icons._details.text.count("Source:") == count, "Cross-mode independent instance count")
-					rows.append({"mode":mode,"width":width,"instances":count,"groups":icons._groups().size(),"overflow":icons._inspect.text,"font_scale":scale,"inspector_entries":icons._details.text.count("Source:")})
+					rows.append({"mode":mode,"width":width,"instances":count,"groups":icons._groups().size(),"visible_icons":icons._chips.size(),"font_scale":scale,"inspector_entries":icons._details.text.count("Source:")})
 					await shot("%s_%d_%d_inspector_%d" % [mode,width,count,roundi(scale*100)])
 					if count == 12 and width == 1280 and scale == 1.25:
 						icons._details.get_v_scroll_bar().value = icons._details.get_v_scroll_bar().max_value

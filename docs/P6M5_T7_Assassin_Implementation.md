@@ -1,5 +1,7 @@
 # M5-T7 — Complete Assassin implementation
 
+> **Historical record — not an active work plan.** Status labels, next-step instructions and milestone numbering below describe the recorded checkpoint. M8 is closed; consult the current M9 tracker for authorized work. Retained at this path when tooling/manifests depend on it. [Current context](P6_Project_Onboarding_Context.md).
+
 Status: **Complete** · 2026-10-03 · Authority: **P6M5-D009**, user approval of all three review proposals and instruction to implement T7.
 
 The [approved Assassin specification](P6M5_T7_Assassin_Design_Review.md) is playable in Test Mode and Practice: ten talents / 35 ranks, the role-aware intrinsic, five automatic unlocks and talent-granted Poison Strike. T8 Shadow review is next. Numerical tuning remains M6; full-content presentation polish remains M7.

@@ -1,5 +1,7 @@
 # M5-T10 Full-content player-flow acceptance
 
+> **Historical record — not an active work plan.** Status labels, next-step instructions and milestone numbering below describe the recorded checkpoint. M8 is closed; consult the current M9 tracker for authorized work. Retained at this path when tooling/manifests depend on it. [Current context](P6_Project_Onboarding_Context.md).
+
 Status: Complete. Authority: user-directed T10 execution, current P6M5-D023 content. Date: 2026-10-06.
 
 ## Scope and acceptance matrix

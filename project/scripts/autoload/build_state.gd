@@ -130,6 +130,9 @@ var equipped_helm: GearItem = null
 var equipped_armor: GearItem = null
 var equipped_trinket: GearItem = null
 var equipped_charm: GearItem = null
+var committed_reward_gold: int = 0
+var equipped_legs: GearItem = null
+var equipped_hands: GearItem = null
 var pending_contract_offers: Array[ContractDef] = []
 var active_contract: ContractDef = null
 var current_route_node: ContractRouteNode = null
@@ -148,6 +151,7 @@ var encounter_retry_counts: Dictionary = {}
 var run_phase: int = RunPhase.PLANNING
 var run_outcome: int = RunOutcome.NONE
 var last_fight_won: bool = false
+var reward_result_basis: Dictionary = {}
 var last_combat_result: CombatResolver.CombatResult = null
 var tavern_map_choice_made: bool = false
 ## Build lock flag: locking the build enables the FIGHT button. Any build
@@ -176,6 +180,7 @@ func set_locked(locked: bool) -> void:
 
 
 func reset(preserve_adventure_seed: bool = false) -> void:
+	committed_reward_gold = 0
 	is_test_mode = false
 	SaveSystem.session_only = false
 	var kept_seed := adventure_seed
@@ -205,6 +210,8 @@ func reset(preserve_adventure_seed: bool = false) -> void:
 	equipped_armor = null
 	equipped_trinket = null
 	equipped_charm = null
+	equipped_legs = null
+	equipped_hands = null
 	pending_contract_offers = []
 	active_contract = null
 	current_route_node = null
@@ -223,6 +230,7 @@ func reset(preserve_adventure_seed: bool = false) -> void:
 	run_outcome = RunOutcome.NONE
 	last_fight_won = false
 	last_combat_result = null
+	reward_result_basis = {}
 	tavern_map_choice_made = false
 	build_changed.emit()
 	run_state_changed.emit()
@@ -587,6 +595,7 @@ func start_fight() -> bool:
 		return false
 	combat_stolen_gold = 0
 	last_combat_result = null
+	reward_result_basis = {}
 	tavern_map_choice_made = false
 	if is_contract_fight_active():
 		pending_contract_offers = []
@@ -745,6 +754,8 @@ func claim_current_reward(defer_currency: bool = false) -> bool:
 	var reward := current_reward()
 	if not can_claim_current_reward():
 		return false
+	# Freeze before points/items/economy mutations or deferred presentation.
+	committed_reward_gold = current_modified_reward_gold() if reward != null else 0
 	if is_contract_fight_active():
 		claimed_route_reward_ids.append(current_route_node.id)
 	else:
@@ -754,7 +765,7 @@ func claim_current_reward(defer_currency: bool = false) -> bool:
 		claimed_reward_encounter_indices.append(current_encounter_index)
 	if reward != null:
 		if not defer_currency:
-			add_gold(current_modified_reward_gold())
+			add_gold(committed_reward_gold)
 		# Points commit with the claim, not after a cosmetic animation.
 		add_talent_points(reward.talent_points)
 		for gear in reward.fixed_gear_rewards:
@@ -1038,11 +1049,20 @@ func _shop_offer_roll_key(reroll_key: Variant) -> String:
 func _generate_unique_shop_offer(rng: RandomNumberGenerator, stable_id: String, contract_depth: int, seen_signatures: Dictionary, magic_find: float = 0.0) -> GearItem:
 	var fallback_offer: GearItem = null
 	var fallback_signature := ""
+	# A duplicate affix retry must not redraw and bias the eligible slot odds.
+	var slot: GearItem.SlotType = GearGenerator.ALL_SLOTS[rng.randi_range(0, GearGenerator.ALL_SLOTS.size() - 1)]
 	for attempt in SHOP_UNIQUE_ROLL_ATTEMPTS:
-		var slot: GearItem.SlotType = GearGenerator.ALL_SLOTS[rng.randi_range(0, GearGenerator.ALL_SLOTS.size() - 1)]
-		var tier := _shop_tier_for_current_phase(rng, contract_depth)
-		tier = _upgraded_shop_tier(tier, stable_id, attempt, contract_depth, magic_find)
+		var base_tier := _shop_tier_for_current_phase(rng, contract_depth)
+		var story := _shop_tier_upgrade_story(base_tier, stable_id, attempt, contract_depth, magic_find)
+		var tier: GearItem.Tier = int(story["final_tier"])
 		var offer := _shop_offer_for_tier(tier, slot, rng, stable_id, contract_depth)
+		if offer != null and offer.tier != tier:
+			# Exhausted Legendary catalog fallback is not a rarity upgrade.
+			story = {"base_tier": offer.tier, "final_tier": offer.tier, "tier_steps": [offer.tier], "magic_find_upgraded": false}
+		# Authored Legendaries cannot upgrade; preserve their shared resource
+		# identity and path-based save representation without writing provenance.
+		if offer != null and offer.tier != GearItem.Tier.LEGENDARY:
+			_apply_reward_upgrade_story(offer, story)
 		var signature := _shop_offer_signature(offer)
 		if fallback_offer == null:
 			fallback_offer = offer
@@ -1073,16 +1093,26 @@ func _shop_tier_for_current_phase(rng: RandomNumberGenerator, contract_depth: in
 
 
 func _upgraded_shop_tier(base_tier: GearItem.Tier, shop_context: String, offer_index: int, contract_depth: int = REWARD_UPGRADE_MIN_CONTRACT_DEPTH, magic_find: float = 0.0) -> GearItem.Tier:
-	var tier := base_tier
-	if tier == GearItem.Tier.LEGENDARY or _is_reward_upgrade_high_tier(tier):
-		return tier
-	if tier == GearItem.Tier.BASIC and _shop_upgrade_roll(shop_context, offer_index, base_tier, contract_depth, "basic_to_master", REWARD_UPGRADE_BASIC_TO_MASTER_BP, magic_find):
-		tier = GearItem.Tier.MASTER
-	if tier == GearItem.Tier.MASTER and _shop_upgrade_roll(shop_context, offer_index, base_tier, contract_depth, "master_to_epic", REWARD_UPGRADE_MASTER_TO_EPIC_BP, magic_find):
-		tier = GearItem.Tier.EPIC
-	if tier == GearItem.Tier.EPIC and _shop_upgrade_roll(shop_context, offer_index, base_tier, contract_depth, "epic_to_high_tier", REWARD_UPGRADE_EPIC_TO_HIGH_TIER_BP, magic_find):
-		tier = _shop_high_tier_roll(shop_context, offer_index, base_tier, contract_depth)
-	return tier
+	return int(_shop_tier_upgrade_story(base_tier, shop_context, offer_index, contract_depth, magic_find)["final_tier"])
+
+
+func _shop_tier_upgrade_story(base_tier: GearItem.Tier, shop_context: String, offer_index: int, contract_depth: int = REWARD_UPGRADE_MIN_CONTRACT_DEPTH, magic_find: float = 0.0) -> Dictionary:
+	var tier := int(base_tier)
+	var steps: Array[int] = [tier]
+	var magic_find_upgraded := false
+	for step in [
+		[GearItem.Tier.BASIC, GearItem.Tier.MASTER, "basic_to_master", REWARD_UPGRADE_BASIC_TO_MASTER_BP],
+		[GearItem.Tier.MASTER, GearItem.Tier.EPIC, "master_to_epic", REWARD_UPGRADE_MASTER_TO_EPIC_BP],
+		[GearItem.Tier.EPIC, GearItem.Tier.CURSED, "epic_to_high_tier", REWARD_UPGRADE_EPIC_TO_HIGH_TIER_BP],
+	]:
+		if tier != int(step[0]):
+			continue
+		var result := _shop_upgrade_roll_result(shop_context, offer_index, base_tier, contract_depth, String(step[2]), int(step[3]), magic_find)
+		if bool(result["succeeded"]):
+			tier = _shop_high_tier_roll(shop_context, offer_index, base_tier, contract_depth) if tier == GearItem.Tier.EPIC else int(step[1])
+			steps.append(tier)
+			magic_find_upgraded = magic_find_upgraded or bool(result["magic_find_upgraded"])
+	return {"base_tier": int(base_tier), "final_tier": tier, "tier_steps": steps, "magic_find_upgraded": magic_find_upgraded}
 
 
 func _shop_upgrade_roll(
@@ -1094,13 +1124,19 @@ func _shop_upgrade_roll(
 	chance_bp: int,
 	magic_find: float = 0.0
 ) -> bool:
+	return bool(_shop_upgrade_roll_result(shop_context, offer_index, base_tier, contract_depth, step, chance_bp, magic_find)["succeeded"])
+
+
+func _shop_upgrade_roll_result(shop_context: String, offer_index: int, base_tier: GearItem.Tier, contract_depth: int, step: String, chance_bp: int, magic_find: float = 0.0) -> Dictionary:
 	var scaled_chance := _scaled_reward_upgrade_chance_bp(chance_bp, contract_depth, magic_find)
+	var base_chance := _scaled_reward_upgrade_chance_bp(chance_bp, contract_depth, 0.0)
 	var rng := RunRngSystem.rng_for_context(
 		adventure_seed,
 		RunRngSystem.CONTEXT_SHOP_OFFER,
 		[shop_context, "rarity_upgrade", offer_index, base_tier, _reward_upgrade_contract_depth(contract_depth), step]
 	)
-	return rng.randi_range(1, REWARD_UPGRADE_BP_DENOMINATOR) <= scaled_chance
+	var roll := rng.randi_range(1, REWARD_UPGRADE_BP_DENOMINATOR)
+	return {"succeeded": roll <= scaled_chance, "magic_find_upgraded": magic_find > 0.0 and roll > base_chance and roll <= scaled_chance}
 
 
 func _shop_high_tier_roll(shop_context: String, offer_index: int, base_tier: GearItem.Tier, contract_depth: int = REWARD_UPGRADE_MIN_CONTRACT_DEPTH) -> GearItem.Tier:
@@ -1399,8 +1435,9 @@ func _generate_reward_choice_item(
 ) -> GearItem:
 	var max_attempts := 64
 	var fallback: GearItem = null
+	# Preserve the uniform slot draw while rerolling a duplicate stat signature.
+	var slot: GearItem.SlotType = slots[rng.randi_range(0, slots.size() - 1)]
 	for attempt in max_attempts:
-		var slot: GearItem.SlotType = slots[rng.randi_range(0, slots.size() - 1)]
 		var stable_id := RunRngSystem.id_for_context(
 			"gear.generated.reward",
 			adventure_seed,
@@ -1561,14 +1598,25 @@ func modified_gold_reward(base_amount: int) -> int:
 
 
 func overkill_gold_for_result(result: CombatResolver.CombatResult) -> int:
-	if result == null or not result.is_win:
+	if result == null or not result.is_valid or not result.is_win or not is_finite(result.overkill_damage):
 		return 0
-	var steps := int(floor(maxf(0.0, result.overkill_damage) / OVERKILL_GOLD_DAMAGE_STEP))
-	return clampi(steps * OVERKILL_GOLD_PER_STEP, 0, OVERKILL_GOLD_CAP)
+	# Cap before converting to integer, then derive freshly from original damage.
+	var component := int(minf(float(OVERKILL_GOLD_CAP), floor(maxf(0.0, result.overkill_damage) / OVERKILL_GOLD_DAMAGE_STEP) * OVERKILL_GOLD_PER_STEP))
+	var stats := current_player_stats()
+	return component * (2 if stats.legendary_golden_greeves else 1)
 
 
 func current_overkill_gold() -> int:
-	return overkill_gold_for_result(last_combat_result)
+	if last_combat_result != null:
+		return overkill_gold_for_result(last_combat_result)
+	if reward_result_basis.is_empty():
+		return 0
+	# Resume restores reward evidence only; it must not manufacture a replay/result.
+	var basis := CombatResolver.CombatResult.new()
+	basis.is_valid = reward_result_basis.is_valid
+	basis.is_win = reward_result_basis.is_win
+	basis.overkill_damage = reward_result_basis.overkill_damage
+	return overkill_gold_for_result(basis)
 
 
 func current_base_reward_gold() -> int:
@@ -1699,6 +1747,10 @@ func sell_equipped_item(slot: GearItem.SlotType) -> bool:
 			equipped_trinket = null
 		GearItem.SlotType.CHARM:
 			equipped_charm = null
+		GearItem.SlotType.LEGS:
+			equipped_legs = null
+		GearItem.SlotType.HANDS:
+			equipped_hands = null
 	gold += sell_value_for(gear)
 	build_changed.emit()
 	run_state_changed.emit()
@@ -1731,6 +1783,10 @@ func destroy_equipped_item(slot: GearItem.SlotType) -> bool:
 			equipped_trinket = null
 		GearItem.SlotType.CHARM:
 			equipped_charm = null
+		GearItem.SlotType.LEGS:
+			equipped_legs = null
+		GearItem.SlotType.HANDS:
+			equipped_hands = null
 	build_changed.emit()
 	run_state_changed.emit()
 	return true
@@ -1770,6 +1826,10 @@ func equip(gear: GearItem) -> void:
 			equipped_trinket = gear
 		GearItem.SlotType.CHARM:
 			equipped_charm = gear
+		GearItem.SlotType.LEGS:
+			equipped_legs = gear
+		GearItem.SlotType.HANDS:
+			equipped_hands = gear
 	# A full inventory must not silently grow past INVENTORY_CAPACITY when a
 	# swap displaces the previously-equipped item -- every other way to
 	# acquire gear (buy/reward/claim) is gated on inventory space, so this
@@ -1804,6 +1864,10 @@ func unequip(slot: GearItem.SlotType) -> void:
 			equipped_trinket = null
 		GearItem.SlotType.CHARM:
 			equipped_charm = null
+		GearItem.SlotType.LEGS:
+			equipped_legs = null
+		GearItem.SlotType.HANDS:
+			equipped_hands = null
 	inventory.append(removed)
 	build_changed.emit()
 
@@ -1823,13 +1887,17 @@ func equipped_item_for_slot(slot: GearItem.SlotType) -> GearItem:
 			return equipped_trinket
 		GearItem.SlotType.CHARM:
 			return equipped_charm
+		GearItem.SlotType.LEGS:
+			return equipped_legs
+		GearItem.SlotType.HANDS:
+			return equipped_hands
 	return null
 
 
 ## Universal Phase 5 paper-doll order.
 func equipped_gear() -> Array[GearItem]:
 	var gear: Array[GearItem] = []
-	for item in [equipped_weapon, equipped_helm, equipped_armor, equipped_trinket, equipped_charm]:
+	for item in [equipped_weapon, equipped_helm, equipped_armor, equipped_trinket, equipped_charm, equipped_legs, equipped_hands]:
 		if item != null:
 			gear.append(item)
 	return gear

@@ -1,5 +1,7 @@
 # M6-T11 closeout and M7 handoff
 
+> **Historical record — not an active work plan.** Status labels, next-step instructions and milestone numbering below describe the recorded checkpoint. M8 is closed; consult the current M9 tracker for authorized work. Retained at this path when tooling/manifests depend on it. [Current context](P6_Project_Onboarding_Context.md).
+
 2026-10-08. **M6-T11 Complete; M6 T1–T11 Complete.** This performs the user's requested final verification and closeout. D015 already accepts the retained milestone scope and defers further human balance review. D016 records completion of the authorized technical work; it does not approve new numerical changes.
 
 ## Final verification

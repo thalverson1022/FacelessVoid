@@ -42,6 +42,9 @@ static func _normalize(value: Variant) -> Variant:
 		# Icon Lab replaced presentation art in M4. Preserve the pre-T2 art
 		# identity in historical snapshots without changing gameplay fields.
 		var legacy_icons := {
+			"res://assets/ui/assigned_flat/skills/quick_cut.png": "res://assets/skill_icons/rogue/quick_cut.png",
+			"res://assets/ui/assigned_flat/skills/rending_slash.png": "res://assets/skill_icons/rogue/rending_slash.png",
+			"res://assets/ui/assigned_flat/skills/venom_jab.png": "res://assets/skill_icons/rogue/venom_jab.png",
 			"res://assets/ui/assigned/skills/quick_cut.png": "res://assets/skill_icons/rogue/quick_cut.png",
 			"res://assets/ui/assigned/skills/rending_slash.png": "res://assets/skill_icons/rogue/rending_slash.png",
 			"res://assets/ui/assigned/skills/venom_jab.png": "res://assets/skill_icons/rogue/venom_jab.png",
@@ -68,6 +71,9 @@ static func _old_fields(event: RefCounted) -> Dictionary:
 		if not (int(property.usage) & PROPERTY_USAGE_SCRIPT_VARIABLE):
 			continue
 		if property.name == "gold_transactions":
+			continue
+		# M7-M9 observation fields were absent from the historical pre-T2 schema.
+		if property.name in ["health_removed", "health_removal_captured", "potency_stacks_applied", "legendary_fuel", "legendary_depth", "stacks_preserved", "keyword_consume", "preservation_roll", "available_fuel"]:
 			continue
 		# T9 observation fields did not exist in the pre-T2 gameplay snapshot.
 		if event is CombatResolver.TickEvent and property.name in ["is_crit", "blocked_amount", "crit_negation_applied"]:

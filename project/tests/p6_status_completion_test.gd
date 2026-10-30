@@ -190,6 +190,6 @@ func _integration_boundaries() -> void:
 	dance.activate_dance(0)
 	dance.activate_dance(1000)
 	check(dance.state.snapshot().size() == 2, "Dance also retains independent self-buff instances")
-	var cast: Dictionary = dance.begin_cast("skill.stab", 500, 500, 5000, {"origin_kind": "macro"})
+	var cast: Dictionary = dance.begin_cast("skill.stab", 500, 500, 5000, {"origin_kind": "macro"}, true)
 	check(cast.guaranteed_repeat_sources.size() == 1, "overlapping Dance preserves one approved guarantee")
 	check(dance.state.snapshot().size() == 1, "first Dance instance expires independently")

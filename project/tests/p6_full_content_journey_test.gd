@@ -96,10 +96,10 @@ func _run() -> void:
 			scene._show_talent_overlay()
 			await settle()
 			await choose(view,state,0,"")
-			view.actions["budget"].get_parent().value = 10
+			check(state.set_talent_budget(10), "Set isolated ten-point model fixture")
 			await settle()
-			check(state.earned_talent_points == 10,"Practice budget control accepts ten")
-			view.actions["budget"].get_parent().value = 45
+			check(state.earned_talent_points == 10,"Practice budget model accepts ten")
+			check(state.set_talent_budget(45), "Set isolated full-budget model fixture")
 			await settle()
 			await choose(view,state,0,"tree."+first)
 			await choose(view,state,1,"tree."+second)
@@ -109,7 +109,7 @@ func _run() -> void:
 			if second == "assassin": other["talent.assassin.hastened_poison"] += 1
 			ranks.merge(other)
 			await allocate_ranks(view,state,ranks)
-			view.actions["budget"].get_parent().value = 44
+			check(not state.set_talent_budget(44), "Model rejects reduction below spent ranks")
 			await settle()
 			check(state.earned_talent_points == 45 and state.ranked_build.rank_map() == ranks,"invalid budget reduction atomic")
 			for id in ranks:

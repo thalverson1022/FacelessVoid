@@ -54,7 +54,8 @@ func _run() -> void:
 	assert(room._state.last_result != null and not room._state.last_result.is_valid)
 	assert(room._result_log.text.contains("Simulation stopped") and not room._view_log_button.disabled)
 	var labels: Array[String] = []
-	for label in room._log_inspector.find_children("*", "Label", true, false):
+	# The shared log summary is reparented into the overlay above the tabs.
+	for label in room._log_overlay.find_children("*", "Label", true, false):
 		labels.append(label.text)
 	assert(labels.has("Invalid simulation") and not labels.has("Practice") and not labels.has("Defeat"))
 	assert(state.gold == 71 and state.encounter_failure_counts == failures)

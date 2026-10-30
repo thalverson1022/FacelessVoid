@@ -1,5 +1,7 @@
 # T7 Block and Absorb Source Inventory
 
+> **Historical record — not an active work plan.** Status labels, next-step instructions and milestone numbering below describe the recorded checkpoint. M8 is closed; consult the current M9 tracker for authorized work. Retained at this path when tooling/manifests depend on it. [Current context](P6_Project_Onboarding_Context.md).
+
 Date: 2026-09-24. Historical source audit, preserved for comparison.
 
 **Current implementation:** The [T7 handoff](P6M3_T7_Status_And_Mitigation_Interactions.md)

@@ -1,5 +1,7 @@
 # P6M2-T8 — Foundation integration validation
 
+> **Historical record — not an active work plan.** Status labels, next-step instructions and milestone numbering below describe the recorded checkpoint. M8 is closed; consult the current M9 tracker for authorized work. Retained at this path when tooling/manifests depend on it. [Current context](P6_Project_Onboarding_Context.md).
+
 Date: 2026-09-23. Complete for the declared M2 foundation scope.
 Follow-up: [T9 closeout and M3 handoff](P6M2_T9_Closeout_And_M3_Handoff.md) is complete; M3-T1 is next.
 The evidence and original handoff below record the T8 checkpoint.

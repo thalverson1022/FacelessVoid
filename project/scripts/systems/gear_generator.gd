@@ -102,6 +102,8 @@ const SLOT_NAMES := {
 	GearItem.SlotType.ARMOR: "Doublet",
 	GearItem.SlotType.TRINKET: "Ring",
 	GearItem.SlotType.CHARM: "Necklace",
+	GearItem.SlotType.LEGS: "Pants",
+	GearItem.SlotType.HANDS: "Gloves",
 }
 
 const SLOT_TAGS := {
@@ -110,6 +112,8 @@ const SLOT_TAGS := {
 	GearItem.SlotType.ARMOR: "Armor",
 	GearItem.SlotType.TRINKET: "Trinket",
 	GearItem.SlotType.CHARM: "Charm",
+	GearItem.SlotType.LEGS: "Legs",
+	GearItem.SlotType.HANDS: "Hands",
 }
 
 const PREFIX_BY_STAT := {
@@ -163,6 +167,8 @@ const ALL_SLOTS: Array[GearItem.SlotType] = [
 	GearItem.SlotType.ARMOR,
 	GearItem.SlotType.TRINKET,
 	GearItem.SlotType.CHARM,
+	GearItem.SlotType.LEGS,
+	GearItem.SlotType.HANDS,
 ]
 
 # P5M5 procedural rolling excludes Crude starter gear and fixed Legendary gear.
@@ -181,6 +187,8 @@ const PHASE5_ALL_SLOTS: Array[GearItem.SlotType] = [
 	GearItem.SlotType.ARMOR,
 	GearItem.SlotType.TRINKET,
 	GearItem.SlotType.CHARM,
+	GearItem.SlotType.LEGS,
+	GearItem.SlotType.HANDS,
 ]
 const PHASE5_ALL_TIERS: Array[GearItem.Tier] = [
 	GearItem.Tier.CRUDE,
@@ -355,7 +363,8 @@ static func _generation_request_errors(request: Dictionary) -> PackedStringArray
 	var errors := PackedStringArray()
 	if not request.has("slot"):
 		errors.append("missing_slot")
-	elif not GearItem.universal_slot_order().has(int(request["slot"])):
+	# Acquisition follows the stable seven-slot order.
+	elif not ALL_SLOTS.has(int(request["slot"])):
 		errors.append("invalid_slot:%s" % str(request["slot"]))
 	if not request.has("tier"):
 		errors.append("missing_rarity")

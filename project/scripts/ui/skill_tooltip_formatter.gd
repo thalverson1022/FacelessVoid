@@ -41,9 +41,7 @@ static func compact_tooltip(skill: Skill, state) -> String:
 	var lines: PackedStringArray = [skill.display_name, "%s | %.2fs" % [speed_label_for(skill), CombatTiming.execution_time_ms(skill, stats.attack_speed) / 1000.0]]
 	lines.append(effect_summary(skill, state))
 	var extra := ""
-	if skill.id == "skill.parry_strike" and skill.enables_readiness:
-		extra = "Consumes Readiness at cast start; no effect without a stack."
-	elif skill.id == "skill.quick_cut" and stats.footwork_rank > 0:
+	if skill.id == "skill.quick_cut" and stats.footwork_rank > 0:
 		extra = "Hit: +1 Footwork (%ss, max 5)." % buff_seconds(3000, stats)
 	elif skill.id == "skill.leaping_plunge" and stats.footwork_rank > 0:
 		extra = "Consumes Footwork: %d%% faster per stack." % (stats.footwork_rank * 4 * buff_strength(stats))
@@ -107,7 +105,7 @@ static func conditions_for(skill: Skill, state) -> String:
 	if skill.id == "skill.touch_of_darkness":
 		return "Consumes all Poison and grants +%d%% attack speed and +%d base physical damage per stack actually consumed for %s seconds. Bonuses add to other sources. No fuel grants no buff." % [10 * buff_strength(stats), 2 * buff_strength(stats), buff_seconds(12000, stats)]
 	if skill.id == "skill.beguiling_presence":
-		var critical_note := "Signet converts the uncapped critical chance bonus to attack speed at 2x; cannot crit." if stats.legendary_signet else "Effective critical chance caps at 100%."
+		var critical_note := "Signet converts the uncapped critical chance bonus to attack speed at 1.5x; cannot crit." if stats.legendary_signet else "Effective critical chance caps at 100%."
 		return "Consumes all Decay and grants +%d base elemental damage and +%d percentage points of critical chance per stack actually consumed for %s seconds. %s No fuel grants no buff." % [buff_strength(stats), 2 * buff_strength(stats), buff_seconds(10000, stats), critical_note]
 
 	if skill.stolen_gold_base_cap > 0:
@@ -120,7 +118,7 @@ static func conditions_for(skill: Skill, state) -> String:
 		return "Critical hits multiply your full current crit damage multiplier by %.0fx, including gold-based bonuses. Noncritical hits do not gain this multiplier. Enemy critical-damage negation still applies." % skill.critical_damage_factor
 	for effect in skill.effects:
 		if effect is Exsanguinate:
-			return "Consumes all actual Shred once and removes %d health per stack (2 x resolved Shred Value). Bypasses mitigation; cannot crit or gain damage bonuses. Retriggers repeat the captured health removal without consuming more Shred. Shred consumption does not grant Death Pact." % (2 * stats.shred_value)
+			return "Consumes all actual Shred once and removes %d health per stack (1 x resolved Shred Value). Bypasses mitigation; cannot crit or gain damage bonuses. Cannot Retrigger. Shred consumption does not grant Death Pact." % stats.shred_value
 		if effect is ForcedPoisonTick:
 			if legendary_enabled(stats, "decrepit") and skill.id == "skill.poison_strike":
 				var coil_note := " Coil retriggers are free Poison activations: no extra Poison is required or consumed; each recalculates with live buffs using the captured stack count." if legendary_enabled(stats, "coil") else ""
@@ -135,7 +133,6 @@ static func conditions_for(skill: Skill, state) -> String:
 				return "Elemental damage ignores resistance for %s seconds, including existing Poison. Stored Decay remains; normal resistance resumes when the buff expires." % buff_seconds(5000, stats)
 	var notes: PackedStringArray = []
 	if skill.id == "skill.parry_strike" and skill.enables_readiness:
-		notes.append("Requires and consumes 1 Readiness at cast start. Without Readiness, spends its cast time without effects. Connected retriggers grant one untimed Readiness stack after their child effects; maximum one stack.")
 		if stats.side_step_enabled and not stats.legendary_signet:
 			notes.append("Side Step: 100% crit chance; enemy critical-damage negation still applies.")
 	if skill.id == "skill.leaping_plunge":
@@ -173,7 +170,7 @@ static func details_for(skill: Skill, state) -> String:
 	else:
 		lines.append("Cooldown: none. Duplicate slots are allowed.")
 	if skill.id == "skill.exsanguinate":
-		lines.append("Health removal uses resolved Shred Value and actual Shred consumed; Retriggers reuse the captured amount.")
+		lines.append("Health removal uses resolved Shred Value and actual Shred consumed. Cannot Retrigger.")
 	else:
 		lines.append("Damage and stack values above are current-build estimates. Enemy defenses, critical hits and live temporary stats can change the outcome.")
 	return "\n".join(lines)
@@ -190,6 +187,8 @@ static func effect_summary(skill: Skill, state = null) -> String:
 		return "No effect"
 	if skill.id == "skill.hold":
 		return "Holds for 1.0s"
+	if skill.id == "skill.parry_strike":
+		return "Requires and consumes Readiness. Readiness is granted by any skill retrigger"
 	if skill.id == "skill.killers_mark":
 		var umbral := legendary_enabled(resolved_stats(state), "umbral")
 		return "One hit: 111%% x (weapon damage + 2 x current Poison count%s + flat physical bonuses), before multipliers. Does not consume Poison%s." % [" + current Decay count" if umbral else "", " or Decay" if umbral else ""]
@@ -213,7 +212,7 @@ static func effect_summary(skill: Skill, state = null) -> String:
 		elif effect is ForcedPoisonTick:
 			parts.append("On hit: Consume all Poison in one burst" if legendary_enabled(stats, "decrepit") and skill.id == "skill.poison_strike" else "On hit: one fueled Poison tick")
 		elif effect is Exsanguinate:
-			parts.append("Consume all Shred: remove %d health per stack; Retriggers repeat the captured amount" % (2 * stats.shred_value))
+			parts.append("Removes %d health per stack of Shred consumed\nCannot Retrigger" % stats.shred_value)
 		elif effect is DefenseDebuff:
 			var base: int = stats.assassin_tree_points if effect.use_assassin_points else effect.base_stacks
 			parts.append("Apply %d Potency (%ss, max 50)" % [mini(50, _effective_stack_total(base, stats.bonus_potency_stacks, stats)), buff_seconds(3000 + 1000 * stats.death_pact_rank, stats)])

@@ -1,11 +1,5 @@
 extends SceneTree
 const Backdrop=preload("res://scripts/ui/talent_tree_backdrop.gd")
-const Formatter=preload("res://scripts/ui/talent_hover_formatter.gd")
-class Snapshot extends RefCounted:
-	var ranks: Dictionary={}
-	func rank_of(id: String) -> int: return int(ranks.get(id,0))
-class Context extends RefCounted:
-	var ranked_build
 var checks:=0
 var failed:=false
 func _initialize() -> void: call_deferred("run")
@@ -23,44 +17,18 @@ func geometry(panel: Control) -> Dictionary:
 	return data
 func run() -> void:
 	var registry:=BuildContentRegistry.test_mode()
-	var snapshot:=Snapshot.new()
-	var context:=Context.new()
-	context.ranked_build=snapshot
+	# Dashboard now shows subclass identity only; full talent text stays in trees.
 	var hud=load("res://scenes/combat/active_talents_panel.gd").new()
-	check(hud._intrinsic_description(registry.trees["tree.thief"])=="x10% Increased Gold","Active Talents shared Thief intrinsic")
-	hud.state=context
-	var rank_count:=0
 	for tree in registry.trees.values():
-		for talent in tree.talents:
-			for rank in range(1,talent.max_ranks+1):
-				snapshot.ranks={talent.id:rank}
-				var row: VBoxContainer=hud._build_talent_row(talent)
-				var expected: Array=Formatter.model(talent,tree,snapshot).current_rows
-				var rendered:=row.find_children("ActiveTalentEffect*","RichTextLabel",true,false)
-				check(rendered.size()==expected.size(),talent.id+" complete current-rank row count")
-				check(row.find_children("*","TextureRect",true,false).is_empty(),talent.id+" no individual talent icons")
-				for i in expected.size():
-					var label: RichTextLabel=rendered[i]
-					check(label.get_parsed_text()==Formatter.row_text(expected[i]),talent.id+" same current text rank"+str(rank))
-					check(label.get_theme_color("default_color")==Formatter.BASIC,talent.id+" same row color")
-					check(label.get_theme_font_size("normal_font_size")==13,talent.id+" compact13px")
-					var runs:=preload("res://scripts/ui/talent_effect_rows.gd").text_runs(expected[i])
-					var gold_count:=0
-					for run in runs:
-						if run.kind=="value":
-							gold_count+=1
-							check(run.color==UIColors.TEXT_GOLD and run.text==expected[i].value,talent.id+" same current gold value")
-					check(gold_count==(0 if expected[i].value=="" else 1),talent.id+" only current stat value gold")
-
-					check(not label.get_parsed_text().contains("Next rank") and not label.get_parsed_text().contains("Requires:"),talent.id+" no tooltip-only content")
-				row.free()
-				rank_count+=1
-	check(rank_count==140 and registry.talents.size()==44,"All44 talents and140current ranks")
-	context.ranked_build=null
-	var legacy: Talent=load("res://data/talents/assassin/precise_cuts.tres")
-	var legacy_row: VBoxContainer=hud._build_talent_row(legacy)
-	check(legacy_row.get_child_count()==2 and legacy_row.get_child(1).text==hud._talent_summary(legacy),"Legacy summary fallback retained")
-	legacy_row.free()
+		var row: HBoxContainer=hud._build_subclass_row(tree,0)
+		check(row.get_node("SubclassName").text==tree.display_name,tree.id+" subclass name")
+		check(row.get_node("SubclassIcon") is TextureRect,tree.id+" subclass icon")
+		check(row.get_child_count()==2,tree.id+" only icon and name")
+		row.free()
+	var empty: HBoxContainer=hud._build_subclass_row(null,1)
+	check(empty.get_node("SubclassName").text=="none","Missing secondary reads none")
+	check(empty.get_node("EmptySubclassIcon") is ColorRect,"Missing secondary gray square")
+	empty.free()
 	hud.free()
 	for id in Backdrop.PATHS:
 		var texture: Texture2D=load(Backdrop.PATHS[id])
@@ -136,5 +104,5 @@ func run() -> void:
 	game.queue_free()
 	await process_frame
 	state.reset()
-	print("PASS tree background/current Active Talents checks: ",checks)
+	print("PASS tree background/compact Subclass checks: ",checks)
 	quit(1 if failed else 0)

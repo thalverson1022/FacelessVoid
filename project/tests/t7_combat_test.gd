@@ -133,7 +133,7 @@ func exsanguinate() -> void:
 	var ex := skill("skill.exsanguinate",Skill.Category.DEBUFF,300)
 	ex.cooldown_ms = 8000
 	var m := monster()
-	m.hp = 1000
+	m.hp = 500
 	m.armor = 30
 	m.block = 999.0
 	m.absorb = 999.0
@@ -142,20 +142,25 @@ func exsanguinate() -> void:
 	m.dodge_chance = 1.0
 	m.stun_duration_ms = 2000
 	var r := CombatResolver.resolve([shred,ex],p,m,600,22,true)
-	check(r.cast_events.size() == 18, "Exsanguinate has root plus 16 legal Debuff repeats")
-	check(r.total_damage == 0.0 and r.dps == 0.0 and r.total_health_removed == 20400.0 and r.total_health_loss() == 20400.0 and r.is_win, "health removal wins through explicit health-loss total without inflating damage or DPS")
-	check(rows(r,"health_removal").size() == 17 and r.cast_events.all(func(e):return e.stun_duration_ms == 0), "distinct health-removal operations never trigger damage-based stun")
+	check(r.cast_events.size() == 2, "Exsanguinate executes once despite100 percent Retrigger")
+	check(r.total_damage == 0.0 and r.dps == 0.0 and r.total_health_removed == 600.0 and r.total_health_loss() == 600.0 and r.is_win, "health removal wins through explicit health-loss total without inflating damage or DPS")
+	check(rows(r,"health_removal").size() == 1 and r.cast_events.all(func(e):return e.stun_duration_ms == 0), "one health-removal operation never triggers damage-based stun")
 	check(rows(r,"legendary_locket_trial").is_empty() and rows(r,"legendary_wingjammer_trial").is_empty(), "health removal creates no critical packet item hooks")
 	check(r.cast_events[1].damage_contributions[0].kind == "health_removal" and r.cast_events[1].damage_contributions[0].damage == 0.0, "health-removal contribution carries a distinct type")
 	for e in r.cast_events:
 		if e.skill.id == "skill.exsanguinate":
-			check(e.health_removed == 1200.0 and e.physical_damage == 0.0 and not e.is_crit and not e.was_dodged, "captured direct removal bypasses defenses bonuses crit dodge")
+			check(e.health_removed == 600.0 and e.physical_damage == 0.0 and not e.is_crit and not e.was_dodged, "captured direct removal bypasses defenses bonuses crit dodge")
 			check(e.status_snapshot.shred == 0 and e.status_snapshot.armor == 30 and e.status_snapshot.defenses.block == 999.0, "Exsanguinate restores armor and grants no Death Pact")
-	check(r.cast_events[1].stat_snapshot.actual_consumed == 10 and r.cast_events[2].stat_snapshot.actual_consumed == 0, "only original Exsanguinate consumes actual Shred")
+	check(r.cast_events[1].stat_snapshot.actual_consumed == 10 and r.cast_events[1].origin_kind == "macro", "root Exsanguinate consumes all actual Shred")
+	check(rows(r,"legendary_buff_grant").is_empty(), "Exsanguinate grants no phantom repeat Meditation")
 	check(rows(r,"cooldown_started")[0].payload.cooldown_available_at_ms == 8600 and ex.min_execution_ms == 300, "Debuff min300 cooldown8sec")
+	var above := m.duplicate(true) as Monster
+	above.hp = 601
+	var boundary := CombatResolver.resolve([shred,ex],p,above,600,22,true)
+	check(boundary.is_valid and boundary.total_health_removed == 600.0 and not boundary.is_win, "one-times removal cannot defeat601 health with ten Shred at value60")
 	save_witness("exsanguinate_defenses_capture",r)
 	var empty := CombatResolver.resolve([ex],p,m,300,22,true)
-	check(empty.total_damage == 0.0 and rows(empty,"legendary_buff_grant").size() == 16, "zero fuel repeats remove zero and grant Meditation")
+	check(empty.cast_events.size() == 1 and empty.total_damage == 0.0 and empty.total_health_removed == 0.0 and rows(empty,"legendary_buff_grant").is_empty(), "zero fuel Exsanguinate removes zero and grants no repeat Meditation")
 	check(rows(empty,"legendary_locket_trial").is_empty() and rows(empty,"legendary_wingjammer_trial").is_empty(), "Exsanguinate has no critical item hooks")
 	var invalid := ex.duplicate(true) as Skill
 	invalid.category = Skill.Category.ATTACK
@@ -192,7 +197,7 @@ func coil_and_decrepit() -> void:
 		crits += int(t.is_crit)
 		check(t.legendary_fuel == 4 and t.stacks_remaining == 0, "Coil carries original packet fuel without stacks")
 	check(consumed == 4 and crits > 0 and crits < 17, "fresh talent enabled crit rolls and no second fuel cost")
-	check(r.tick_events[0].raw_damage == 80.0 and r.tick_events[4].raw_damage == 80.0 and r.tick_events[5].raw_damage == 40.0, "first five Virulent charges amplify; later repeats recalculate live x1")
+	check(r.tick_events[0].raw_damage == 80.0 and is_equal_approx(r.tick_events[4].raw_damage,128.0) and is_equal_approx(r.tick_events[5].raw_damage,72.0), "Virulent charges expire while later repeats recalculate live all-damage Meditation")
 	check(rows(r,"legendary_poison_consume").size() == 1 and rows(r,"legendary_poison_depth_limit").size() == 1, "one keyword Consume and depth16 retained")
 	check(rows(r,"legendary_locket_trial").size() == crits and rows(r,"legendary_wingjammer_trial").size() == crits, "one Locket then Wingjammer roll per Poison crit")
 	check(rows(r,"legendary_buff_grant").filter(func(x):return x.payload.kind == "meditation").size() == 16, "every Poison repeat grants Meditation")
@@ -342,18 +347,13 @@ func boundaries_and_flags_off() -> void:
 	r = CombatResolver.resolve([fuel,skill("test.wait",Skill.Category.DEBUFF,2000)],p,monster(),600,5,true)
 	check(r.tick_events.size() == 17 and r.tick_events[0].time_ms == 500 and r.tick_events[0].tick_interval_ms == 500 and r.tick_events.back().stacks_remaining == 3, "actual Wyvern cadence plus Coil costs one natural fuel only")
 	save_witness("wyvern_coil",r)
-	# A captured repeat must preserve newly supplied Shred instead of clearing it.
+	# A guarantee must not admit a health-removal skill to self-repeat eligibility.
 	p = player()
-	var captured := CombatResolver.CastEvent.new()
-	captured.skill = ex
-	captured.time_ms = 100
-	captured.health_removed = 1200.0
-	captured.health_removal_captured = true
-	m = monster()
-	m.armor = 100
-	r = tick_result(p,m)
-	var state := CombatResolver._apply_skill_effects(ex,captured,p,m,60,0.0,0,4,r.combat_rng,"proc",0,0,r)
-	check(state.shred_stacks == 4 and state.armor == 60 and captured.status_transactions.is_empty() and captured.health_removed == 1200.0 and captured.physical_damage == 0.0, "captured Exsanguinate repeat preserves later Shred without any second transaction")
+	p.retrigger_chance = 1.5
+	var guaranteed := CombatResolver.CastEvent.new()
+	guaranteed.skill = ex
+	guaranteed.lifecycle_snapshot = {"guaranteed_repeat_sources": PackedStringArray(["dance", "precision"])}
+	check(CombatResolver._triggers_for_source(guaranteed,p).is_empty(), "Exsanguinate cannot self-repeat from overcap chance or guarantees")
 	p = player({"cloak":true,"samurai":true})
 	p.retrigger_chance = 1.0
 	p.footwork_rank = 1
@@ -491,9 +491,9 @@ func equipped_production_weapons() -> void:
 	var target := monster()
 	target.armor = 99999
 	target.block = 99999.0
-	target.hp = 700
+	target.hp = 350
 	r = CombatResolver.resolve([shred,ex],p,target,400,3,true)
-	check(r.is_valid and r.cast_events[1].health_removed == 720.0 and r.total_damage == 0.0 and r.is_win and r.cast_events[1].status_snapshot.armor == target.armor, "production Nightkiss consumes actual six Shred for720 direct health removal and restores armor")
+	check(r.is_valid and r.cast_events[1].health_removed == 360.0 and r.total_damage == 0.0 and r.is_win and r.cast_events[1].status_snapshot.armor == target.armor, "production Nightkiss consumes actual six Shred for360 direct health removal and restores armor")
 	save_witness("production_nightkiss",r)
 	# Real Umbral keeps Decay and augments Death Strike's existing weapon packet.
 	gear = [load("res://data/gear/umbral_stiletto.tres")]

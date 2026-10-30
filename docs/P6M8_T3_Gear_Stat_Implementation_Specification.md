@@ -1,12 +1,16 @@
 # P6M8-T3 — Gear stat implementation specification
 
-2026-10-22. **Approved implementation contract; implemented and verified under D008.** T3 is Complete; see the [closeout and evidence](P6M8_T3_Closeout_And_Verification.md). This document reconciles the user's replacement pool and timing decisions with current source. It supersedes conflicting implementation details in the [earlier proposal](P6M8_T3_Gear_Stat_Pool_Proposal.md); the contract alone did not establish completion, and the linked closeout does not claim broader balance acceptance.
+> **Retained mechanics/presentation reference.** Work status and scope are maintained in the current M9 tracker and phase roadmap. Older checkpoint/save-policy labels below are historical; the approved M9 save reset applies at implementation. [Current context](P6_Project_Onboarding_Context.md).
+
+2026-10-22. **Approved implementation contract; implemented and verified under D008.** T3 is Complete; see the [closeout and evidence](archive/m8/P6M8_T3_Closeout_And_Verification.md). This document reconciles the user's replacement pool and timing decisions with current source. It supersedes conflicting implementation details in the [earlier proposal](archive/m8/P6M8_T3_Gear_Stat_Pool_Proposal.md); the contract alone did not establish completion, and the linked closeout does not claim broader balance acceptance.
 
 ## Authority and resolved defaults
 
 **User-confirmed:** the complete five-slot ranges/categories below; all five new identities; multiplicative CDR per contribution with no aggregate hard cap, including the reviewed 99.7536% extreme; additive duration affecting timed player buffs and Penetration/Potency; existing rarity/depth and All Stacks behavior. Crit eligibility follows the existing direct-critical-contribution interpretation already stated to the user.
 
-**Implementation defaults resolved by this reconciliation:** retained-entry weights stay at current source values; new timing entries weight 8, crit-debuff entries 10, inventory-economy Special 5; additive duration has **no hard cap**; CDR factors saturate individually at 100% after All Stats; exact RNG/order, carried-item aggregation, version gates and validation contracts below. These are specified under the user's request to finish technical reconciliation, not falsely attributed as individually explicit user decisions. There are no unresolved core implementation choices. Subsequent balance observations do not authorize restoring rejected timing caps.
+**Current weight amendment — P6M9-D008 (2026-10-25):** all Basic entries in every slot have equal weight **1**; Basic-derived drawbacks inherit those equal weights. Rare/Special weights, membership, ranges and pool order are unchanged. The original M8 retained-weight checkpoint remains historical evidence.
+
+**Implementation defaults resolved by the original reconciliation:** retained-entry weights stayed at the then-current source values; new timing entries weight 8, crit-debuff entries 10, inventory-economy Special 5; additive duration has **no hard cap**; CDR factors saturate individually at 100% after All Stats; exact RNG/order, carried-item aggregation, version gates and validation contracts below. These are specified under the user's request to finish technical reconciliation, not falsely attributed as individually explicit user decisions. There are no unresolved core implementation choices. Subsequent balance observations do not authorize restoring rejected timing caps.
 
 ## Complete normal pool
 
@@ -16,12 +20,12 @@ Every row is an individual eligible affix. Ranges are baseline units before rari
 
 | Category | Canonical ID | Weight | Base min | Base max |
 | --- | --- | --- | --- | --- |
-| Basic | `base_damage` | 20 | 2 | 5 |
-| Basic | `percent_physical_damage` | 15 | .10 | .20 |
-| Basic | `crit_damage` | 15 | .50 | .75 |
-| Basic | `base_elemental_damage` | 10 | 3 | 6 |
-| Basic | `percent_elemental_damage` | 10 | .30 | .40 |
-| Basic | `increased_gold` | 5 | .20 | .30 |
+| Basic | `base_damage` | 1 | 2 | 5 |
+| Basic | `percent_physical_damage` | 1 | .10 | .20 |
+| Basic | `crit_damage` | 1 | .50 | .75 |
+| Basic | `base_elemental_damage` | 1 | 3 | 6 |
+| Basic | `percent_elemental_damage` | 1 | .30 | .40 |
+| Basic | `increased_gold` | 1 | .20 | .30 |
 | Rare | `chance_to_shred` | 15 | .08 | .10 |
 | Rare | `chance_to_decay` | 10 | .08 | .10 |
 | Rare | `chance_for_retrigger` | 10 | .05 | .08 |
@@ -39,13 +43,13 @@ Every row is an individual eligible affix. Ranges are baseline units before rari
 
 | Category | Canonical ID | Weight | Base min | Base max |
 | --- | --- | --- | --- | --- |
-| Basic | `percent_physical_damage` | 10 | .20 | .25 |
-| Basic | `crit_chance` | 15 | .03 | .08 |
-| Basic | `increased_attack_speed` | 15 | .05 | .12 |
-| Basic | `base_elemental_damage` | 10 | 4 | 10 |
-| Basic | `percent_elemental_damage` | 10 | .25 | .35 |
-| Basic | `increased_all_stacks` | 30 | 1 | 2 |
-| Basic | `increased_gold` | 5 | .40 | .50 |
+| Basic | `percent_physical_damage` | 1 | .20 | .25 |
+| Basic | `crit_chance` | 1 | .03 | .08 |
+| Basic | `increased_attack_speed` | 1 | .05 | .12 |
+| Basic | `base_elemental_damage` | 1 | 4 | 10 |
+| Basic | `percent_elemental_damage` | 1 | .25 | .35 |
+| Basic | `increased_all_stacks` | 1 | 1 | 2 |
+| Basic | `increased_gold` | 1 | .40 | .50 |
 | Rare | `chance_to_shred` | 10 | .08 | .10 |
 | Rare | `chance_to_decay` | 10 | .08 | .10 |
 | Rare | `crit_applies_element` | 10 | .20 | .30 |
@@ -60,11 +64,11 @@ Every row is an individual eligible affix. Ranges are baseline units before rari
 
 | Category | Canonical ID | Weight | Base min | Base max |
 | --- | --- | --- | --- | --- |
-| Basic | `percent_physical_damage` | 15 | .10 | .20 |
-| Basic | `crit_chance` | 10 | .02 | .04 |
-| Basic | `percent_elemental_damage` | 10 | .30 | .40 |
-| Basic | `increased_gold` | 15 | .20 | .30 |
-| Basic | `increased_all_stacks` | 30 | 1 | 2 |
+| Basic | `percent_physical_damage` | 1 | .10 | .20 |
+| Basic | `crit_chance` | 1 | .02 | .04 |
+| Basic | `percent_elemental_damage` | 1 | .30 | .40 |
+| Basic | `increased_gold` | 1 | .20 | .30 |
+| Basic | `increased_all_stacks` | 1 | 1 | 2 |
 | Rare | `chance_to_shred` | 10 | .08 | .10 |
 | Rare | `chance_to_decay` | 10 | .08 | .10 |
 | Rare | `crit_applies_element` | 10 | .10 | .20 |
@@ -86,13 +90,13 @@ Every row is an individual eligible affix. Ranges are baseline units before rari
 
 | Category | Canonical ID | Weight | Base min | Base max |
 | --- | --- | --- | --- | --- |
-| Basic | `base_damage` | 15 | 4 | 6 |
-| Basic | `percent_physical_damage` | 15 | .15 | .25 |
-| Basic | `crit_chance` | 15 | .04 | .06 |
-| Basic | `increased_attack_speed` | 15 | .08 | .10 |
-| Basic | `base_elemental_damage` | 10 | 5 | 8 |
-| Basic | `percent_elemental_damage` | 10 | .20 | .30 |
-| Basic | `increased_gold` | 5 | .10 | .20 |
+| Basic | `base_damage` | 1 | 4 | 6 |
+| Basic | `percent_physical_damage` | 1 | .15 | .25 |
+| Basic | `crit_chance` | 1 | .04 | .06 |
+| Basic | `increased_attack_speed` | 1 | .08 | .10 |
+| Basic | `base_elemental_damage` | 1 | 5 | 8 |
+| Basic | `percent_elemental_damage` | 1 | .20 | .30 |
+| Basic | `increased_gold` | 1 | .10 | .20 |
 | Rare | `chance_for_retrigger` | 15 | .03 | .06 |
 | Rare | `chance_to_shred` | 10 | .08 | .10 |
 | Rare | `chance_to_decay` | 10 | .08 | .10 |
@@ -113,14 +117,14 @@ Every row is an individual eligible affix. Ranges are baseline units before rari
 
 | Category | Canonical ID | Weight | Base min | Base max |
 | --- | --- | --- | --- | --- |
-| Basic | `percent_physical_damage` | 10 | .15 | .25 |
-| Basic | `crit_chance` | 20 | .06 | .08 |
-| Basic | `increased_attack_speed` | 15 | .10 | .15 |
-| Basic | `crit_damage` | 15 | .40 | .60 |
-| Basic | `base_elemental_damage` | 10 | 6 | 10 |
-| Basic | `percent_elemental_damage` | 10 | .30 | .40 |
-| Basic | `increased_gold` | 5 | .15 | .30 |
-| Basic | `increased_all_stacks` | 30 | 1 | 2 |
+| Basic | `percent_physical_damage` | 1 | .15 | .25 |
+| Basic | `crit_chance` | 1 | .06 | .08 |
+| Basic | `increased_attack_speed` | 1 | .10 | .15 |
+| Basic | `crit_damage` | 1 | .40 | .60 |
+| Basic | `base_elemental_damage` | 1 | 6 | 10 |
+| Basic | `percent_elemental_damage` | 1 | .30 | .40 |
+| Basic | `increased_gold` | 1 | .15 | .30 |
+| Basic | `increased_all_stacks` | 1 | 1 | 2 |
 | Rare | `chance_to_shred` | 10 | .08 | .10 |
 | Rare | `chance_to_decay` | 10 | .08 | .10 |
 | Rare | `crit_applies_element` | 15 | .12 | .18 |
@@ -140,16 +144,16 @@ Every row is an individual eligible affix. Ranges are baseline units before rari
 
 | Slot | Basic count / weight | Rare count / weight | Special count / weight | Positive entries |
 | --- | --- | --- | --- | --- |
-| Weapon | 6 / 75 | 8 / 66 | 4 / 20 | 18 |
-| Helm | 7 / 95 | 6 / 58 | 3 / 15 | 16 |
-| Armor | 5 / 80 | 6 / 58 | 10 / 75 | 21 |
-| Trinket | 7 / 85 | 7 / 73 | 8 / 65 | 22 |
-| Charm | 8 / 115 | 6 / 63 | 8 / 65 | 22 |
-| Total | **33 / 450** | **33 / 318** | **33 / 240** | **99** |
+| Weapon | 6 / 6 | 8 / 66 | 4 / 20 | 18 |
+| Helm | 7 / 7 | 6 / 58 | 3 / 15 | 16 |
+| Armor | 5 / 5 | 6 / 58 | 10 / 75 | 21 |
+| Trinket | 7 / 7 | 7 / 73 | 8 / 65 | 22 |
+| Charm | 8 / 8 | 6 / 63 | 8 / 65 | 22 |
+| Total | **33 / 33** | **33 / 318** | **33 / 240** | **99** |
 
-There are **66 numeric** positive slot/category entries, **33 binary** entries and **33 derived Basic-drawback entries**. Weight is relative within category, not percentage. The [machine-readable expected pool](../work/m8_t3_spec/expected_pool.json) and [weight reconciliation](../work/m8_t3_spec/weight_reconciliation.json) are specification evidence, not runtime data: 83 retained entries preserve source weights, 16 new entries are added and 22 old entries removed. Source: [StatCatalog.SLOT_CATEGORY_POOLS](../project/scripts/systems/stat_catalog.gd).
+There are **66 numeric** positive slot/category entries, **33 binary** entries and **33 derived Basic-drawback entries**. Weight is relative within category, not percentage. The [current seven-slot pool contract](../work/m9_equal_basic_weights/expected_pool.json) records D008 Basic weights and includes the approved, not-yet-integrated Pants/Gloves pools. The [original M8 expected pool](../work/m8_t3_spec/expected_pool.json) and [weight reconciliation](../work/m8_t3_spec/weight_reconciliation.json) preserve historical pre-D008 evidence, not current Basic weights: 83 retained entries preserve source weights, 16 new entries are added and 22 old entries removed. Source: [StatCatalog.SLOT_CATEGORY_POOLS](../project/scripts/systems/stat_catalog.gd).
 
-Remove Basic Discount/Magic Find everywhere and Rare economy outside Weapon from generation only; retain definitions/aliases/consumers for saved gear. Weapon Rare economy overrides must be `.50–1.00`, `.10–.20`, `.10–.20`, not inherited old overrides. Unpooled Shred strength, extra Shred and Decay strength remain unpooled and unchanged.
+For the five slots specified here, remove Basic Discount/Magic Find and Rare economy outside Weapon from generation only; M9 explicitly adds approved economy rows to Pants/Gloves; retain definitions/aliases/consumers for saved gear. Weapon Rare economy overrides must be `.50–1.00`, `.10–.20`, `.10–.20`, not inherited old overrides. Unpooled Shred strength, extra Shred and Decay strength remain unpooled and unchanged.
 
 Keep [GearGenerator](../project/scripts/systems/gear_generator.gd) shapes: Basic 1 Basic; Master 2 Basic; Epic 2 Basic+1 Rare; Cursed 2 Basic+1 Rare+1 Basic drawback; Unique 3 Basic+1 Rare+1 Special; Chaos four independent outcomes (Basic positive weight5, Rare positive4, Basic drawback5). Rare entries never roll on Basic/Master. Specials only roll on Unique, not Chaos. Crude/fixed Legendary resources do not enter generation. Ordinary canonical IDs stay unique across categories/signs; Chaos permits duplicates. Retain pool order shown above for deterministic generation in the new content revision.
 
@@ -251,7 +255,7 @@ Inventory economy has a concrete purchase/resale surface: an80-gold Legendary se
 
 ## Required implementation verification
 
-The [T2 audit](P6M8_T2_Current_Legendary_And_System_Audit.md) and [mechanics reference](Combat_Mechanics_Reference.md) establish source anchors, not fresh passes. Extend affected suites and deliberately update pool/range fixtures; preserve unrelated expectations.
+The [T2 audit](archive/m8/P6M8_T2_Current_Legendary_And_System_Audit.md) and [mechanics reference](Combat_Mechanics_Reference.md) establish source anchors, not fresh passes. Extend affected suites and deliberately update pool/range fixtures; preserve unrelated expectations.
 
 | Existing suite anchors | Required witnesses |
 | --- | --- |
@@ -267,6 +271,6 @@ Use the established isolated-save workflow, never real userdata or sibling Enigm
 
 ## Completion boundary and documentation evidence
 
-T3 implementation, targeted evidence, isolated compatibility and presentation checks are delivered in the [implementation closeout](P6M8_T3_Closeout_And_Verification.md). Broader earned-run and launch balance acceptance remains outside this closeout. Machine-readable pool/weight/math artifacts above remain specification evidence; actual runtime reports are linked from the closeout.
+T3 implementation, targeted evidence, isolated compatibility and presentation checks are delivered in the [implementation closeout](archive/m8/P6M8_T3_Closeout_And_Verification.md). Broader earned-run and launch balance acceptance remains outside this closeout. Machine-readable pool/weight/math artifacts above remain specification evidence; actual runtime reports are linked from the closeout.
 
 The historical specification-preparation [documentation verification report](../work/m8_t3_spec/verification.json), reproducible with [verify_spec.py](../work/m8_t3_spec/verify_spec.py), checks all 99 table entries against the reconciled pool, local document links, 21 existing test anchors and 1,262 source-file hashes against the task-start baseline. At specification preparation these checks passed with no pool mismatches, broken links, missing test anchors or source changes. The separate closeout manifest records subsequent authorized implementation changes.

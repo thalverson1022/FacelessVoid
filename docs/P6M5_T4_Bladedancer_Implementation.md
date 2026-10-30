@@ -1,5 +1,7 @@
 # M5-T4 — Complete Bladedancer
 
+> **Historical record — not an active work plan.** Status labels, next-step instructions and milestone numbering below describe the recorded checkpoint. M8 is closed; consult the current M9 tracker for authorized work. Retained at this path when tooling/manifests depend on it. [Current context](P6_Project_Onboarding_Context.md).
+
 Status: **Complete** · 2026-10-03
 
 Implements the [approved T3 specification](P6M5_T3_Bladedancer_Design_Review.md), including user decisions D01–D03. All 13 Bladedancer talents / 35 ranks and all five tree skills are available in Practice and Test Mode. Thief remains limited to Keen Eye and its existing skill unlocks; nine Thief nodes remain previews. Numerical tuning remains M6; broader presentation polish remains M7.

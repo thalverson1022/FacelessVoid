@@ -8,6 +8,8 @@ var active: Dictionary = {}
 var held_effects: Array = []
 var _cast_impacts: Dictionary = {}
 var cooldowns: Dictionary = {}
+## Monotonic presentation credits; observers consume each actual reduction once.
+var cooldown_credits: Dictionary = {}
 var statuses: Dictionary = {}
 var stash := 0
 var stolen := 0
@@ -39,6 +41,7 @@ func clear() -> void:
 	held_effects.clear()
 	_cast_impacts.clear()
 	cooldowns.clear()
+	cooldown_credits.clear()
 	statuses.clear()
 	attempt.clear()
 	journal.clear()
@@ -113,6 +116,8 @@ func apply(event: Dictionary) -> void:
 			var changes: Dictionary = payload.get("deadlines", {})
 			for id in changes:
 				cooldowns[id] = int(changes[id].after)
+				if int(changes[id].before) > int(changes[id].after):
+					cooldown_credits[id] = int(cooldown_credits.get(id, 0)) + 1
 			if not changes.is_empty(): note = "Locket: cooldowns reduced"
 		"schedule_decision":
 			if origin == "macro" and payload.get("decision") != "window_exhausted":

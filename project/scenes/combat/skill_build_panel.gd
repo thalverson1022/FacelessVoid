@@ -40,6 +40,10 @@ const SkillTooltipFormatterScript := preload("res://scripts/ui/skill_tooltip_for
 ## P2:R10: see talent_panel.gd's `state` comment -- same pattern, same
 ## default, same untyped declaration reason.
 var state = BuildState
+var _credit_model
+var _seen_cooldown_credits := {}
+var _cooldown_pulses := {}
+var locket_pulse_count := 0
 
 var _content: VBoxContainer
 var _title_label: Label
@@ -591,7 +595,11 @@ func _pulse_slot(slot: Button) -> void:
 	_pulse_tween.tween_callback(func(): _apply_slot_style(slot, true, false))
 
 
-func update_presentation(model) -> void:
+func update_presentation(model, animate: bool = true) -> void:
+	if _credit_model != model:
+		clear_legendary_feedback()
+		_credit_model = model
+		_seen_cooldown_credits.clear()
 	_readiness_available = model.units("buff.readiness") > 0
 	# A charge can be granted and spent at the same timeline instant. Keep the
 	# accepted Parry lit through windup, like the HUD's held Readiness display.
@@ -602,12 +610,46 @@ func update_presentation(model) -> void:
 		_apply_slot_stun_modulate(_slot_buttons[i])
 		var skill: Skill = state.rotation[i]
 		var label: Label = _slot_buttons[i].get_node("CooldownLabel")
+		var credits := int(model.cooldown_credits.get(skill.id, 0))
+		if credits > int(_seen_cooldown_credits.get(skill.id, 0)) and animate and not CombatEffectIcons.reduced_motion:
+			_pulse_cooldown(label)
 		label.text = "%.1fs" % ((int(model.cooldowns[skill.id]) - model.time_ms) / 1000.0) if model.cooldowns.has(skill.id) else ""
+		if label.text.is_empty() and _cooldown_pulses.has(label): label.text = "0.0s"
 		if i == int(model.attempt.get("rotation_index", -1)) and model.time_ms < int(model.attempt.get("end_ms", 0)) and model.attempt.get("reason") == "missing_readiness":
 			label.text = "No stack"
 		label.visible = not label.text.is_empty()
+	_seen_cooldown_credits = model.cooldown_credits.duplicate()
+	if not animate or CombatEffectIcons.reduced_motion: clear_legendary_feedback()
+
+func _pulse_cooldown(label: Label) -> void:
+	if _cooldown_pulses.has(label): _cooldown_pulses[label].kill()
+	locket_pulse_count += 1
+	label.set_meta("locket_pulse", true)
+	label.pivot_offset = label.size * 0.5
+	label.scale = Vector2.ONE * 1.3
+	label.modulate = Color(1.0, 1.0, 0.65)
+	var tween := label.create_tween().set_parallel(true)
+	_cooldown_pulses[label] = tween
+	tween.tween_property(label, "scale", Vector2.ONE, 0.28).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween.tween_property(label, "modulate", Color.WHITE, 0.28)
+	tween.chain().tween_callback(func():
+		_cooldown_pulses.erase(label)
+		label.set_meta("locket_pulse", false)
+	)
+
+func clear_legendary_feedback() -> void:
+	for label in _cooldown_pulses:
+		_cooldown_pulses[label].kill()
+		if is_instance_valid(label):
+			label.scale = Vector2.ONE
+			label.modulate = Color.WHITE
+			label.set_meta("locket_pulse", false)
+	_cooldown_pulses.clear()
 
 func clear_presentation() -> void:
+	clear_legendary_feedback()
+	_credit_model = null
+	_seen_cooldown_credits.clear()
 	state.remove_meta("combat_presentation")
 	_readiness_available = false
 	_readiness_cast_index = -1

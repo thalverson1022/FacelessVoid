@@ -1,5 +1,7 @@
 # M7-T3 — Visual conventions and feedback design
 
+> **Historical record — not an active work plan.** Status labels, next-step instructions and milestone numbering below describe the recorded checkpoint. M8 is closed; consult the current M9 tracker for authorized work. Retained at this path when tooling/manifests depend on it. [Current context](P6_Project_Onboarding_Context.md).
+
 **Current status: Historical, withdrawn proposal. T3 itself is Complete (2026-10-09, D015).** Use the [accepted conventions and closeout](P6M7_T3_Closeout_And_Accepted_Conventions.md) for current direction. The user rejected these lanes/event-list layouts, then approved the revised category treatment and live promotion excluding combat-log changes. The material below preserves the original proposal and evidence only. Its R1–R3 review requests and numerical layout targets are not current requirements; exact art refinements and effect-overflow choices are handed to T4/T6.
 
 ## Recommendation and review choices

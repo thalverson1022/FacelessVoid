@@ -1,5 +1,7 @@
 # P6M4 — Playable Integration and UI Validation
 
+> **Historical record — not an active work plan.** Status labels, next-step instructions and milestone numbering below describe the recorded checkpoint. M8 is closed; consult the current M9 tracker for authorized work. Retained at this path when tooling/manifests depend on it. [Current context](P6_Project_Onboarding_Context.md).
+
 Current status: **M4 Complete — T1–T11 Complete. Next: M5 planning and complete Rogue content implementation.**
 
 [T11 closeout and M5 handoff](P6M4_T11_Closeout_And_M5_Handoff.md) records 60 passing regression suites, seven passing static checks, refreshed rendered core/mixed/usability checks (110/174/152), and unchanged protected saves/project files. T11 reconciled all original compatibility hashes without changing fixtures, fixed the Practice time-conversion/gear-limit regression, freed orphan playback labels, and updated inherited UI tests. Baseline script/certificate and rapid audio teardown warnings have explicit downstream owners.

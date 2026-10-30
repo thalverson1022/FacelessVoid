@@ -1,5 +1,7 @@
 # P6M5 — Complete Rogue Tree and Skill Implementation
 
+> **Historical record — not an active work plan.** Status labels, next-step instructions and milestone numbering below describe the recorded checkpoint. M8 is closed; consult the current M9 tracker for authorized work. Retained at this path when tooling/manifests depend on it. [Current context](P6_Project_Onboarding_Context.md).
+
 **P6M5-D018 (2026-10-05):** Riposte now grants +20% Plunge damage per rank per consumed Footwork stack. Fancy Footwork reduces Plunge cast time by 4% per rank per consumed stack (20% at rank five), respecting the 500 ms minimum. See [verification](P6_Bladedancer_Footwork_Riposte_Update.md).
 
 

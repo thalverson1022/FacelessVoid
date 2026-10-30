@@ -23,7 +23,7 @@ func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	visible = false
 
-	var panel := CardStyle.build_modal_panel(self, true)
+	var panel := CardStyle.build_modal_panel(self, true, true)
 	var style := CardStyle.make_stylebox(18)
 	style.set_border_width_all(3)
 	panel.add_theme_stylebox_override("panel", style)
@@ -68,6 +68,7 @@ func _ready() -> void:
 	_talent_panel.minimum_size_changed.connect(_resize_to_viewport.call_deferred)
 	if get_viewport() != null:
 		get_viewport().size_changed.connect(_resize_to_viewport)
+	resized.connect(_resize_to_viewport)
 	_resize_to_viewport()
 
 
@@ -81,7 +82,7 @@ func show_overlay() -> void:
 func _resize_to_viewport() -> void:
 	if _content == null or _scroll == null:
 		return
-	var available := get_viewport_rect().size - VIEWPORT_PADDING
+	var available := size - VIEWPORT_PADDING
 	_content.custom_minimum_size = Vector2(minf(CONTENT_BASE_SIZE.x, available.x), 0)
 	var chrome: float = _content.get_child(0).get_combined_minimum_size().y + 10
 	_scroll.custom_minimum_size = Vector2(0, minf(_talent_panel.get_combined_minimum_size().y, maxf(180, available.y - chrome)))

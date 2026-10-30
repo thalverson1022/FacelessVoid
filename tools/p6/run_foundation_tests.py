@@ -37,7 +37,7 @@ def main():
     report_resource = "res://reports/" + args.report_name
     output = ROOT / "project/reports" / args.report_name
     output.mkdir(parents=True, exist_ok=True)
-    protected = [Path(os.environ["APPDATA"]) / "FacelessVoid" / name for name in ["save.json", "practice_build.json", "practice_bladedancer_core.json"]]
+    protected = [Path(os.environ["APPDATA"]) / "FacelessVoid" / name for name in ["save.json", "adventure_p6_m6.json", "practice_build.json", "practice_bladedancer_core.json", "seven_slot_epoch.json", "save.json.tmp", "adventure_p6_m6.json.tmp", "practice_build.json.tmp", "practice_bladedancer_core.json.tmp"]]
     protected += [Path(os.environ["APPDATA"]) / "Godot/app_userdata/Project Enigma" / name for name in ["save.json", "practice_build.json"]]
     protected += [ROOT.parent / "Project-Enigma/project" / name for name in ["project.godot", "export_presets.cfg"]]
     def fingerprint(path):
@@ -67,10 +67,12 @@ def main():
             f'\tSaveSystem.save_path = "{report_resource}/{name}_save.json"\n'
             f'\tPracticeSaveSystem.save_path = "{report_resource}/{name}_practice.json"\n'
             f'\tPracticeSaveSystem.core_save_path = "{report_resource}/{name}_core_practice.json"\n'
-            '\tif FileAccess.file_exists(PracticeSaveSystem.core_save_path):\n'
-            '\t\tDirAccess.remove_absolute(ProjectSettings.globalize_path(PracticeSaveSystem.core_save_path))\n'
-            '\tif FileAccess.file_exists(PracticeSaveSystem.save_path):\n'
-            '\t\tDirAccess.remove_absolute(ProjectSettings.globalize_path(PracticeSaveSystem.save_path))\n'
+            f'\tSevenSlotSaveBoundary.legacy_path = \"{report_resource}/{name}_legacy.json\"\n'
+            f'\tSevenSlotSaveBoundary.marker_path = \"{report_resource}/{name}_epoch.json\"\n'
+            '\tfor path in [SaveSystem.save_path, PracticeSaveSystem.save_path, PracticeSaveSystem.core_save_path, SevenSlotSaveBoundary.legacy_path, SevenSlotSaveBoundary.marker_path]:\n'
+            '\t\tfor candidate in [path, path + ".tmp"]:\n'
+            '\t\t\tif FileAccess.file_exists(candidate):\n'
+            '\t\t\t\tassert(DirAccess.remove_absolute(ProjectSettings.globalize_path(candidate)) == OK, "Could not clear isolated fixture")\n'
             + ('\tsuper._initialize()\n' if 'func _initialize(' in (ROOT / 'project/tests' / (name + '.gd')).read_text(encoding='utf-8') else ''), encoding="utf-8")
         command = [args.godot, "--headless", "--path", str(ROOT / "project"),
                    "--log-file", str(output / (name + ".log")),

@@ -7,6 +7,12 @@ const TOOL_NAME := "Balance Lab"
 const DEFAULT_SEED_COUNT := 200
 const GENERATED_SAMPLE_SEED_COUNT := 40
 const IMPORTED_SCENARIO_DIR := "res://data/balance_lab/imported"
+## Separate health-removal measurements; ordinary damage/DPS retain their meaning.
+const HEALTH_LOSS_METRICS := [
+	"total_health_removed", "health_removed_per_second", "total_health_loss", "health_loss_per_second",
+	"exsanguinate_attempts", "exsanguinate_casts", "exsanguinate_original_casts", "exsanguinate_repeat_casts",
+	"exsanguinate_stacks_consumed", "exsanguinate_original_health_removed", "exsanguinate_repeated_health_removed",
+]
 const EncounterPreviewFormatterScript := preload("res://scripts/systems/runtime_monster_generator/encounter_preview_formatter.gd")
 const ContractRouteGeneratorScript := preload("res://scripts/systems/contract_route_generator/contract_route_generator.gd")
 const GENERATED_ROUTE_FORBIDDEN_PREVIEW_KEYS := [
@@ -1416,6 +1422,9 @@ static func _run_scenario(spec: Dictionary, registry: BuildContentRegistry = nul
 	var absorbed_values := []
 	var cleanse_values := []
 	var suppressed_tick_interval_values := []
+	var health_loss_values := {}
+	for metric in HEALTH_LOSS_METRICS:
+		health_loss_values[metric] = []
 	var win_count := 0
 	var seed_start := int(spec.get("seed_start", 1))
 	var seed_count := int(spec.get("seed_count", DEFAULT_SEED_COUNT))
@@ -1426,6 +1435,8 @@ static func _run_scenario(spec: Dictionary, registry: BuildContentRegistry = nul
 			return _failed_scenario_result(spec, "Seed %d: %s" % [seed, CombatResultFormatter.invalid_simulation_message(result)])
 		var summary := _combat_summary(seed, result)
 		outcomes.append(summary)
+		for metric in HEALTH_LOSS_METRICS:
+			health_loss_values[metric].append(summary[metric])
 		dps_values.append(summary["dps"])
 		total_values.append(summary["total_damage"])
 		poison_values.append(summary["poison_damage"])
@@ -1460,6 +1471,8 @@ static func _run_scenario(spec: Dictionary, registry: BuildContentRegistry = nul
 		"suppressed_tick_interval_ms": _distribution(suppressed_tick_interval_values),
 		"win_rate": float(win_count) / float(maxi(seed_count, 1)),
 	}
+	for metric in HEALTH_LOSS_METRICS:
+		aggregate[metric] = _distribution(health_loss_values[metric])
 	var status := _scenario_status(aggregate, spec.get("thresholds", {}))
 	return {
 		"id": spec["id"],
@@ -1501,7 +1514,25 @@ static func _combat_summary(seed: int, result: CombatResolver.CombatResult) -> D
 	var blocked_damage := 0.0
 	var crit_negated_damage := 0.0
 	var cleanses := 0
+	var exsanguinate_attempts := 0
+	var exsanguinate_original_casts := 0
+	var exsanguinate_repeat_casts := 0
+	var exsanguinate_stacks_consumed := 0
+	var exsanguinate_original_health_removed := 0.0
+	var exsanguinate_repeated_health_removed := 0.0
 	for event in result.cast_events:
+		if event.skill != null and event.skill.id == "skill.exsanguinate":
+			exsanguinate_attempts += 1
+			# A capture proves execution, including zero fuel; blocked attempts have none.
+			if event.health_removal_captured:
+				# The resolver marks original captures too; origin distinguishes free repeats.
+				if event.origin_kind in ["random_repeat", "guaranteed_repeat"]:
+					exsanguinate_repeat_casts += 1
+					exsanguinate_repeated_health_removed += event.health_removed
+				else:
+					exsanguinate_original_casts += 1
+					exsanguinate_original_health_removed += event.health_removed
+				exsanguinate_stacks_consumed += int(event.stat_snapshot.get("actual_consumed", 0))
 		physical_damage += event.physical_damage
 		if event.is_crit:
 			crit_count += 1
@@ -1523,11 +1554,23 @@ static func _combat_summary(seed: int, result: CombatResolver.CombatResult) -> D
 		if tick.damage > 0.0:
 			poison_damage += tick.damage
 			poison_damage_ticks += 1
+	var duration_seconds := float(result.duration_ms) / 1000.0
 	return {
 		"seed": seed,
 		"win": result.is_win,
 		"total_damage": result.total_damage,
 		"dps": result.dps,
+		"total_health_removed": result.total_health_removed,
+		"health_removed_per_second": result.total_health_removed / duration_seconds if duration_seconds > 0.0 else 0.0,
+		"total_health_loss": result.total_health_loss(),
+		"health_loss_per_second": result.total_health_loss() / duration_seconds if duration_seconds > 0.0 else 0.0,
+		"exsanguinate_attempts": exsanguinate_attempts,
+		"exsanguinate_casts": exsanguinate_original_casts + exsanguinate_repeat_casts,
+		"exsanguinate_original_casts": exsanguinate_original_casts,
+		"exsanguinate_repeat_casts": exsanguinate_repeat_casts,
+		"exsanguinate_stacks_consumed": exsanguinate_stacks_consumed,
+		"exsanguinate_original_health_removed": exsanguinate_original_health_removed,
+		"exsanguinate_repeated_health_removed": exsanguinate_repeated_health_removed,
 		"physical_damage": physical_damage,
 		"poison_damage": poison_damage,
 		"poison_damage_ticks": poison_damage_ticks,
@@ -1656,6 +1699,8 @@ static func _failed_scenario_result(spec: Dictionary, message: String) -> Dictio
 		"suppressed_tick_interval_ms": _distribution([]),
 		"win_rate": 0.0,
 	}
+	for metric in HEALTH_LOSS_METRICS:
+		empty_aggregate[metric] = _distribution([])
 	return {
 		"id": spec["id"],
 		"label": spec["label"],

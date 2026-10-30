@@ -18,7 +18,7 @@ func _initialize() -> void:
 	assert(log.find("DOT") < log.find("CAST"))
 	assert(log.count("Stab") == 3 and log.count("Poison ticks") == 1)
 	var category: String = preload("res://scripts/ui/skill_category_preview_style.gd").log_text(result)
-	assert(category.count("1.000s") == 1 and category.count("1.001s") == 1)
+	assert(category.count("[1.0s]") == 4)
 	assert(category.count("Stab[/color] - 3.0 damage") == 3)
 	assert(not category.contains("\n        3.0 damage"))
 	# Skills outside the original four-skill prototype must remain visible.
@@ -36,7 +36,7 @@ func _initialize() -> void:
 	category = preload("res://scripts/ui/skill_category_preview_style.gd").log_text(result)
 	assert(category.contains("Poison Strike[/color] hits for 7.0"))
 	assert(category.contains("Poison ticks for 4.0 (forced)"))
-	assert(category.count("[2.000s]") == 1)
+	assert(category.count("[2.0s]") == 2)
 	assert(category.count("Poison ticks") == 2)
 	var monster := Monster.new()
 	assert(CombatResultFormatter.format(result,monster).contains("  [1.0s] DOT"))

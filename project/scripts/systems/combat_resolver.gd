@@ -85,6 +85,8 @@ class CastEvent:
 	var crit_negation_applied: float = 0.0
 	var crit_negation_damage_prevented: float = 0.0
 	var poison_stacks_applied: int = 0
+	## Observed grant, including stack bonuses and the enemy debuff cap.
+	var potency_stacks_applied: int = 0
 	var shred_stacks_applied: int = 0
 	var decay_stacks_applied: int = 0
 	var shred_value: int = 0
@@ -114,6 +116,11 @@ class CastEvent:
 
 
 class TickEvent:
+	var stacks_preserved: bool = false
+	## Captured for presentation even when Scales preserves the entire Consume cost.
+	var keyword_consume: bool = false
+	var preservation_roll: float = -1.0
+	var available_fuel: int = 0
 	var legendary_fuel: int = 0
 	var legendary_depth: int = 0
 	var requested_stacks: int = 1
@@ -155,6 +162,8 @@ class CombatResult:
 	var failure: Dictionary = {}
 	var trigger_candidates_evaluated: int = 0
 	var root_trigger_candidates: int = 0
+	var nominal_duration_ms: int = 0
+	var countdown_rate: float = 1.0
 	var duration_ms: int = 0
 	var total_damage: float = 0.0
 	var total_health_removed: float = 0.0
@@ -180,9 +189,21 @@ static func resolve(rotation: Array[Skill], player: PlayerStats, monster: Monste
 	result.presentation_initial = {"stash": player.current_gold, "poison": 0, "shred": 0, "decay": 0,
 		"armor": monster.armor, "poison_resistance": monster.poison_resistance,
 		"slow": effective_enemy_slow(player, monster), "gold_stats": Gold.crit_values(player, player.current_gold, 0)}
+	# Capture equipped visual signatures with the fight, never the later live build.
+	result.presentation_initial["legendary_visuals"] = {"umbral": _legendary(player, "umbral"),
+		"decrepit": _legendary(player, "decrepit"), "nightkiss": _legendary(player, "nightkiss")}
 	result.trace.enabled = trace_enabled
 	result.self_buffs.trace = result.trace
+	result.nominal_duration_ms = duration_ms
+	var window := TimerMath.fight_window(duration_ms, player.legendary_arctic_mittens)
+	if window.error != "":
+		result.is_valid = false
+		result.failure = {"code": "invalid_macro_schedule", "time_ms": 0, "message": window.error}
+		result.trace.record("simulation_failed", 0, {}, result.failure)
+		return result
+	duration_ms = window.duration_ms
 	result.duration_ms = duration_ms
+	result.countdown_rate = window.countdown_rate
 	var schedule_error := MacroScheduler.validation_error(rotation, duration_ms)
 	if schedule_error != "":
 		result.is_valid = false
@@ -397,7 +418,7 @@ static func _begin_cast(result: CombatResult, event: CastEvent, parent: CastEven
 		_advance_effects(result, event.cast_start_ms)
 	elif result.effect_lifecycle != null:
 		event.lifecycle_snapshot = result.effect_lifecycle.begin_cast(event.skill.id,
-			ordinary_ms, event.skill.min_execution_ms, event.cast_start_ms, _event_context(event))
+			ordinary_ms, event.skill.min_execution_ms, event.cast_start_ms, _event_context(event), _skill_is_direct_attack(event.skill))
 		if event.lifecycle_snapshot.error != "":
 			_fail_effect_lifecycle(result, event.lifecycle_snapshot.error)
 		else:
@@ -577,13 +598,18 @@ static func _triggers_for_source(source_event: CastEvent, player: PlayerStats) -
 			triggers.append({"effect": effect, "origin": "proc", "application_index": application_index,
 				"application": source_event.poison_applications[application_index]})
 	var local_chance := player.retrigger_chance + (0.5 if _legendary(player, "mithril") and source_event.skill.id in ["skill.stab", "skill.heavy_slash"] else 0.0)
-	if (local_chance > 0.0 or _has_guaranteed_repeat(source_event)) and (_skill_is_direct_attack(source_event.skill) or source_event.skill.id == "skill.exsanguinate"):
+	if (local_chance > 0.0 or _has_guaranteed_repeat(source_event)) and _skill_is_direct_attack(source_event.skill):
 		var self_retrigger := TriggeredSkillEffect.new()
 		self_retrigger.skill = source_event.skill
 		self_retrigger.chance = 1.0 if _has_guaranteed_repeat(source_event) else clampf(local_chance, 0.0, 1.0)
 		self_retrigger.source_skill_ids = PackedStringArray([source_event.skill.id])
 		triggers.append({"effect": self_retrigger, "origin": "guaranteed_repeat" if _has_guaranteed_repeat(source_event) else "random_repeat"})
-	if _legendary(player, "cloak") and _skill_is_direct_attack(source_event.skill) and source_event.origin_kind in ["random_repeat", "guaranteed_repeat"]:
+	if _legendary(player, "hands_of_the_lightning_lord") and _skill_is_direct_attack(source_event.skill) and source_event.is_crit and not player.legendary_signet and not source_event.was_dodged and not source_event.was_interrupted and not source_event.resource_unavailable:
+		var lightning := TriggeredSkillEffect.new()
+		lightning.skill = source_event.skill
+		lightning.chance = 0.2
+		triggers.append({"effect": lightning, "origin": "lightning_repeat", "own_crit": source_event.is_crit})
+	if _legendary(player, "cloak") and _skill_is_direct_attack(source_event.skill) and source_event.origin_kind in ["random_repeat", "guaranteed_repeat", "lightning_repeat"]:
 		var cloak := TriggeredSkillEffect.new()
 		cloak.skill = player.special_effects.legendary.get("quick_cut", load("res://data/skills/quick_cut.tres")) as Skill
 		cloak.chance = 0.3
@@ -683,6 +709,8 @@ static func _finalize_cast_event(result: CombatResult, event: CastEvent, player:
 				var grant: Dictionary = result.defense_debuffs.grant(effect.status, base, player, event.time_ms, _event_context(event))
 				if grant.error != "":
 					_fail_effect_lifecycle(result, grant.error)
+				elif effect.status == "potency":
+					event.potency_stacks_applied += int(grant.applied)
 	var stun_duration_ms := _effective_enemy_stun_duration_ms(player, monster)
 	if stun_duration_ms > 0 and _stun_should_trigger(event, monster):
 		event.stun_duration_ms = stun_duration_ms
@@ -721,7 +749,7 @@ static func _finalize_cast_event(result: CombatResult, event: CastEvent, player:
 			current_poison_resistance = monster.poison_resistance
 			event.cleanse_triggered = true
 			event.cleanse_counter = 0
-	if _legendary(player, "samurai") and event.origin_kind in ["random_repeat", "guaranteed_repeat"] and not event.was_dodged and not event.was_interrupted:
+	if _legendary(player, "samurai") and event.origin_kind in ["random_repeat", "guaranteed_repeat", "lightning_repeat"] and not event.was_dodged and not event.was_interrupted:
 		_legendary_grant(result, player, "meditation", event.time_ms, _event_context(event))
 	event.status_snapshot = {"armor": current_armor, "poison_resistance": current_poison_resistance,
 		"poison": active_stacks, "shred": current_shred_stacks, "decay": result.active_decay_stacks,
@@ -788,6 +816,7 @@ static func _resolve_retrigger_chain(source_event: CastEvent, result: CombatResu
 		if not guaranteed and float(roll) > trigger.chance:
 			_trigger_decision(result, source_event, candidate_index, "roll_failed", {
 				"target_skill_id": trigger.skill.id, "chance": trigger.chance, "roll": roll,
+				"candidate_origin": candidate.origin, "own_crit": source_event.is_crit, "budget_consumed": result.root_trigger_candidates,
 				"application_index": candidate.get("application_index", -1), "application": candidate.get("application", {})})
 			continue
 
@@ -807,6 +836,7 @@ static func _resolve_retrigger_chain(source_event: CastEvent, result: CombatResu
 			event.health_removal_captured = true
 		_trigger_decision(result, source_event, candidate_index, "child_emitted", {
 			"target_skill_id": trigger.skill.id, "chance": trigger.chance, "roll": roll,
+				"candidate_origin": candidate.origin, "own_crit": source_event.is_crit, "budget_consumed": result.root_trigger_candidates,
 			"guaranteed": guaranteed, "guarantee_sources": source_event.lifecycle_snapshot.get("guaranteed_repeat_sources", PackedStringArray()) if guaranteed else PackedStringArray(),
 			"application_index": candidate.get("application_index", -1), "application": candidate.get("application", {}),
 			"child_cast_id": result.trace.next_cast_id + 1, "child_origin_kind": event.origin_kind})
@@ -840,7 +870,7 @@ static func _resolve_retrigger_chain(source_event: CastEvent, result: CombatResu
 		current_shred_stacks = finalize_state["shred_stacks"]
 		current_poison_resistance = finalize_state["poison_resistance"]
 		cleanse_counter = finalize_state["cleanse_counter"]
-		if (_skill_is_direct_attack(trigger.skill) or trigger.skill.id == "skill.exsanguinate" or (player.death_blade_enabled and not event.poison_applications.is_empty())) and not bool(state.get("dodged", false)):
+		if (_skill_is_direct_attack(trigger.skill) or (player.death_blade_enabled and not event.poison_applications.is_empty())) and not bool(state.get("dodged", false)):
 			var chain_state := _resolve_retrigger_chain(
 				event, result, player, monster, current_armor, current_poison_resistance,
 				current_shred_stacks, active_stacks, rng, gold_stolen_this_fight, simulated_current_gold,
@@ -985,17 +1015,24 @@ static func _resolve_poison_tick(result: CombatResult, tick_time_ms: int, active
 	var tick := TickEvent.new()
 	tick.stacks_before = active_stacks
 	tick.time_ms = tick_time_ms
-	tick.origin_kind = "poison_repeat" if legendary_depth > 0 else ("forced_tick" if forced else "natural_tick")
+	tick.origin_kind = String(context.get("poison_repeat_origin", "poison_repeat")) if legendary_depth > 0 else ("forced_tick" if forced else "natural_tick")
 	tick.legendary_depth = legendary_depth + int(context.get("retrigger_depth", 0))
 	tick.tick_interval_ms = tick_interval_ms
 	tick.requested_stacks = active_stacks if legendary_all and legendary_depth == 0 else (3 if player.resonance_rank > 0 else (2 if player.echoing_toxin_rank > 0 else 1))
+	tick.keyword_consume = legendary_all and legendary_depth == 0
 	var talent_multiplier := (1.0 + PoisonContracts.ECHOING_DAMAGE_PER_RANK * player.echoing_toxin_rank) * (1.0 + PoisonContracts.RESONANCE_DAMAGE_PER_RANK * player.resonance_rank) * player.poison_tick_damage_multiplier
 	if active_stacks > 0 or legendary_fuel > 0:
 		tick.had_active_stack = true
-		tick.stacks_consumed = mini(active_stacks, tick.requested_stacks) if legendary_depth == 0 else 0
-		tick.legendary_fuel = tick.stacks_consumed if legendary_depth == 0 else legendary_fuel
+		tick.available_fuel = mini(active_stacks, tick.requested_stacks)
+		tick.legendary_fuel = tick.available_fuel if legendary_depth == 0 else legendary_fuel
+		if legendary_depth == 0 and tick.legendary_fuel > 0 and _legendary(player, "serpents_scales"):
+			tick.preservation_roll = result.combat_rng.randf()
+			tick.stacks_preserved = tick.preservation_roll <= 0.2
+		tick.stacks_consumed = tick.legendary_fuel if legendary_depth == 0 and not tick.stacks_preserved else 0
 		active_stacks -= tick.stacks_consumed
-		tick.raw_damage = (player.poison_damage_per_tick + (negative_absorb_bonus + float(buffs.elemental_base)) * player.elemental_damage_multiplier) * float(buffs.poison_multiplier) * tick.legendary_fuel * talent_multiplier * _legendary_death_door(player)
+		# Apply the shared all-damage bonus once to this freshly calculated
+		# packet, including free repeats with their original consumed fuel.
+		tick.raw_damage = (player.poison_damage_per_tick + (negative_absorb_bonus + float(buffs.elemental_base)) * player.elemental_damage_multiplier) * float(buffs.poison_multiplier) * tick.legendary_fuel * talent_multiplier * _legendary_death_door(player) * _legendary_meditation_multiplier(result, player)
 		if not is_finite(tick.raw_damage):
 			_fail_effect_lifecycle(result, "Non-finite Poison damage.")
 			return active_stacks
@@ -1047,13 +1084,16 @@ static func _resolve_poison_tick(result: CombatResult, tick_time_ms: int, active
 		"requested_stacks": tick.requested_stacks, "talent_multiplier": talent_multiplier,
 		"stacks_before": tick.stacks_before, "charge_spends": tick.charge_spends,
 		"tick_interval_ms": tick.tick_interval_ms, "trigger_source_id": context.get("source_id", ""),
+		"parent_tick_sequence": context.get("parent_tick_sequence", 0), "originating_operation": "poison",
 		"poison_damage_per_tick": player.poison_damage_per_tick,
 		"defenses": defenses, "negative_absorb_base_bonus": negative_absorb_bonus if tick.had_active_stack else 0.0,
 		"stacks_consumed": tick.stacks_consumed, "stacks_remaining": tick.stacks_remaining,
 		"buffs": buffs, "keyword_consume": legendary_all and legendary_depth == 0, "stacks_depleted": tick.stacks_consumed,
-		"legendary_fuel": tick.legendary_fuel, "legendary_depth": legendary_depth})
+		"legendary_fuel": tick.legendary_fuel, "legendary_depth": legendary_depth,
+		"available_fuel": tick.available_fuel, "stacks_preserved": tick.stacks_preserved, "preservation_roll": tick.preservation_roll,
+		"repeat_inherited_fuel": legendary_fuel if legendary_depth > 0 else 0})
 	if tick.had_active_stack:
-		if legendary_all and legendary_depth == 0:
+		if legendary_all and legendary_depth == 0 and tick.stacks_consumed > 0:
 			result.trace.record("legendary_poison_consume", tick_time_ms, context, {"consumed": tick.stacks_consumed})
 			if player.death_pact_rank > 0 and result.defense_debuffs != null:
 				for status in ["penetration", "potency"]:
@@ -1062,21 +1102,37 @@ static func _resolve_poison_tick(result: CombatResult, tick_time_ms: int, active
 		_legendary_critical(result, player, tick_time_ms, tick.is_crit, context)
 		if legendary_depth > 0 and _legendary(player, "samurai"):
 			_legendary_grant(result, player, "meditation", tick_time_ms, context)
+		# Capture both candidates before descending; each sibling follows its full subtree.
+		var candidates: Array[Dictionary] = []
 		if _legendary(player, "coil") and player.retrigger_chance > 0.0:
+			candidates.append({"origin": "poison_repeat", "chance": clampf(player.retrigger_chance, 0.0, 1.0)})
+		if _legendary(player, "coil") and _legendary(player, "hands_of_the_lightning_lord") and tick.is_crit and not player.legendary_signet:
+			candidates.append({"origin": "lightning_poison_repeat", "chance": 0.2})
+		for candidate_index in candidates.size():
+			if not result.is_valid:
+				break
 			if tick.legendary_depth >= MAX_RETRIGGER_CHAIN_DEPTH:
 				result.trace.record("legendary_poison_depth_limit", tick_time_ms, context, {"limit": MAX_RETRIGGER_CHAIN_DEPTH})
-			elif result.root_trigger_candidates >= MAX_TRIGGER_CANDIDATES_PER_ROOT:
+				break
+			if result.root_trigger_candidates >= MAX_TRIGGER_CANDIDATES_PER_ROOT:
 				result.is_valid = false
 				result.failure = {"code": "trigger_candidate_limit", "time_ms": tick_time_ms, "limit": MAX_TRIGGER_CANDIDATES_PER_ROOT, "evaluated": result.root_trigger_candidates, "source_id": "status.poison", "root_cast_id": context.get("root_cast_id", 0)}
 				result.trace.record("simulation_failed", tick_time_ms, context, result.failure)
-			else:
-				result.root_trigger_candidates += 1
-				result.trigger_candidates_evaluated += 1
-				var roll := result.combat_rng.randf()
-				var chance := clampf(player.retrigger_chance, 0.0, 1.0)
-				result.trace.record("legendary_poison_repeat_trial", tick_time_ms, context, {"chance": chance, "roll": roll, "depth": legendary_depth, "fuel": tick.legendary_fuel})
-				if roll <= chance:
-					active_stacks = _resolve_poison_tick(result, tick_time_ms, active_stacks, legendary_base_player, current_armor, current_poison_resistance, monster, 0, forced, context, legendary_depth + 1, tick.legendary_fuel, legendary_all)
+				break
+			result.root_trigger_candidates += 1
+			result.trigger_candidates_evaluated += 1
+			var candidate: Dictionary = candidates[candidate_index]
+			var roll := result.combat_rng.randf()
+			var chance: float = candidate.chance
+			result.trace.record("legendary_poison_repeat_trial", tick_time_ms, context, {"chance": chance, "roll": roll, "depth": tick.legendary_depth, "fuel": tick.legendary_fuel,
+				"candidate_index": candidate_index, "candidate_origin": candidate.origin, "own_crit": tick.is_crit,
+				"source_tick_sequence": tick.sequence, "budget_consumed": result.root_trigger_candidates})
+			if roll <= chance:
+				var child_context := context.duplicate(true)
+				child_context["poison_repeat_origin"] = candidate.origin
+				child_context["parent_tick_sequence"] = tick.sequence
+				active_stacks = _resolve_poison_tick(result, tick_time_ms, active_stacks, legendary_base_player, current_armor, current_poison_resistance, monster, 0, forced, child_context, legendary_depth + 1, tick.legendary_fuel, legendary_all)
+
 	return active_stacks
 
 
@@ -1097,7 +1153,7 @@ static func _apply_skill_effects(skill: Skill, event: CastEvent, player: PlayerS
 	if skill.id == "skill.exsanguinate":
 		var consumed := active_shred_stacks if not event.health_removal_captured else 0
 		if not event.health_removal_captured:
-			event.health_removed = 2.0 * player.shred_value * consumed
+			event.health_removed = 1.0 * player.shred_value * consumed
 			event.health_removal_captured = true
 		if not is_finite(event.health_removed) or event.health_removed < 0.0:
 			_fail_effect_lifecycle(result, "Invalid Exsanguinate health removal.")
@@ -1108,7 +1164,7 @@ static func _apply_skill_effects(skill: Skill, event: CastEvent, player: PlayerS
 		if result != null:
 			result.trace.record("health_removal", event.time_ms, _event_context(event), {
 				"amount": event.health_removed, "actual_consumed": consumed, "shred_value": player.shred_value,
-				"captured_repeat": consumed == 0 and event.origin_kind in ["random_repeat", "guaranteed_repeat"]})
+				"captured_repeat": consumed == 0 and event.origin_kind in ["random_repeat", "guaranteed_repeat", "lightning_repeat"]})
 		var remaining := active_shred_stacks - consumed
 		if consumed > 0:
 			_status_transaction(event, "shred", "exsanguinate_consumed", active_shred_stacks, remaining, 0)
@@ -1699,8 +1755,11 @@ static func _legendary_live(result: CombatResult, player: PlayerStats, time_ms: 
 	if result.legendary_buffs.is_empty(): return player
 	var live := player.duplicate(true) as PlayerStats
 	live.attack_speed += 0.05 * (2.0 if player.legendary_crown else 1.0) * int(result.legendary_buffs.get("dash", {}).get("stacks", 0))
-	live.temporary_physical_multiplier *= 1.0 + 0.2 * int(result.legendary_buffs.get("meditation", {}).get("stacks", 0))
+	live.temporary_physical_multiplier *= _legendary_meditation_multiplier(result, player)
 	return live
+
+static func _legendary_meditation_multiplier(result: CombatResult, player: PlayerStats) -> float:
+	return 1.0 + 0.2 * (2.0 if player.legendary_crown else 1.0) * int(result.legendary_buffs.get("meditation", {}).get("stacks", 0))
 
 static func _legendary_grant(result: CombatResult, player: PlayerStats, kind: String, time_ms: int, context: Dictionary) -> void:
 	_legendary_expire(result, time_ms)
@@ -1718,7 +1777,7 @@ static func _legendary_grant(result: CombatResult, player: PlayerStats, kind: St
 	var cap := 5 if kind == "meditation" else 20
 	var count := mini(cap, int(before.get("stacks", 0)) + grant)
 	var source_id := "gear.legendary.helm_of_the_samurai" if kind == "meditation" else "gear.legendary.wingjammer"
-	var strength := 0.2 if kind == "meditation" else 0.05 * (2.0 if player.legendary_crown else 1.0)
+	var strength := (0.2 if kind == "meditation" else 0.05) * (2.0 if player.legendary_crown else 1.0)
 	var after := {"stacks": count, "units": count, "unit": "stacks", "cap": cap,
 		"source_id": source_id, "magnitude": count * strength, "expires_at_ms": deadline.expires_at_ms}
 	result.legendary_buffs[kind] = after

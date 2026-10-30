@@ -1,8 +1,10 @@
 # T10 balance refinement — measured proposal and playtest review
 
+> **Historical record — not an active work plan.** Status labels, next-step instructions and milestone numbering below describe the recorded checkpoint. M8 is closed; consult the current M9 tracker for authorized work. Retained at this path when tooling/manifests depend on it. [Current context](P6_Project_Onboarding_Context.md).
+
 **2026-10-08 — T10 Complete by user acceptance (D015).** The user accepts the retained milestone scope and existing evidence, keeps current item/enemy values and intentional hard counters, and will revisit balance during substantial playtesting alongside next milestone’s icon/UI feedback. Legendary Item refinement remains assigned to the separate next-phase remake. No experimental Bandit curve is adopted; no numerical approval remains pending. This records milestone acceptance and deferred hands-on validation, not a claim that the future playtesting has already occurred. T1–T10 Complete; T11 regression/closeout/handoff remains Not started. Earlier entries below are historical.
 
-See [T10 accepted closeout](P6M6_T10_Accepted_Closeout.md).
+See [T10 accepted closeout](archive/m6/P6M6_T10_Accepted_Closeout.md).
 
 **2026-10-08 — User scope decision: Legendary Item remake next phase.** Defer Legendary-specific balance changes, including the isolated Bandit Blade curve, to that remake. No Bandit numerical approval or candidate playtest is required for M6-T10. Retain live item and enemy values; carry the measured excess-power and progression tradeoffs into the next phase. T10 remains Pending input for human difficulty acceptance of the current milestone scope, with Legendary balance explicitly deferred; T11 Not started. Earlier candidate recommendations below are historical.
 

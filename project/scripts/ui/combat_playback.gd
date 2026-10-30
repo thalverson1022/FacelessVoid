@@ -76,6 +76,8 @@ var _next_cast_start_index: int = 0
 var _elapsed_ms: float = 0.0
 var _timeline_end_ms: int = 0
 var _window_ms: int = 0
+var _nominal_window_ms: int = 0
+var _countdown_rate: float = 1.0
 var _started: bool = false
 var _finished: bool = false
 var _damage_dealt: float = 0.0
@@ -106,6 +108,8 @@ func start(result: CombatResolver.CombatResult) -> void:
 		if id > 0 and not _cast_start_frontiers.has(id):
 			_cast_start_frontiers[id] = int(record.sequence) - 1
 	_window_ms = result.duration_ms
+	_nominal_window_ms = result.nominal_duration_ms if result.nominal_duration_ms > 0 else result.duration_ms
+	_countdown_rate = result.countdown_rate
 	_timeline_end_ms = result.duration_ms
 	_next_index = 0
 	_next_cast_start_index = 0
@@ -181,6 +185,17 @@ func timeline_end_ms() -> int:
 ## the denominator.
 func window_ms() -> int:
 	return _window_ms
+
+
+## Frozen result clock; equipment edits never retime a replay.
+func nominal_window_ms() -> int:
+	return _nominal_window_ms
+
+
+func countdown_remaining_ms() -> float:
+	if _elapsed_ms >= _window_ms:
+		return 0.0
+	return maxf(0.0, float(_nominal_window_ms) - _countdown_rate * _elapsed_ms)
 
 
 func events_fired() -> int:

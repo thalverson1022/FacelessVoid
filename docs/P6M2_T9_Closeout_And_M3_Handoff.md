@@ -1,5 +1,7 @@
 # P6M2-T9 — Closeout and M3 handoff
 
+> **Historical record — not an active work plan.** Status labels, next-step instructions and milestone numbering below describe the recorded checkpoint. M8 is closed; consult the current M9 tracker for authorized work. Retained at this path when tooling/manifests depend on it. [Current context](P6_Project_Onboarding_Context.md).
+
 Date: 2026-09-23. Status: **Complete. M2 is Complete for foundation scope.**
 Next: **P6M3-T1 — Milestone planning and first-slice specification.** M3 remains
 Not started; this handoff does not approve unresolved combat rules.

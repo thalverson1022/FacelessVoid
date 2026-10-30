@@ -1,5 +1,7 @@
 # M5-T11 — Regression, closeout and M6 handoff
 
+> **Historical record — not an active work plan.** Status labels, next-step instructions and milestone numbering below describe the recorded checkpoint. M8 is closed; consult the current M9 tracker for authorized work. Retained at this path when tooling/manifests depend on it. [Current context](P6_Project_Onboarding_Context.md).
+
 Date: 2026-10-06. Status: Complete — M5 content implementation and acceptance closed.
 
 ## Accepted baseline

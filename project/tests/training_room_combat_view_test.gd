@@ -816,18 +816,18 @@ func _check_popup_for_damaging_poison_ticks(view: TrainingRoomCombatView) -> voi
 			var font_size: int = child.get_theme_font_size("font_size")
 			if color == UIColors.TEXT_POISON and font_size == view.POPUP_TICK_FONT_SIZE:
 				found_poison_popup = true
-				# G06 reserves Poison a bounded target-side band, below the ghost/status lanes.
-				# The old <=48px enemy-center rule caused overlap with accepted ghost labels.
+				# Practice Poison cues sit beside the target's upper body.
 				var popup_rect: Rect2 = child.get_global_rect()
 				var stage_rect: Rect2 = view._combat_stage.play_area_global_rect()
-				if stage_rect.grow(1).encloses(popup_rect) and popup_rect.position.x >= stage_rect.position.x + stage_rect.size.x*0.7 and popup_rect.position.y >= stage_rect.position.y+150:
+				var target_global: Vector2 = view._popup_layer.get_global_transform() * enemy_local
+				if stage_rect.grow(1).encloses(popup_rect) and absf(popup_rect.get_center().x - target_global.x) <= 160.0 and absf(popup_rect.get_center().y - target_global.y) <= 160.0:
 					found_bounded_target_popup = true
 				for button in view._content.find_children("*","Button",true,false):
 					if button.visible and button.text in ["Fight","Fight!","Combat Log"]:
-						_require(not popup_rect.intersects(button.get_global_rect()),"Poison text must not overlap footer actions.")
+						_require(popup_rect.end.y <= button.get_global_rect().position.y,"Poison text must stay above footer actions.")
 	print("found a green half-size poison popup for damaging poison tick (expect true): %s" % found_poison_popup)
 	_require(found_poison_popup, "A damaging poison tick should spawn green half-size poison text.")
-	_require(found_bounded_target_popup, "Poison tick text should stay inside the target-side combat band below status values.")
+	_require(found_bounded_target_popup, "Poison tick text should remain bounded near the target upper body.")
 
 
 func _check_wyvern_kriss_uses_smaller_poison_tick_text(view: TrainingRoomCombatView) -> void:
@@ -919,10 +919,27 @@ func _check_legendary_proc_popup_highlight(view: TrainingRoomCombatView) -> void
 	print("found a attack-colored PROC! popup (expect true): %s" % found_magic_proc_popup)
 	_require(found_magic_proc_popup, "Expected at least one attack-colored 'PROC!' popup for the guaranteed proc.")
 
-	var log_text := CombatResultFormatter.format(result, monster)
-	print("combat log marks the proc line (expect true): %s" % log_text.contains(">>> "))
-	_require(log_text.contains(">>> "), "Expected the '>>> ' legendary-proc marker in the text log.")
-	_require(log_text.contains("procs at minimum cast speed"), "Expected the proc clause in the text log.")
+	# D042 keeps minimum-cast-speed procs on their original CAST rows;
+	# only actual triggered children receive ancestry indentation.
+	var log_lines := CombatResultFormatter.event_log(result).split("\n", false)
+	_require(log_lines.size() == result.cast_events.size(), "Expected one Event Log row for every minimum-speed cast.")
+	for line in log_lines:
+		_require(line.begins_with("[") and line.contains("] CAST Stab "), "Expected a minimum-speed root to remain an unindented typed CAST.")
+		_require(line.contains("procs at minimum cast speed"), "Expected the minimum-cast-speed clause on each root row.")
+	player.retrigger_chance = 1.0
+	var repeated := CombatResolver.resolve(rotation, player, monster, 1000, 1)
+	var repeated_lines := CombatResultFormatter.event_log(repeated).split("\n", false)
+	var roots := 0
+	var children := 0
+	for cast in repeated.cast_events:
+		if cast.parent_cast_id > 0: children += 1
+		else: roots += 1
+	var root_rows := 0
+	var child_rows := 0
+	for line in repeated_lines:
+		if line.begins_with("[") and line.contains("] CAST Stab "): root_rows += 1
+		elif line.begins_with("    ") and line.contains("-> ") and line.contains("] RETRIGGER Stab "): child_rows += 1
+	_require(children > 0 and root_rows == roots and child_rows == children, "Expected actual retrigger children to have typed, indented ancestry while roots remain CAST.")
 
 
 func _check_crit_popup_highlight(view: TrainingRoomCombatView) -> void:

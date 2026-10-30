@@ -83,11 +83,15 @@ func run() -> void:
 		{"name":"poison_strike_decrepit","id":"skill.poison_strike","gear":["decrepit_blade","serpents_coil"],"expected":"Consume all Poison stacks"},
 		{"name":"virulent_crown","id":"skill.virulent_poison","gear":["crown_of_concertation"],"expected":"3x damage"},
 		{"name":"death_strike_umbral","id":"skill.killers_mark","gear":["umbral_stiletto"],"expected":"per Decay stack"},
-		{"name":"beguiling_signet","id":"skill.beguiling_presence","gear":["signet_of_the_old_kings"],"expected":"+4% Attack Speed"},
+		{"name":"beguiling_signet","id":"skill.beguiling_presence","gear":["signet_of_the_old_kings"],"expected":"+3% Attack Speed"},
+		{"name":"parry_readiness","id":"skill.parry_strike","gear":[],"expected":"Requires and consumes Readiness."},
 	]
 	for fixture in fixtures:
 		pointer(Vector2(800,50))
 		await create_timer(0.2).timeout
+		if fixture.id == "skill.parry_strike":
+			check(state.ranked_build.configure(registry.trees["tree.bladedancer"],null,45,{"talent.bladedancer.wet_stone":4,"talent.bladedancer.rending_slash":1,"talent.bladedancer.fancy_footwork":5}), "Legal Parry Practice fixture")
+			state._finish_rank_edit(true)
 		for property in ["equipped_weapon","equipped_helm","equipped_armor","equipped_charm","equipped_trinket"]: state.set(property,null)
 		for name in fixture.gear: state.equip_legendary(load("res://data/gear/%s.tres" % name))
 		var skill: Skill = null

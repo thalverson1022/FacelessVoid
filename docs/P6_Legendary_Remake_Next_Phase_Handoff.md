@@ -1,6 +1,8 @@
 # Legendary Item remake — next-phase handoff
 
-> Current roadmap update (2026-10-17, [P6M8-D001](P6M8_Legendary_Item_Revamp_And_Expansion_Tracker.md#decision-log)): Legendary Item Revamp and Expansion is now Phase 6 M8. Former M8 integrated playtest/refinement is M9; former M9 regression/closeout is M10. The historical record below retains its original numbering and deferrals; the next-phase Legendary deferral is superseded. M9 owns inherited fixture/signature reconciliation; M10 owns broad regression and engine/export qualification. No item design or experimental Bandit curve is adopted by this update.
+> **Historical record — not an active work plan.** Status labels, next-step instructions and milestone numbering below describe the recorded checkpoint. M8 is closed; consult the current M9 tracker for authorized work. Retained at this path when tooling/manifests depend on it. [Current context](P6_Project_Onboarding_Context.md).
+
+> Current roadmap update (2026-10-17, [P6M8-D001](archive/m8/P6M8_Decision_And_Execution_History.md#decision-log)): Legendary Item Revamp and Expansion is now Phase 6 M8. Former M8 integrated playtest/refinement is M9; former M9 regression/closeout is M10. The historical record below retains its original numbering and deferrals; the next-phase Legendary deferral is superseded. M9 owns inherited fixture/signature reconciliation; M10 owns broad regression and engine/export qualification. No item design or experimental Bandit curve is adopted by this update.
 
 2026-10-08. User direction: “We are going to do a separate Legendary Item remake in the next phase.”
 

@@ -213,4 +213,7 @@ func _cadence_and_descriptor() -> void:
 	stats.crit_chance = 1.0
 	result = CombatResolver.resolve([fuel, strike], stats, _monster(), 1700, 7, true)
 	check(CombatRecap.summarize(result, _monster()).peak_poison_stacks == 20, "recap uses actual pre-tick stacks with three-stack depletion")
-	check(CombatResultFormatter.format(result, _monster()).contains("CRIT (forced) (3 stacks depleted)"), "text reports critical forced multi-stack tick")
+	var formatted := CombatResultFormatter.format(result, _monster())
+	var forced_ticks: Array = result.tick_events.filter(func(tick): return tick.origin_kind == "forced_tick")
+	check(forced_ticks.size() == 1 and forced_ticks[0].is_crit and forced_ticks[0].stacks_consumed == 3 and not forced_ticks[0].keyword_consume, "critical forced tick depletes three stacks without keyword Consume")
+	check(formatted.contains("CRIT (forced) (3 stacks depleted; not Consume)"), "text reports critical forced multi-stack depletion without keyword Consume")

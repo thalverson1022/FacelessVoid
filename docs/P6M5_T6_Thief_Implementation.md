@@ -1,5 +1,7 @@
 # P6M5-T6 — Complete Thief implementation
 
+> **Historical record — not an active work plan.** Status labels, next-step instructions and milestone numbering below describe the recorded checkpoint. M8 is closed; consult the current M9 tracker for authorized work. Retained at this path when tooling/manifests depend on it. [Current context](P6_Project_Onboarding_Context.md).
+
 Status: **Complete** · 2026-10-03 · Authority: **P6M5-D004** and the user's instruction to implement T6.
 
 The [approved T5 specification](P6M5_T5_Thief_Design_Review.md) is now playable in Test Mode and Practice: ten talents, all 35 ranks, four automatic skills, and an intentionally empty nine-point slot. T7 Assassin design review is next. Numerical balance remains M6; final full-content presentation remains M7.

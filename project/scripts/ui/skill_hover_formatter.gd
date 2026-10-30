@@ -77,8 +77,8 @@ static func basic_effect(skill: Skill, stats: PlayerStats) -> String:
 		"skill.pick_pocket": return theft_text(10,stats,"Steals")
 		"skill.steal": return theft_text(3,stats,"Critical hits steal")
 		"skill.touch_of_darkness": return "Consume all stacks of Poison. Each stack consumed grants x%d%% Attack Speed and +%d Base Physical Damage" % [10*Formatter.buff_strength(stats), 2*Formatter.buff_strength(stats)]
-		"skill.beguiling_presence": return "Consume all stacks of Decay. Each stack consumed grants +%d Base Elemental Damage%s" % [Formatter.buff_strength(stats), " and +%d%% Attack Speed" % (4*Formatter.buff_strength(stats)) if stats.legendary_signet else ""]
-		"skill.parry_strike": return "Requires and consumes 1 Readiness stack"
+		"skill.beguiling_presence": return "Consume all stacks of Decay. Each stack consumed grants +%d Base Elemental Damage%s" % [Formatter.buff_strength(stats), " and +%d%% Attack Speed" % (3*Formatter.buff_strength(stats)) if stats.legendary_signet else ""]
+		"skill.parry_strike": return "Requires and consumes Readiness. Readiness is granted by any skill retrigger"
 		"skill.dance_of_death": return "The first hit of all attacks have 100% Retrigger Chance"
 	var parts: PackedStringArray = []
 	for effect in skill.effects:
@@ -92,7 +92,7 @@ static func basic_effect(skill: Skill, stats: PlayerStats) -> String:
 		elif effect is Formatter.ForcedPoisonTick:
 			parts.append("On hit: Consume all Poison stacks, dealing their Poison damage." if Formatter.legendary_enabled(stats, "decrepit") and skill.id == "skill.poison_strike" else "On hit: trigger 1 Poison tick.")
 		elif effect is Formatter.Exsanguinate:
-			parts.append("Consume all Shred stacks. Remove %d health per stack.\nRetriggers repeat the same health removal." % (2*stats.shred_value))
+			parts.append("Removes %d health per stack of Shred consumed\nCannot Retrigger" % stats.shred_value)
 		elif effect is ArmorReductionEffect: parts.append("On hit: apply %d Shred stacks." % Formatter._effective_stack_total(effect.amount,stats.bonus_shred_stacks,stats))
 		elif effect is PoisonResistanceReductionEffect:
 			parts.append(("On hit: Apply %d stacks of Decay" if skill.id=="skill.toxic_flurry" else "On hit: apply %d Decay stacks.") % Formatter._effective_stack_total(1,stats.bonus_decay_stacks,stats))

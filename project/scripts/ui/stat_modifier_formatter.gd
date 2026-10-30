@@ -27,12 +27,6 @@ static func format(modifier: StatModifier) -> String:
 		return ""
 	var stat_id := StatCatalog.canonical_id_for_modifier(modifier)
 	var stat_name: String = _display_name_for(modifier, stat_id, modifier.stat_id.strip_edges() != "")
-	if stat_id in ["crit_applies_penetration", "crit_applies_potency"]:
-		return "%+.4f%% chance per critical direct contribution: %s (base 1 stack)" % [modifier.value * 100.0, "Penetration" if stat_id == "crit_applies_penetration" else "Potency"]
-	if stat_id == "cooldown_reduction":
-		return "%+.4f%% cooldown reduction (per-affix factor %.6f)" % [modifier.value * 100.0, 1.0 - clampf(modifier.value, 0.0, 1.0)]
-	if stat_id == "increased_buff_duration":
-		return "%+.4f%% timed buff/debuff duration (additive)" % (modifier.value * 100.0)
 	if stat_id != "" and StatCatalog.is_binary(stat_id):
 		return stat_name
 	if stat_id != "" and modifier.stat_id.strip_edges() != "":

@@ -3,8 +3,8 @@ extends RefCounted
 const DEFAULT_PATH := "user://practice_build.json"
 const CORE_PATH := "user://practice_bladedancer_core.json"
 static var core_save_path := CORE_PATH
-const SAVE_VERSION := 3
-const ITEMS := ["weapon", "helm", "armor", "trinket", "charm"]
+const SAVE_VERSION := 4
+const ITEMS := ["weapon", "helm", "armor", "trinket", "charm", "legs", "hands"]
 const SETUP_FIELDS := ["duration_ms", "fight_seed", "random_fight_seed_enabled", "generated_monster_difficulty_id", "generated_contract_level", "legendary_missing_attempts"]
 static var save_path := DEFAULT_PATH
 static var last_error := ""
@@ -15,7 +15,22 @@ static func _registry(state: TrainingRoomState) -> BuildContentRegistry:
 static func _path(state: TrainingRoomState) -> String:
 	return state.practice_save_path if state.practice_save_path != "" else save_path
 
-static func save_setup(state: TrainingRoomState) -> bool:
+static func save_setup(state: TrainingRoomState, replace_existing: bool = false) -> bool:
+	if SaveSystem.session_only: return true
+	if not SevenSlotSaveBoundary.ensure_ready(_path(state)):
+		last_error = SevenSlotSaveBoundary.last_error
+		return false
+	if not replace_existing and FileAccess.file_exists(_path(state) + ".tmp"):
+		last_error = "An uncommitted Practice temporary save was preserved; explicitly use Save Setup to replace it."
+		return false
+	if not replace_existing and FileAccess.file_exists(_path(state)):
+		var existing := TrainingRoomState.new()
+		existing.content_registry = state.content_registry
+		existing.practice_save_path = state.practice_save_path
+		var outcome := load_setup(existing)
+		if outcome.status != "loaded":
+			last_error = "Existing Practice setup could not be validated; explicitly use Save Setup to replace it. " + String(outcome.message)
+			return false
 	if state.legendary_missing_attempts < 0 or state.legendary_missing_attempts > 99:
 		last_error = "Practice missing attempts outside supported range."
 		return false
@@ -58,6 +73,8 @@ static func save_setup(state: TrainingRoomState) -> bool:
 	return true
 
 static func load_setup(state: TrainingRoomState) -> Dictionary:
+	if SaveSystem.session_only: return _failed("Test Mode does not load Practice saves.")
+	if not SevenSlotSaveBoundary.ensure_ready(_path(state)): return _failed(SevenSlotSaveBoundary.last_error)
 	if not FileAccess.file_exists(_path(state)):
 		return {"status": "missing", "message": ""}
 	var parsed := StrictSaveJson.read(FileAccess.get_file_as_string(_path(state)))
@@ -66,7 +83,7 @@ static func load_setup(state: TrainingRoomState) -> Dictionary:
 	var data: Dictionary = parsed.data
 	if not SaveSystem._valid_build_shape(data.get("build")):
 		return _failed("Invalid Practice build shape.")
-	if typeof(data.get("practice_version")) != TYPE_INT or data.practice_version not in [1, 2, SAVE_VERSION]:
+	if typeof(data.get("practice_version")) != TYPE_INT or data.practice_version != SAVE_VERSION:
 		return _failed("Unsupported Practice version.")
 	var gear_error := SaveSystem.gear_payload_error(data, data.practice_version >= 2)
 	if gear_error != "":
@@ -151,12 +168,6 @@ static func load_setup(state: TrainingRoomState) -> Dictionary:
 			return _failed("Invalid generated target metadata.")
 	candidate.configured_gold = data.gold
 	candidate.gold = data.gold
-	if typeof(data.get("build")) == TYPE_DICTIONARY and _registry(state).incompatible.has(data.build.get("content_revision")):
-		var fresh := TrainingRoomState.new()
-		fresh.set_class(load("res://data/classes/rogue.tres"))
-		SaveSystem.copy_state(fresh, state)
-		var written := save_setup(state)
-		return {"status": "reset-incompatible", "message": "The incompatible Practice setup was reset." + ("" if written else " It could not be saved.")}
 	var decoded := BuildSaveCodec.decode(data.get("build"), _registry(state))
 	if decoded.error != "":
 		return _failed(decoded.error)
@@ -188,11 +199,12 @@ static func _valid_carried_entry(entry: Variant) -> bool:
 	return SaveSystem._is_valid_slot(entry.slot) and SaveSystem._is_valid_tier(entry.tier) and SaveSystem._is_valid_source_kind(entry.source_kind)
 
 static func _valid_owned_entries(data: Dictionary) -> bool:
+	if typeof(data.get("items")) != TYPE_DICTIONARY or typeof(data.get("equipment")) != TYPE_DICTIONARY or data.items.size() != ITEMS.size() or data.equipment.size() != ITEMS.size(): return false
 	for entry in data.carried_items:
 		if not _valid_carried_entry(entry):
 			return false
 	var slots := {"weapon": GearItem.SlotType.WEAPON, "helm": GearItem.SlotType.HELM,
-		"armor": GearItem.SlotType.ARMOR, "trinket": GearItem.SlotType.TRINKET, "charm": GearItem.SlotType.CHARM}
+		"armor": GearItem.SlotType.ARMOR, "trinket": GearItem.SlotType.TRINKET, "charm": GearItem.SlotType.CHARM, "legs": GearItem.SlotType.LEGS, "hands": GearItem.SlotType.HANDS}
 	for slot in ITEMS:
 		if not _valid_carried_entry(data.items.get(slot)):
 			return false

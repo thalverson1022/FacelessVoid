@@ -1,5 +1,7 @@
 # M7-T3 — Accepted visual conventions and closeout
 
+> **Retained mechanics/presentation reference.** Work status and scope are maintained in the current M9 tracker and phase roadmap. Older checkpoint/save-policy labels below are historical; the approved M9 save reset applies at implementation. [Current context](P6_Project_Onboarding_Context.md).
+
 Status: **Complete — user-requested closeout, 2026-10-09 (P6M7-D015).**
 
 This is the current T3 design record. It supersedes the rejected lanes/event-list proposal and the prototype's historical pending-review instructions. The user accepted the Test Mode changes except combat-log changes, requested promotion to live modes, and then explicitly requested T3 closeout. M7 remains in progress; T4–T11 are not complete.

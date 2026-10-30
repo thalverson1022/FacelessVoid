@@ -458,7 +458,7 @@ func _initialize() -> void:
 	var expected_result: CombatResolver.CombatResult = CombatResolver.resolve(
 		expected_rotation, expected_stats, expected_monster, expected_duration_ms, build_state.current_combat_rng_seed()
 	)
-	var expected_log := CombatResultFormatter.format(expected_result, expected_monster)
+	var expected_log := CombatResultFormatter.event_log(expected_result)
 	button_sfx_before = audio_manager.button_press_sfx_play_count
 	enemy_panel.fight_button().button_down.emit()
 	enemy_panel.fight_button().pressed.emit()
@@ -470,8 +470,8 @@ func _initialize() -> void:
 	print(combat_screen._log_overlay._log_label.text)
 	assert(not combat_screen._log_overlay._log_label.text.contains("[DIAG"))
 	assert(combat_screen._log_overlay._log_label.text == expected_log)
-	assert(combat_screen._log_overlay._log_label.text.contains("VICTORY!"))
-	assert(combat_screen._log_overlay._log_label.text.contains("DPS"))
+	assert(combat_screen._log_overlay._details.text.contains("Victory"))
+	assert(combat_screen._log_overlay._inspector._summary_row.get_child_count() == 3)
 	assert(combat_screen._log_overlay._inspector.visible)
 	assert(combat_screen._log_overlay._inspector._timeline_chart._rows.size() > 0)
 	assert(combat_screen._log_overlay._inspector._damage_chart._rows.size() > 0)
@@ -742,7 +742,7 @@ func _initialize() -> void:
 	enemy_panel.fight_pressed.emit()
 	await process_frame
 	assert(combat_screen._victory_overlay.visible)
-	assert(combat_screen._log_overlay._log_label.text.contains("Drunk Buddy"))
+	assert(combat_screen._log_overlay._details.text.contains("Drunk Buddy"))
 	print("reward after second win: %s" % _reward_row_text(combat_screen))
 	assert(_reward_row_text(combat_screen).contains(": 18g"))
 	assert(_reward_row_text(combat_screen).contains("Lucky Coin"))
@@ -1191,8 +1191,8 @@ func _initialize() -> void:
 	enemy_panel._fight_button.pressed.emit()
 	await process_frame
 	print("route fight phase after generated route node: %d" % build_state.run_phase)
-	print("route fight log contains generated node (expect true): %s" % combat_screen._log_overlay._log_label.text.contains(generated_route_name))
-	assert(combat_screen._log_overlay._log_label.text.contains(generated_route_name))
+	print("route fight details contain generated node (expect true): %s" % combat_screen._log_overlay._details.text.contains(generated_route_name))
+	assert(combat_screen._log_overlay._details.text.contains(generated_route_name))
 	assert(combat_screen._view_log_button.disabled == false)
 	# This regression is about the post-contract-reward shop transition, not
 	# route balance for the broad dashboard build assembled above. Contract

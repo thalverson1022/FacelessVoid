@@ -147,14 +147,14 @@ func signet_coin() -> void:
 	var depth_chance: int = economy._scaled_reward_upgrade_chance_bp(1000, 1, 0.0)
 	near(economy._scaled_reward_upgrade_chance_bp(1000, 1, raw.magic_find), roundi(depth_chance * 2.2), "Existing economy consumer receives doubled total MF")
 	var live := Live.resolve(raw, 0, 0)
-	near(live.attack_speed, 5.2, "Overcap 260% crit gives +520% IAS")
-	near(live.physical_damage_multiplier, 4.2, "Inherent x2 crit plus gear x0.6 gives +320% physical")
+	near(live.attack_speed, 3.9, "Overcap 260% crit gives +390% IAS")
+	near(live.physical_damage_multiplier, 3.4, "Inherent x2 crit plus gear x0.6 gives +240% physical")
 	near(Live.chance(live, 1.0), 0.0, "Signet effective hit no crit")
 	var state := State.new(raw)
 	state.replace_source("temporary.crit", "test.temporary_crit", [mod(StatCatalog.CRIT_CHANCE, 0.5)], 100)
-	near(Live.resolve(state.snapshot(), 0, 0).attack_speed, 6.2, "Temporary numeric crit source feeds live Signet")
+	near(Live.resolve(state.snapshot(), 0, 0).attack_speed, 4.65, "Temporary numeric crit source feeds live Signet")
 	state.remove_source("temporary.crit", 200)
-	near(Live.resolve(state.snapshot(), 0, 0).attack_speed, 5.2, "Temporary numeric source removal restores conversion")
+	near(Live.resolve(state.snapshot(), 0, 0).attack_speed, 3.9, "Temporary numeric source removal restores conversion")
 	state.replace_source("temporary.mf", "test.temporary_mf", [mod(StatCatalog.INCREASED_MAGIC_FIND, 0.2)], 300)
 	near(state.snapshot().magic_find, 1.6, "Coin rebuild uses undoubled raw baseline plus source")
 	near(state.snapshot().elemental_damage_multiplier, 1.8, "Coin rebuilt total feeds downstream derivation")
@@ -172,11 +172,11 @@ func signet_coin() -> void:
 	gold.crit_chance_per_stolen_gold = 0.01
 	gold.crit_multiplier_per_current_gold = 0.001
 	var ga := Live.resolve(gold, 100, 10, {"crit_chance": 0.2})
-	near(ga.attack_speed, 6.0, "Gold legacy theft Silvered and Beguiling all feed Signet")
-	near(ga.physical_damage_multiplier, 6.4, "Gold Gilded and legacy stash feed Signet")
+	near(ga.attack_speed, 4.5, "Gold legacy theft Silvered and Beguiling all feed Signet")
+	near(ga.physical_damage_multiplier, 5.05, "Gold Gilded and legacy stash feed Signet")
 	var gb := Live.resolve(ga, 200, 30)
-	near(gb.attack_speed, 6.4, "Live stash theft conversion is replacement not accumulation")
-	near(gb.physical_damage_multiplier, 8.6, "Live stash replacement physical conversion")
+	near(gb.attack_speed, 4.8, "Live stash theft conversion is replacement not accumulation")
+	near(gb.physical_damage_multiplier, 6.7, "Live stash replacement physical conversion")
 	witnesses.signet_coin = {"raw_crit": raw.crit_chance, "ias": live.attack_speed, "physical": live.physical_damage_multiplier, "magic_find": raw.magic_find, "fill_your_pockets_elemental": raw.elemental_damage_multiplier, "baseline_crit": base.crit_chance}
 func live_engine() -> void:
 	var p := PlayerStats.new()
@@ -195,7 +195,7 @@ func live_engine() -> void:
 	for event in result.cast_events:
 		check(not event.is_crit, "Signet suppresses actual Side Step guaranteed crit")
 		near(event.stat_snapshot.get("effective_crit_chance", -1.0), 0.0, "Actual hit effective crit zero")
-		near(event.stat_snapshot.attack_speed, 3.0, "Actual hit IAS not from SideStep guarantee")
+		near(event.stat_snapshot.attack_speed, 2.25, "Actual hit IAS not from SideStep guarantee")
 	var ticks := 0
 	for tick in result.tick_events:
 		if tick.had_active_stack:
@@ -249,20 +249,20 @@ func production_wiring() -> void:
 	signet.legendary_effect_id = "signet"
 	signet.affixes = [mod(StatCatalog.CRIT_CHANCE, 1.5), mod(StatCatalog.CRIT_DAMAGE, 0.5)]
 	var resolved := BuildResolver.resolve_stats(null, [], [], [signet])
-	near(resolved.attack_speed, 3.0, "Build consumers see effective Signet IAS")
-	near(resolved.physical_damage_multiplier, 4.0, "Build consumers see effective Signet physical increase")
+	near(resolved.attack_speed, 2.25, "Build consumers see effective Signet IAS")
+	near(resolved.physical_damage_multiplier, 3.25, "Build consumers see effective Signet physical increase")
 	near(resolved.crit_chance, 1.5, "Uncapped numeric crit retained for live conversion")
 	check(resolved.derivation_base != null, "Effective Signet retains raw rebuild baseline")
-	near(Live.resolve(resolved, 0, 0).attack_speed, 3.0, "Effective build can enter combat without duplicate Signet IAS")
+	near(Live.resolve(resolved, 0, 0).attack_speed, 2.25, "Effective build can enter combat without duplicate Signet IAS")
 	var temporary := State.new(resolved)
 	check(temporary.replace_source("crit", "test.crit", [mod(StatCatalog.CRIT_CHANCE, 0.2)], 0) == "", "Resolved Signet rebase accepts live source")
-	near(Live.resolve(temporary.snapshot(), 0, 0).attack_speed, 3.4, "Signet rebuild uses raw baseline once")
+	near(Live.resolve(temporary.snapshot(), 0, 0).attack_speed, 2.55, "Signet rebuild uses raw baseline once")
 	check(temporary.remove_source("crit", 1) == "", "Resolved Signet source expires")
-	near(Live.resolve(temporary.snapshot(), 0, 0).attack_speed, 3.0, "Signet expiry restores converted build")
+	near(Live.resolve(temporary.snapshot(), 0, 0).attack_speed, 2.25, "Signet expiry restores converted build")
 	check(temporary.replace_source("crit_damage", "test.crit_damage", [mod(StatCatalog.CRIT_DAMAGE, 0.25)], 2) == "", "Signet accepts temporary numeric Crit Damage")
-	near(Live.resolve(temporary.snapshot(), 0, 0).physical_damage_multiplier, 4.5, "Signet converts temporary Crit Damage above normal hit")
+	near(Live.resolve(temporary.snapshot(), 0, 0).physical_damage_multiplier, 3.625, "Signet converts temporary Crit Damage above normal hit")
 	check(temporary.remove_source("crit_damage", 3) == "", "Temporary Crit Damage expires")
-	near(Live.resolve(temporary.snapshot(), 0, 0).physical_damage_multiplier, 4.0, "Signet expiry removes temporary Crit Damage conversion")
+	near(Live.resolve(temporary.snapshot(), 0, 0).physical_damage_multiplier, 3.25, "Signet expiry removes temporary Crit Damage conversion")
 	var bandit_item := GearItem.new()
 	bandit_item.id = "test.production.bandit"
 	bandit_item.legendary_effect_id = "bandit"
@@ -349,8 +349,8 @@ func live_sources() -> void:
 	var hits: Array = result.cast_events.filter(func(v): return v.skill.id == attack.id)
 	check(hits.size() >= 2, "Actual Beguiling before/after expiry hits")
 	if hits.size() >= 2:
-		near(hits[0].stat_snapshot.attack_speed, 1.4, "Actual consumed Decay Beguiling crit converted into IAS")
-		near(hits[1].stat_snapshot.attack_speed, 1.0, "Actual Beguiling expiry removes Signet IAS")
+		near(hits[0].stat_snapshot.attack_speed, 1.05, "Actual consumed Decay Beguiling crit converted into IAS")
+		near(hits[1].stat_snapshot.attack_speed, 0.75, "Actual Beguiling expiry removes Signet IAS")
 		check(hits[0].time_ms - hits[0].cast_start_ms < hits[1].time_ms - hits[1].cast_start_ms, "Actual scheduler rebuilds after Beguiling expiration")
 	var expired := false
 	for row in result.trace.records:
@@ -368,12 +368,12 @@ func live_sources() -> void:
 	var theft := CombatResolver.resolve([thief], gold, target(), 3000, 3, true)
 	check(theft.cast_events.size() >= 2, "Actual live theft witness")
 	near(theft.cast_events[0].stat_snapshot.attack_speed, 0.0, "Signet initial no theft IAS")
-	near(theft.cast_events[1].stat_snapshot.attack_speed, 0.4, "Actual theft Silvered and legacy crit feed next IAS")
-	near(theft.cast_events[0].physical_damage, 30.0, "Signet inherent x2 gives actual +200% physical")
-	near(theft.cast_events[1].physical_damage, 32.0, "Actual Gilded stash changes next-hit physical conversion")
+	near(theft.cast_events[1].stat_snapshot.attack_speed, 0.3, "Actual theft Silvered and legacy crit feed next IAS")
+	near(theft.cast_events[0].physical_damage, 25.0, "Signet inherent x2 gives actual +150% physical")
+	near(theft.cast_events[1].physical_damage, 27.0, "Actual Gilded stash changes next-hit physical conversion")
 	var mythril: GearItem = load("res://data/gear/mithril_karambit.tres")
 	var built := BuildResolver.resolve_stats(null, [], [rule_talent("double_dip", 1.0)], [mythril], 0, [], {"signet": true})
 	near(built.retrigger_chance, 0.0, "Mithril local 50 points excluded from global numeric retrigger")
 	near(built.crit_chance, 0.15, "DoubleDip excludes Mithril local chance")
-	near(Live.resolve(built, 0, 0).attack_speed, 0.45, "Mithril local chance cannot leak into Signet IAS through DoubleDip")
+	near(Live.resolve(built, 0, 0).attack_speed, 0.375, "Mithril local chance cannot leak into Signet IAS through DoubleDip")
 	witnesses.live_sources = {"beguiling_hit_ias": hits[0].stat_snapshot.attack_speed if hits.size() > 0 else -1, "expired_hit_ias": hits[1].stat_snapshot.attack_speed if hits.size() > 1 else -1, "theft_next_ias": theft.cast_events[1].stat_snapshot.attack_speed, "theft_next_physical": theft.cast_events[1].physical_damage, "mithril_numeric_retrigger": built.retrigger_chance}

@@ -62,7 +62,7 @@ func run() -> void:
 	inspector.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.add_child(inspector)
 	inspector.set_result(f.result, f.target, true)
-	await shot("nightkiss_separate_chart", view)
+	await shot("nightkiss_damage_chart", view)
 	var file := FileAccess.open(OUT + "/snapshots.json", FileAccess.WRITE)
 	file.store_string(JSON.stringify(snapshots, "\t"))
 	print("T9_COMBAT_VISUAL PASS snapshots=", snapshots.size())

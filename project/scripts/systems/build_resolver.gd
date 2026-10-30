@@ -19,7 +19,7 @@ const WeaponDamageCatalog := preload("res://scripts/systems/weapon_damage_catalo
 const StatRule := preload("res://scripts/resources/stat_derivation_rule.gd")
 const StatState := preload("res://scripts/systems/combat_stat_state.gd")
 const LiveLegendaryStats := preload("res://scripts/systems/legendary_live_stats.gd")
-const LEGENDARY_EFFECT_IDS := ["wyvern", "umbral", "mithril", "bandit", "bejeweled", "decrepit", "nightkiss", "crown", "samurai", "cloak", "death_door", "signet", "locket", "coil", "wingjammer", "coin"]
+const LEGENDARY_EFFECT_IDS := ["wyvern", "umbral", "mithril", "bandit", "bejeweled", "decrepit", "nightkiss", "crown", "samurai", "cloak", "death_door", "signet", "locket", "coil", "wingjammer", "coin", "serpents_scales", "golden_greeves", "arctic_mittens", "hands_of_the_lightning_lord"]
 
 
 static func resolve_stats(class_def: ClassDef, selected_trees: Array[SubclassTree], selected_talents: Array[Talent], equipped_gear: Array[GearItem] = [], current_gold: int = 0, carried_gear: Array[GearItem] = [], legendary_flags: Dictionary = {}) -> PlayerStats:
@@ -30,7 +30,7 @@ static func resolve_stats(class_def: ClassDef, selected_trees: Array[SubclassTre
 			flags[gear.legendary_effect_id] = true
 	flags["all_stacks"] = 0
 	stats.special_effects["legendary"] = flags
-	for flag in ["signet", "crown", "coin", "bandit"]:
+	for flag in ["signet", "crown", "coin", "bandit", "serpents_scales", "golden_greeves", "arctic_mittens", "hands_of_the_lightning_lord"]:
 		stats.set("legendary_" + flag, bool(flags.get(flag, false)))
 	if class_def != null:
 		stats.attack_speed = class_def.base_stats.attack_speed

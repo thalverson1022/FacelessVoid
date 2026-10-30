@@ -1,6 +1,8 @@
 # M7-T7 — Ghost retrigger prototype
 
-2026-10-15. **Historical implementation record through D045; user accepted the treatment. T7 completed under [D046 closeout](P6M7_T7_Combat_Cues_And_Audio_Verification.md).** The user requested this revision after testing the [D042 flurry](P6M7_T7_Retrigger_Flurry_Presentation.md). T7 remains In progress; T6 remains accepted and complete under D041.
+> **Historical record — not an active work plan.** Status labels, next-step instructions and milestone numbering below describe the recorded checkpoint. M8 is closed; consult the current M9 tracker for authorized work. Retained at this path when tooling/manifests depend on it. [Current context](P6_Project_Onboarding_Context.md).
+
+2026-10-15. **Historical implementation record through D045; user accepted the treatment. T7 completed under [D046 closeout](P6M7_T7_Combat_Cues_And_Audio_Verification.md).** The user requested this revision after testing the [D042 flurry](archive/m7/P6M7_T7_Retrigger_Flurry_Presentation.md). T7 remains In progress; T6 remains accepted and complete under D041.
 
 ## Requested revision
 

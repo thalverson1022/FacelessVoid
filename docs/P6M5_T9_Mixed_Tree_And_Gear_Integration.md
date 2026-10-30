@@ -1,5 +1,7 @@
 # M5-T9 — Mixed-tree and gear integration
 
+> **Historical record — not an active work plan.** Status labels, next-step instructions and milestone numbering below describe the recorded checkpoint. M8 is closed; consult the current M9 tracker for authorized work. Retained at this path when tooling/manifests depend on it. [Current context](P6_Project_Onboarding_Context.md).
+
 Date: 2026-10-06. Status: **Complete. Next: T10 full-content player-flow acceptance.**
 
 Authority: the user requested execution of the seven-step T9 plan. Current runtime

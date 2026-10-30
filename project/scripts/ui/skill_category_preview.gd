@@ -9,6 +9,10 @@ var notice: Label
 var pulse: Tween
 var pulse_target: Control
 var pulse_origin := Vector2.ZERO
+var pulse_moves_target := false
+func _process(_delta: float) -> void:
+	if (reduced_motion or CombatEffectIcons.reduced_motion) and is_instance_valid(screen) and is_instance_valid(screen._combat_stage):
+		screen._combat_stage.cancel_category_pose()
 func _ready() -> void:
 	if practice_view: return
 	var row := HBoxContainer.new()
@@ -24,7 +28,7 @@ func _ready() -> void:
 	selector.add_theme_font_override("font", load("res://assets/fonts/VT323-Regular.ttf"))
 	selector.add_theme_font_size_override("font_size", 20)
 	row.add_child(selector)
-	selector.tooltip_text = "Test Mode only: Stab, Venom Jab, Poison Vile and Virulent Poison."
+	selector.tooltip_text = "Test Mode only: Stab, Venom Jab, Poison Vile, Virulent Poison and Blinding Powder."
 	selector.item_selected.connect(func(index): set_enabled(index == 1))
 	var motion := CheckBox.new()
 	motion.text = "Reduced motion"
@@ -50,20 +54,23 @@ func _refresh_palette(node: Node) -> void:
 		node._refresh()
 	for child in node.get_children(): _refresh_palette(child)
 func handles(cast: CombatResolver.CastEvent) -> bool:
-	return enabled and Style.selected(cast.skill) and cast.skill.category != Skill.Category.ATTACK
+	return enabled and Style.popup_selected(cast.skill) and cast.skill.category != Skill.Category.ATTACK
 func windup(cast: CombatResolver.CastEvent, speed: float) -> void:
-	clear_pulse()
 	var stage = screen._combat_stage
-	stage._kill_player_tween()
-	stage.player_actor_anchor.position = stage._player_base_position
-	stage._set_player_animation("idle", true)
-	if reduced_motion or CombatEffectIcons.reduced_motion: return
-	pulse_target = stage.player_actor_anchor
-	pulse_origin = pulse_target.position
-	pulse = create_tween()
-	var duration := maxf(0.05, (cast.time_ms - cast.cast_start_ms) / 1000.0 / maxf(speed, 0.01))
-	pulse.tween_property(pulse_target, "position", pulse_origin + Vector2(0, -5), duration * 0.5)
-	pulse.tween_property(pulse_target, "position", pulse_origin, duration * 0.5)
+	stage.begin_category_windup(cast,speed,not reduced_motion and not CombatEffectIcons.reduced_motion)
+func update_cast_progress(cast: CombatResolver.CastEvent, progress: float, speed: float) -> void:
+	if not handles(cast):
+		screen._combat_stage.update_category_attack_handoff(cast,progress,speed)
+	elif not cast.cooldown_blocked and not cast.resource_unavailable:
+		screen._combat_stage.update_category_progress(cast,progress,speed,not reduced_motion and not CombatEffectIcons.reduced_motion)
+func activate(cast: CombatResolver.CastEvent, speed: float, animate: bool = true) -> void:
+	var successful := not cast.cooldown_blocked and not cast.resource_unavailable and not cast.was_interrupted and not cast.was_dodged
+	if not animate or reduced_motion or CombatEffectIcons.reduced_motion:
+		screen._combat_stage.cancel_category_pose()
+	elif successful:
+		screen._combat_stage.activate_category_pose(cast,speed,true)
+	else:
+		screen._combat_stage.reject_category_pose(cast)
 func show_cast(cast: CombatResolver.CastEvent) -> void:
 	if cast.cooldown_blocked: return
 	clear_pulse()
@@ -73,6 +80,7 @@ func show_cast(cast: CombatResolver.CastEvent) -> void:
 		notice = screen._spawn_text_popup(cast.skill.display_name + "\n" + outcome, Style.COLORS[cast.skill.category])
 	else:
 		notice = screen._popup_layer.spawn(cast.skill.display_name + "\n" + outcome, CombatPopupLayer.Kind.NORMAL, Style.COLORS[cast.skill.category], reduced_motion or CombatEffectIcons.reduced_motion, 36)
+	if notice != null and preload("res://scripts/ui/combat_effect_text.gd").is_health_removal(cast): notice.set_meta("health_removal_initial", true)
 	if reduced_motion or CombatEffectIcons.reduced_motion or cast.cooldown_blocked or cast.resource_unavailable or cast.was_interrupted or cast.was_dodged: return
 	pulse_target = screen._combat_stage.player_actor_anchor if cast.skill.category == Skill.Category.SELF_BUFF else screen._combat_stage.enemy_actor_anchor
 	if pulse_target == null: return
@@ -83,10 +91,14 @@ func show_cast(cast: CombatResolver.CastEvent) -> void:
 func clear_pulse() -> void:
 	if pulse != null and pulse.is_valid(): pulse.kill()
 	if is_instance_valid(pulse_target):
-		pulse_target.position = pulse_origin
+		if pulse_moves_target: pulse_target.position = pulse_origin
 		pulse_target.modulate = Color.WHITE
 	pulse_target = null
+	pulse_moves_target = false
 func clear() -> void:
+	if is_instance_valid(screen) and is_instance_valid(screen._combat_stage): screen._combat_stage.cancel_category_pose()
+	clear_feedback()
+func clear_feedback() -> void:
 	clear_pulse()
 	if is_instance_valid(notice): notice.hide()
 	if is_instance_valid(screen) and is_instance_valid(screen._popup_layer) and screen._popup_layer.has_method("clear_transient_effects"):

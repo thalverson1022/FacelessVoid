@@ -30,6 +30,67 @@ class RetriggerGhost:
 		modulate.a = 0.0
 		set_process(false)
 
+# Three reusable accent nodes bound Legendary presentation during long chains.
+class LegendaryAccent:
+	extends Control
+	var kind := ""
+	var elapsed := 0.0
+	const DURATION := 0.32
+
+	func _process(delta: float) -> void:
+		if CombatEffectIcons.reduced_motion:
+			stop()
+			return
+		elapsed += delta
+		if elapsed >= DURATION:
+			stop()
+		else:
+			queue_redraw()
+
+	func stop() -> void:
+		hide()
+		set_process(false)
+
+	func _draw() -> void:
+		var progress := clampf(elapsed / DURATION, 0.0, 1.0)
+		var alpha := 1.0 - progress
+		var center := size * 0.5
+		var color := Color(0.72, 0.28, 1.0, alpha)
+		if kind == "decrepit":
+			color = Color(0.35, 1.0, 0.28, alpha)
+			var radius := lerpf(12.0, 68.0, ease(progress, 0.5))
+			draw_arc(center, radius, 0.0, TAU, 48, color, 5.0 * alpha + 1.0, true)
+			draw_circle(center, 26.0 * alpha, Color(0.55, 1.0, 0.3, alpha * 0.22), true)
+			for index in 8:
+				var direction := Vector2.from_angle(TAU * float(index) / 8.0)
+				draw_line(center + direction * radius * 0.7, center + direction * (radius + 12.0), color, 3.0 * alpha + 1.0, true)
+		else:
+			if kind == "nightkiss":
+				color = Color(1.0, 0.12, 0.22, alpha)
+			var points := PackedVector2Array()
+			var start := Vector2(-68.0, 42.0)
+			var bend := Vector2(-8.0, -5.0)
+			var end := Vector2(68.0, -42.0)
+			if kind == "nightkiss":
+				start = Vector2(-74.0, 26.0)
+				bend = Vector2(-8.0, -58.0)
+				end = Vector2(74.0, -18.0)
+			for index in 25:
+				var along := float(index) / 24.0
+				var point := start.lerp(bend, along).lerp(bend.lerp(end, along), along)
+				points.append(center + point + Vector2(progress * 10.0, -progress * 4.0))
+			draw_polyline(points, Color(color.r * 0.3, color.g * 0.3, color.b * 0.3, alpha * 0.7), 13.0 * alpha + 2.0, true)
+			draw_polyline(points, color, 7.0 * alpha + 1.0, true)
+			draw_polyline(points, Color(1.0, 0.85, 1.0, alpha * 0.85), 2.0, true)
+
+
+var _legendary_flags := {}
+var _legendary_accents := {}
+var umbral_slash_count := 0
+var decrepit_burst_count := 0
+var nightkiss_swoosh_count := 0
+var poison_retrigger_ghost_count := 0
+
 var _flurry_contact_centers := {}
 var _retrigger_ghost: RetriggerGhost
 const RETRIGGER_GHOST_MIN_REAL_SEC := 0.125
@@ -1059,6 +1120,7 @@ var _player_animation_elapsed := 0.0
 var _player_animation_frame_sec := 0.125
 var _player_animation_loop := false
 var _player_animation_playing := false
+var _player_defeat_last_update_usec := 0
 var _player_current_visible_bounds := ROGUE_VISIBLE_BOUNDS
 var _player_current_anchor_point := ROGUE_ANCHOR_POINT
 var _player_visual_key := PLAYER_VISUAL_KEY
@@ -1067,6 +1129,21 @@ var _enemy_combat_role := ENEMY_COMBAT_ROLE_NORMAL
 var _player_base_position := Vector2.ZERO
 var _enemy_base_position := Vector2.ZERO
 var _player_tween: Tween
+var _category_tail_tween: Tween
+var _category_tail_clock_enabled := false
+var _category_tail_last_usec := 0
+var _category_tail_step_sec := 0.025
+var _category_tail_speed_scale := 1.0
+var _category_cast: CombatResolver.CastEvent
+var _category_progress := 0.0
+var _category_resume_progress := 0.0
+var _category_activated_cast: CombatResolver.CastEvent
+var _category_tail_cast: CombatResolver.CastEvent
+var _category_pending_weapon: Dictionary = {}
+var _category_weapon_cast: CombatResolver.CastEvent
+var _category_weapon_start_progress := 0.0
+var _category_weapon_recovery_sec := 0.1
+signal category_pose_frame_changed(frame_index: int)
 var _enemy_tween: Tween
 var _stun_stars_effect: StunStarsEffect
 var _slow_aura_effect: SlowAuraEffect
@@ -1139,7 +1216,14 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
+	if _category_tail_clock_enabled and _category_tail_tween != null and _category_tail_tween.is_valid():
+		var now := Time.get_ticks_usec()
+		var elapsed := 0.0 if _category_tail_last_usec == 0 else (now-_category_tail_last_usec)/1000000.0
+		_category_tail_last_usec = now
+		_category_tail_tween.custom_step(minf(elapsed,_category_tail_step_sec/maxf(_category_tail_speed_scale,0.001)))
+		return
 	if not _player_animation_playing:
+		_player_defeat_last_update_usec = 0
 		set_process(false)
 		return
 	if _player_stun_freeze_until_msec > 0:
@@ -1149,7 +1233,14 @@ func _process(delta: float) -> void:
 		if _player_animation_key == "idle":
 			_set_player_animation("idle", true)
 			return
-	_player_animation_elapsed += delta
+	var animation_delta := delta
+	if _player_animation_key == "defeat":
+		# Skip can spend a frame flushing events before the death pose exists.
+		# Advance defeat only by time since its own last update, excluding that work.
+		var now := Time.get_ticks_usec()
+		animation_delta = 0.0 if _player_defeat_last_update_usec == 0 else (now - _player_defeat_last_update_usec) / 1000000.0
+		_player_defeat_last_update_usec = now
+	_player_animation_elapsed += animation_delta
 	if _player_animation_elapsed < _player_animation_frame_sec:
 		return
 	_player_animation_elapsed = 0.0
@@ -1158,6 +1249,7 @@ func _process(delta: float) -> void:
 	var frames: Array = animation.get("frames", [])
 	if frames.is_empty():
 		_player_animation_playing = false
+		_player_defeat_last_update_usec = 0
 		set_process(false)
 		return
 	if _player_animation_frame_index >= frames.size():
@@ -1168,6 +1260,7 @@ func _process(delta: float) -> void:
 				_player_animation_frame_index = frames.size() - 1
 				_apply_player_animation_frame()
 				_player_animation_playing = false
+				_player_defeat_last_update_usec = 0
 				set_process(false)
 				return
 			_set_player_animation("idle", true)
@@ -1181,6 +1274,7 @@ func _notification(what: int) -> void:
 
 
 func configure(player_name: String, enemy_name: String, enemy_visual_name: String = "", enemy_combat_role: String = ENEMY_COMBAT_ROLE_NORMAL) -> void:
+	configure_legendary_effects({})
 	_clear_flurry()
 	_kill_actor_tweens()
 	_clear_status_visuals()
@@ -1203,6 +1297,7 @@ func configure(player_name: String, enemy_name: String, enemy_visual_name: Strin
 
 
 func clear_target() -> void:
+	configure_legendary_effects({})
 	_clear_flurry()
 	_kill_actor_tweens()
 	_clear_status_visuals()
@@ -1223,6 +1318,7 @@ func clear_target() -> void:
 
 
 func reset_state() -> void:
+	configure_legendary_effects({})
 	_clear_flurry()
 	_kill_actor_tweens()
 	_effect_generation += 1
@@ -1246,6 +1342,10 @@ func reset_state() -> void:
 	fight_intro_count = 0
 	last_fight_intro_duration_sec = 0.0
 	cast_animation_count = 0
+	umbral_slash_count = 0
+	decrepit_burst_count = 0
+	nightkiss_swoosh_count = 0
+	poison_retrigger_ghost_count = 0
 	poison_tick_pulse_count = 0
 	poison_stack_tint_updates = 0
 	last_poison_stack_tint_stacks = 0
@@ -1296,8 +1396,11 @@ func play_fight_intro(animate: bool = true) -> float:
 	enemy_actor_anchor.modulate = Color(1.0, 1.0, 1.0, 0.72)
 	var tween := create_tween()
 	tween.set_parallel(true)
-	tween.tween_property(player_actor_anchor, "position", _player_base_position, FIGHT_INTRO_SEC).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	tween.tween_property(enemy_actor_anchor, "position", _enemy_base_position, FIGHT_INTRO_SEC).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	# HUD/status layout may settle after the intro starts. Animate offsets
+	# against the current home positions so a deferred layout cannot leave
+	# either actor at an obsolete absolute endpoint (then snap on gold HUD updates).
+	tween.tween_method(func(offset: Vector2): player_actor_anchor.position = _player_base_position + offset, FIGHT_INTRO_PLAYER_OFFSET, Vector2.ZERO, FIGHT_INTRO_SEC).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tween.tween_method(func(offset: Vector2): enemy_actor_anchor.position = _enemy_base_position + offset, FIGHT_INTRO_ENEMY_OFFSET, Vector2.ZERO, FIGHT_INTRO_SEC).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	tween.tween_property(player_actor_anchor, "modulate", Color.WHITE, FIGHT_INTRO_SEC)
 	tween.tween_property(enemy_actor_anchor, "modulate", Color.WHITE, FIGHT_INTRO_SEC)
 	_player_tween = tween
@@ -1392,6 +1495,8 @@ func restore_practice_idle_pose() -> void:
 
 
 func clear_transient_effects() -> void:
+	cancel_category_pose()
+	_stop_legendary_accents()
 	_clear_flurry()
 	_kill_actor_tweens()
 	_restore_actor_layout()
@@ -1450,17 +1555,46 @@ func play_cast_windup(cast: CombatResolver.CastEvent, playback_speed: float = 1.
 	var timing := _windup_animation_timing(cast, animation_key, windup_sec)
 	var start_delay: float = timing["start_delay"]
 	var duration: float = timing["duration"]
-	var contact_sec: float = timing["contact"]
 	last_cast_windup_duration_sec = windup_sec
 	last_cast_animation_start_delay_sec = start_delay
 	last_cast_contact_delay_sec = windup_sec
 	if not animate:
 		_set_player_animation(last_cast_animation_kind, false, duration)
 		return 0.0
+	if _category_tail_tween != null and _category_tail_tween.is_valid():
+		# Preserve the successful release. Only the incoming art is compressed;
+		# its impact deadline and the playback/audio clocks do not move.
+		var tail_remaining := maxf(_category_tail_tween.get_total_elapsed_time(), 0.0)
+		var tail_step := clampf(_cast_windup_duration_sec(_category_tail_cast, playback_speed)*0.06,0.025,0.08)
+		tail_remaining = maxf(tail_step*2.0-tail_remaining,0.001)
+		_category_tail_speed_scale = maxf(1.0,tail_remaining/maxf(windup_sec*0.5,0.001))
+		_category_tail_tween.set_speed_scale(_category_tail_speed_scale)
+		_category_pending_weapon = {"cast":cast,"kind":last_cast_animation_kind,"progress":0.0,"deadline_usec":Time.get_ticks_usec()+int(windup_sec*1000000.0)}
+		_category_cast = null
+		return windup_sec
+	_start_weapon_windup(cast,last_cast_animation_kind,windup_sec)
+	return windup_sec
+
+
+func _start_weapon_windup(cast: CombatResolver.CastEvent, animation_kind: String, windup_sec: float, reserved_release: bool = false, start_progress: float = 0.0) -> void:
+	var timing := _windup_animation_timing(cast,_player_animation_key_for_kind(animation_kind),windup_sec)
+	var start_delay: float = timing["start_delay"]
+	var duration: float = timing["duration"]
+	var contact_sec: float = timing["contact"]
+	if reserved_release and contact_sec > 0.0:
+		var natural_duration := _presentation_duration_for_cast(cast,1.0,_player_animation_key_for_kind(animation_kind))
+		var natural_contact := _contact_delay_for_cast(cast,_player_animation_key_for_kind(animation_kind),natural_duration,false)
+		duration = natural_duration*contact_sec/maxf(natural_contact,0.001)
+	if reserved_release:
+		_kill_player_tween()
+		_set_player_animation("idle",true)
+		_category_weapon_cast = cast
+		_category_weapon_start_progress = start_progress+(1.0-start_progress)*start_delay/maxf(windup_sec,0.001)
+		_category_weapon_recovery_sec = maxf(duration-contact_sec,0.001)
+		return
 	var lunge_target := _player_base_position + Vector2(LUNGE_DISTANCE_PX, 0.0)
 	var recovery_sec := duration - contact_sec
 	var previous_player_tween := _player_tween
-	var animation_kind := last_cast_animation_kind
 	var windup_tween := create_tween()
 	_player_tween = windup_tween
 	if start_delay > 0.0:
@@ -1473,13 +1607,177 @@ func play_cast_windup(cast: CombatResolver.CastEvent, playback_speed: float = 1.
 	windup_tween.tween_property(player_actor_anchor, "position", lunge_target, contact_sec).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	windup_tween.tween_property(player_actor_anchor, "position", _player_base_position, recovery_sec).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 	windup_tween.tween_callback(func(): _set_player_animation("idle", true))
-	return windup_sec
+
+
+
+## Shared non-attack gesture uses only the three existing pre-slash frames.
+## Brief F1/F2 raises occupy 12.5% each; hold F3 for the remaining 75%.
+## The cast is sequence step 4 (source frame 2), at resolver activation.
+func begin_category_windup(cast: CombatResolver.CastEvent, speed: float, animate: bool) -> void:
+	_kill_player_tween()
+	_category_cast = cast
+	_category_progress = 0.0
+	_category_resume_progress = 0.0
+	_category_pending_weapon.clear()
+	if not animate:
+		cancel_category_pose()
+		player_actor_anchor.position = _player_base_position
+		return
+	if _category_tail_tween == null or not _category_tail_tween.is_valid():
+		_set_category_frame(0)
+	var offset := player_actor_anchor.position.x - _player_base_position.x
+	var duration := maxf(0.001, float(cast.time_ms-cast.cast_start_ms)/1000.0/maxf(speed,0.01))
+	if absf(offset) > 0.1:
+		_player_tween = create_tween()
+		_player_tween.tween_method(func(x: float): player_actor_anchor.position = _player_base_position + Vector2(x,0.0), offset, 0.0, minf(0.12,duration*0.25)).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	else:
+		player_actor_anchor.position = _player_base_position
+
+
+func update_category_progress(cast: CombatResolver.CastEvent, progress: float, speed: float, animate: bool) -> void:
+	if not animate:
+		cancel_category_pose()
+		return
+	if _category_cast != cast or _category_activated_cast == cast: return
+	_category_progress = clampf(progress,0.0,1.0)
+	if _category_tail_tween == null or not _category_tail_tween.is_valid():
+		_set_category_frame(_category_windup_frame((_category_progress-_category_resume_progress)/maxf(1.0-_category_resume_progress,0.001)))
+
+
+func update_category_attack_handoff(cast: CombatResolver.CastEvent, progress: float, speed: float) -> void:
+	if _category_pending_weapon.get("cast") == cast:
+		var remaining := _cast_windup_duration_sec(cast,speed)*(1.0-clampf(progress,0.0,1.0))
+		_category_pending_weapon["deadline_usec"] = Time.get_ticks_usec()+int(remaining*1000000.0)
+		_category_pending_weapon["progress"] = progress
+	elif _category_weapon_cast == cast:
+		# Both art and lunge follow authoritative progress until impact. A
+		# speed change must not leave an old short tween finishing this cast.
+		if progress < _category_weapon_start_progress: return
+		var animation_key := _player_animation_key_for_kind(animation_kind_for_cast(cast))
+		if _player_animation_key != animation_key:
+			_set_player_animation(animation_kind_for_cast(cast),false)
+			_category_weapon_cast = cast
+		var frames: Array = _player_animation_cache.get(animation_key,{}).get("frames",[])
+		var remaining_progress := clampf((progress-_category_weapon_start_progress)/maxf(1.0-_category_weapon_start_progress,0.001),0.0,1.0)
+		_player_animation_frame_index = int(remaining_progress*maxi(frames.size()-2,0))
+		_apply_player_animation_frame()
+		player_actor_anchor.position = _player_base_position+Vector2(LUNGE_DISTANCE_PX*(1.0-pow(1.0-remaining_progress,2.0)),0.0)
+
+
+
+func reject_category_pose(cast: CombatResolver.CastEvent) -> void:
+	# A blocked attempt owns no release and must not cancel its predecessor.
+	if _category_cast == cast and _category_tail_cast != cast:
+		_category_cast = null
+		if _category_tail_tween == null: cancel_category_pose()
+
+
+func _category_windup_frame(progress: float) -> int:
+	if progress < 0.125: return 0
+	if progress < 0.25: return 1
+	return 2
+
+
+func activate_category_pose(cast: CombatResolver.CastEvent, speed: float, animate: bool) -> void:
+	if not animate:
+		cancel_category_pose()
+		return
+	if _category_tail_tween != null and _category_tail_tween.is_valid(): _category_tail_tween.kill()
+	_category_cast = cast
+	_category_activated_cast = cast
+	_category_tail_cast = cast
+	_set_category_frame(1)
+	var visual_duration := float(cast.time_ms-cast.cast_start_ms)/1000.0/maxf(speed,0.01)
+	var step := clampf(visual_duration*0.06,0.025,0.08)
+	_category_tail_step_sec = step
+	_category_tail_speed_scale = 1.0
+	_category_tail_tween = create_tween()
+	# An automatic Tween can consume the frame delta from before this
+	# activation and skip its cast pose on a slow frame. Start this pose-only
+	# clock on its first process tick; gameplay/audio deadlines stay unchanged.
+	_category_tail_tween.pause()
+	_category_tail_clock_enabled = true
+	_category_tail_last_usec = 0
+	set_process(true)
+	_category_tail_tween.tween_interval(step)
+	_category_tail_tween.tween_callback(func(): _set_category_frame(0))
+	_category_tail_tween.tween_interval(step)
+	_category_tail_tween.tween_callback(func():
+		_category_tail_tween = null
+		_category_tail_clock_enabled = false
+		_category_tail_cast = null
+		if not _category_pending_weapon.is_empty():
+			var pending := _category_pending_weapon.duplicate()
+			_category_pending_weapon.clear()
+			_start_weapon_windup(pending.cast,pending.kind,maxf((pending.deadline_usec-Time.get_ticks_usec())/1000000.0,0.001),true,pending.get("progress",0.0))
+		elif _category_cast != null and _category_cast != cast:
+			# Start the next raise after the preceding release, fitting it into
+			# the incoming cast's remaining windup rather than skipping to F3.
+			_category_resume_progress = _category_progress
+			_set_category_frame(0)
+		else:
+			_category_cast = null
+			_set_player_animation("idle",true)
+	)
+
+
+func cancel_category_pose(restore_idle: bool = true) -> void:
+	var owned_weapon := _category_weapon_cast != null or not _category_pending_weapon.is_empty()
+	var owned_pose := _category_cast != null or _player_animation_key == "category_raise" or owned_weapon
+	if _category_tail_tween != null and _category_tail_tween.is_valid(): _category_tail_tween.kill()
+	_category_tail_tween = null
+	_category_tail_clock_enabled = false
+	_category_tail_last_usec = 0
+	_category_cast = null
+	_category_activated_cast = null
+	_category_tail_cast = null
+	_category_pending_weapon.clear()
+	_category_weapon_cast = null
+	_category_progress = 0.0
+	_category_resume_progress = 0.0
+	if restore_idle and owned_pose:
+		_kill_player_tween()
+		if player_actor_anchor != null: player_actor_anchor.position = _player_base_position
+	if restore_idle and (_player_animation_key == "category_raise" or owned_weapon): _set_player_animation("idle",true)
+
+
+func _set_category_frame(index: int) -> void:
+	var changed := _player_animation_key != "category_raise" or _player_animation_frame_index != clampi(index,0,2)
+	if not _player_animation_cache.has("category_raise"):
+		var animation := _player_animation_for_key("attack_physical").duplicate(true)
+		animation["frames"] = animation.get("frames",[]).slice(0,3)
+		animation["loop"] = false
+		_player_animation_cache["category_raise"] = animation
+	_player_animation_key = "category_raise"
+	_player_animation_frame_index = clampi(index,0,2)
+	_player_animation_playing = false
+	_player_defeat_last_update_usec = 0
+	last_player_animation_key = "category_raise"
+	last_player_animation_frame_count = 3
+	set_process(_category_tail_clock_enabled)
+	_apply_player_animation_frame()
+	if changed: category_pose_frame_changed.emit(_player_animation_frame_index)
 
 
 func play_cast_impact(cast: CombatResolver.CastEvent, animate: bool = true, include_followups: bool = true) -> float:
 	cast_impact_count += 1
 	if cast == null:
 		return 0.0
+	if _category_weapon_cast == cast:
+		if _player_animation_key != _player_animation_key_for_kind(animation_kind_for_cast(cast)):
+			_set_player_animation(animation_kind_for_cast(cast),false)
+		var frames: Array = _player_animation_cache.get(_player_animation_key,{}).get("frames",[])
+		_player_animation_frame_index = maxi(frames.size()-2,0)
+		_apply_player_animation_frame()
+		player_actor_anchor.position = _player_base_position+Vector2(LUNGE_DISTANCE_PX,0.0)
+		_category_weapon_cast = null
+		_player_animation_elapsed = 0.0
+		_player_animation_playing = true
+		set_process(true)
+		_kill_player_tween()
+		_player_tween = create_tween()
+		_player_tween.tween_property(player_actor_anchor,"position",_player_base_position,_category_weapon_recovery_sec).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+		_player_tween.tween_callback(func(): _set_player_animation("idle",true))
 	if not animate:
 		if cast.was_interrupted:
 			play_interrupt_effect(false)
@@ -1492,6 +1790,7 @@ func play_cast_impact(cast: CombatResolver.CastEvent, animate: bool = true, incl
 		play_dodge_effect(animate)
 	elif cast.physical_damage > 0.0 or cast.blocked_amount > 0.0 or cast.poison_stacks_applied > 0:
 		_play_enemy_recoil(0.0, cast.is_crit)
+	play_legendary_cast_effect(cast, animate)
 	if bandit_blade_effect_active and cast.physical_damage > 0.0:
 		_play_bandit_coin_spray(0.0, cast.is_crit)
 	if include_followups and cast != null and not cast.triggered_skill_names.is_empty():
@@ -1546,6 +1845,57 @@ func _play_triggered_followup(animation_kind: String) -> void:
 	_player_tween.tween_property(player_actor_anchor, "position", lunge_target, followup_contact_sec).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	_player_tween.tween_property(player_actor_anchor, "position", _player_base_position, followup_recovery_sec).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 	_player_tween.tween_callback(func(): _set_player_animation("idle", true))
+
+
+## Call after configure/reset_state with the recorded fight equipment flags.
+func configure_legendary_effects(flags: Dictionary) -> void:
+	_legendary_flags = flags.duplicate()
+	_stop_legendary_accents()
+
+
+func _stop_legendary_accents() -> void:
+	for accent in _legendary_accents.values():
+		if is_instance_valid(accent):
+			accent.stop()
+
+
+func play_legendary_cast_effect(cast: CombatResolver.CastEvent, animate: bool = true) -> void:
+	if cast == null or cast.skill == null or not animate or CombatEffectIcons.reduced_motion:
+		return
+	if cast.was_dodged or cast.was_interrupted or cast.resource_unavailable or cast.cooldown_blocked:
+		return
+	if cast.skill.id == "skill.killers_mark" and bool(_legendary_flags.get("umbral", false)):
+		umbral_slash_count += 1
+		_play_legendary_accent("umbral")
+	elif cast.skill.id == "skill.exsanguinate" and bool(_legendary_flags.get("nightkiss", false)):
+		nightkiss_swoosh_count += 1
+		_play_legendary_accent("nightkiss")
+
+
+## Caller routes a fueled Decrepit all-stack burst, including a preserved cost.
+func play_legendary_poison_consume(animate: bool = true) -> void:
+	if not animate or CombatEffectIcons.reduced_motion or not bool(_legendary_flags.get("decrepit", false)):
+		return
+	decrepit_burst_count += 1
+	_play_legendary_accent("decrepit")
+
+
+func _play_legendary_accent(kind: String) -> void:
+	var accent: LegendaryAccent = _legendary_accents.get(kind)
+	if not is_instance_valid(accent):
+		accent = LegendaryAccent.new()
+		accent.name = "LegendaryAccent_" + kind
+		accent.kind = kind
+		accent.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		accent.size = Vector2(180.0, 150.0)
+		accent.z_index = 31
+		add_child(accent)
+		_legendary_accents[kind] = accent
+	accent.position = _flurry_contact_point() - accent.size * 0.5
+	accent.elapsed = 0.0
+	accent.show()
+	accent.queue_redraw()
+	accent.set_process(true)
 
 
 func set_bandit_blade_effect_active(active: bool) -> void:
@@ -2122,6 +2472,8 @@ func _apply_player_animation_frame() -> void:
 
 
 func _set_player_animation(kind: String, animate: bool = true, duration_override_sec: float = -1.0) -> void:
+	cancel_category_pose(false)
+	_category_weapon_cast = null
 	var animation_key := _player_animation_key_for_kind(kind)
 	var animation := _player_animation_for_key(animation_key)
 	var frames: Array = animation.get("frames", [])
@@ -2138,6 +2490,7 @@ func _set_player_animation(kind: String, animate: bool = true, duration_override
 		if duration_override_sec > 0.0 and frames.size() > 1:
 			_player_animation_frame_sec = maxf(duration_override_sec / float(frames.size()), 0.001)
 	_apply_player_animation_frame()
+	_player_defeat_last_update_usec = Time.get_ticks_usec() if animation_key == "defeat" and _player_animation_playing else 0
 	set_process(_player_animation_playing)
 
 
@@ -2329,14 +2682,17 @@ func _play_enemy_recoil(delay_sec: float, is_crit: bool) -> void:
 	var recoil_out_sec := 0.055 if is_crit else 0.07
 	var recoil_back_sec := 0.105 if is_crit else 0.13
 	var hurt_color := UIColors.COMBAT_CRIT_FLASH if is_crit else UIColors.COMBAT_HIT_FLASH
-	var recoil_target := _enemy_base_position + Vector2(recoil_distance, 0.0)
 	var hit_animation := "idle" if is_crit else "hurt"
 	_enemy_tween = create_tween()
 	_enemy_tween.tween_interval(delay_sec)
 	_enemy_tween.tween_callback(func(): _set_enemy_animation(hit_animation))
-	_enemy_tween.tween_property(enemy_actor_anchor, "position", recoil_target, recoil_out_sec)
+	# Gold HUD refreshes can briefly resize the stage before the next render.
+	# Explicit horizontal offsets avoid capturing that transient Y as the
+	# implicit initial value of a Vector2 property tween.
+	var apply_recoil := func(offset: float): enemy_actor_anchor.position = _enemy_base_position + Vector2(offset, 0.0)
+	_enemy_tween.tween_method(apply_recoil, 0.0, recoil_distance, recoil_out_sec)
 	_enemy_tween.parallel().tween_property(enemy_actor_anchor, "modulate", hurt_color, recoil_out_sec)
-	_enemy_tween.tween_property(enemy_actor_anchor, "position", _enemy_base_position, recoil_back_sec)
+	_enemy_tween.tween_method(apply_recoil, recoil_distance, 0.0, recoil_back_sec)
 	_enemy_tween.parallel().tween_property(enemy_actor_anchor, "modulate", _enemy_poison_modulate(), recoil_back_sec)
 	_enemy_tween.tween_callback(func(): _set_enemy_animation("idle"))
 
@@ -2749,7 +3105,7 @@ func play_retrigger_event(event: CombatPlayback.PlaybackEvent, playback_speed: f
 	if event.cast.was_interrupted:
 		play_interrupt_effect(animate, true)
 		return
-	if not animate or event.cast.resource_unavailable or event.cast.cooldown_blocked:
+	if not animate or CombatEffectIcons.reduced_motion or event.cast.resource_unavailable or event.cast.cooldown_blocked:
 		return
 	# Zero-damage status casts may attack, but Hold/failed attempts do not
 	# impersonate successful weapon contacts.
@@ -2758,6 +3114,25 @@ func play_retrigger_event(event: CombatPlayback.PlaybackEvent, playback_speed: f
 	var animation := _player_animation_for_key(_player_animation_key_for_kind(kind))
 	var frames: Array = animation.get("frames", [])
 	if frames.is_empty(): return
+	_play_retrigger_ghost(animation, frames, event.chain_index, playback_speed)
+	play_cast_impact(event.cast, true, false)
+
+
+## Only repeated Poison events receive the attack echo, never natural ticks.
+func play_poison_retrigger_event(event: CombatPlayback.PlaybackEvent, playback_speed: float, animate: bool) -> void:
+	if event == null or not animate or CombatEffectIcons.reduced_motion:
+		return
+	if event.tick == null or event.tick.origin_kind not in ["poison_repeat", "lightning_poison_repeat"]:
+		return
+	var animation := _player_animation_for_key("attack_poison")
+	var frames: Array = animation.get("frames", [])
+	if frames.is_empty():
+		return
+	_play_retrigger_ghost(animation, frames, event.chain_index, playback_speed, true)
+	poison_retrigger_ghost_count += 1
+
+
+func _play_retrigger_ghost(animation: Dictionary, frames: Array, chain_index: int, playback_speed: float, full_animation: bool = false) -> void:
 	if not is_instance_valid(_retrigger_ghost):
 		_retrigger_ghost = RetriggerGhost.new()
 		_retrigger_ghost.name = "RetriggerGhost"
@@ -2773,7 +3148,7 @@ func play_retrigger_event(event: CombatPlayback.PlaybackEvent, playback_speed: f
 		_retrigger_ghost.material = ghost_material
 		add_child(_retrigger_ghost)
 	_retrigger_ghost.textures.clear()
-	for index in range(maxi(frames.size() - 2, 0), frames.size()):
+	for index in range(0 if full_animation else maxi(frames.size() - 2, 0), frames.size()):
 		var frame: Dictionary = frames[index]
 		var texture := _texture_from_path(frame.get("path", ""))
 		if texture != null: _retrigger_ghost.textures.append(texture)
@@ -2782,7 +3157,7 @@ func play_retrigger_event(event: CombatPlayback.PlaybackEvent, playback_speed: f
 	_retrigger_ghost.size = _retrigger_ghost.texture.get_size()
 	_retrigger_ghost.scale = Vector2(ROGUE_SPRITE_SCALE, ROGUE_SPRITE_SCALE)
 	_retrigger_ghost.pivot_offset = _retrigger_ghost.size * 0.5
-	var side := -1.0 if event.chain_index % 2 == 0 else 1.0
+	var side := -1.0 if chain_index % 2 == 0 else 1.0
 	var target := _flurry_contact_point() + Vector2(-70.0 + side * 8.0, 12.0 + side * 4.0)
 	_retrigger_ghost.start_position = target - ACTOR_LOCAL_ANCHOR + _sprite_position_for_anchor(_retrigger_ghost.size, animation.get("anchor_point", ROGUE_ANCHOR_POINT), ROGUE_SPRITE_SCALE)
 	_retrigger_ghost.position = _retrigger_ghost.start_position
@@ -2792,7 +3167,6 @@ func play_retrigger_event(event: CombatPlayback.PlaybackEvent, playback_speed: f
 	_retrigger_ghost.modulate = Color(0.9, 0.92, 0.95, 0.48)
 	_retrigger_ghost.show()
 	_retrigger_ghost.set_process(true)
-	play_cast_impact(event.cast, true, false)
 
 
 func _clear_flurry() -> void:

@@ -82,18 +82,20 @@ func verify_health(f: Dictionary) -> void:
 	var r: CombatResolver.CombatResult = f.result
 	check(r.is_valid, "legal five-slot Nightkiss runtime fixture valid")
 	check(r.total_health_removed > 0 and r.total_damage == 0, "health removal remains outside damage and DPS")
+	check(r.cast_events.filter(func(event): return event.skill.id == "skill.exsanguinate").size() == 1 and r.total_health_removed == 360.0, "Nightkiss Exsanguinate removes health once at100 percent Retrigger")
+	check(r.cast_events.all(func(event): return event.origin_kind == "macro") and not r.legendary_buffs.has("meditation"), "no Exsanguinate repeat event or Meditation grant appears")
 	var playback := CombatPlayback.new()
 	var fired: Array = []
 	playback.event_callback = func(event): fired.append(event)
 	playback.start(r)
 	playback.skip()
 	check(playback.damage_dealt() == r.total_damage and playback.health_removed() == r.total_health_removed, "skip replays distinct damage and health-removal totals")
-	check(fired.back().chain_health_removed == r.total_health_removed and fired.back().chain_damage == 0, "recursive chain keeps separate totals")
+	check(fired.back().health_removed == r.total_health_removed and fired.back().chain_count <= 1 and fired.back().damage == 0, "standalone Exsanguinate playback keeps separate removal and damage totals")
 	var recap := CombatRecap.summarize(r, f.target)
 	check(recap.health_removed == r.total_health_removed and recap.biggest_hit == 0 and recap.physical_pct == 0, "removal never counted as hit or damage mix")
 	var data := CombatLogInspectorData.build(r, f.target)
-	check(data.damage_rows.is_empty() and data.health_removal_rows.size() == 1 and data.health_removal_rows[0].health_removed == r.total_health_removed, "chart separately totals health removal")
-	check(data.timeline_rows.any(func(row): return row.kind == "health_removal"), "timeline distinguishes typed health-removal operations")
+	check(data.damage_rows.size() == 1 and data.damage_rows[0].damage == r.total_health_removed and data.summary.total_damage == r.total_health_loss(), "log includes health removal in ordinary damage totals and ranking")
+	check(data.timeline_rows.any(func(row): return row.label == "Exsanguinate" and row.kind == "cast"), "log timeline presents Exsanguinate as an ordinary cast")
 	var model := Presentation.new()
 	model.begin(r)
 	for event in fired:
@@ -104,7 +106,7 @@ func verify_health(f: Dictionary) -> void:
 	check("\n".join(recap_view._build_victory_recap_lines(r, f.target)).contains("health removed:"), "actual Adventure victory recap separates removal from damage")
 	recap_view.free()
 	var text := CombatResultFormatter.format(r, f.target)
-	check(text.contains("removes 720.0 health") and text.contains("Health removed:"), "narrative identifies removal")
+	check(text.contains("hits for 360.0") and not text.contains("Health removed:"), "log narrative presents Exsanguinate as damage")
 	var view := TrainingRoomCombatView.new()
 	root.add_child(view)
 	view.play(r, f.target)
@@ -142,19 +144,20 @@ func verify_empty() -> void:
 	var r: CombatResolver.CombatResult = f.result
 	var cast := r.cast_events[0]
 	check(r.is_valid and cast.health_removed == 0 and Text.is_health_removal(cast), "zero-Shred Exsanguinate retains typed health removal")
-	check(CombatResultFormatter._cast_line(cast).contains("removes 0.0 health"), "zero-Shred narrative remains explicit")
+	check(r.cast_events.size() == 1 and r.trigger_candidates_evaluated == 0 and not r.legendary_buffs.has("meditation"), "zero-Shred Exsanguinate creates no phantom repeat or Meditation")
+	check(CombatResultFormatter._cast_line(cast).contains("hits for 0.0"), "zero-Shred damage narrative remains explicit")
 	var layer := CombatPopupLayer.new()
 	root.add_child(layer)
 	layer.size = Vector2(600, 300)
 	var echo := layer.spawn_retrigger(cast, 2)
-	check(echo.text.contains("removes 0 health"), "Adventure echo popup identifies zero removal")
+	check(echo.text.contains("Removes 0 Health"), "Adventure echo popup identifies zero removal")
 	var view := TrainingRoomCombatView.new()
 	root.add_child(view)
 	view._instant_playback = false
 	var event := CombatPlayback._merge_events(r)[0] as CombatPlayback.PlaybackEvent
 	check(view._popup_text(event).contains("removes 0.0 health"), "Practice initial popup identifies zero removal")
 	echo = view._spawn_retrigger_popup(event)
-	check(echo.text.contains("removes 0.0 health"), "Practice echo popup identifies zero removal")
+	check(echo.text.contains("Removes 0 Health"), "Practice echo popup identifies zero removal")
 	view.queue_free()
 	layer.queue_free()
 
@@ -199,16 +202,25 @@ func verify_poison() -> void:
 
 func verify_meditation() -> void:
 	var f := fixture("nightkiss")
-	var r: CombatResolver.CombatResult = f.result
+	var strike := Skill.new()
+	strike.id = "fixture.meditation_attack"
+	strike.base_execution_ms = 300
+	strike.min_execution_ms = 300
+	var hit := PhysicalDamageEffect.new()
+	hit.amount = 200
+	strike.effects = [hit]
+	var r := CombatResolver.resolve([strike], f.stats, f.target, 300, 7, true)
+	check(r.is_valid and r.cast_events.any(func(event): return event.origin_kind == "random_repeat"), "Meditation presentation fixture uses actual attack repeats")
 	var model := Presentation.new()
 	model.begin(r)
 	var last_deadline := 0
 	for record in r.trace.presentation_records:
 		model.advance_to(record.time_ms, record.sequence)
-		if record.kind == "legendary_buff_grant":
+		if record.kind == "legendary_buff_grant" and record.payload.kind == "meditation":
 			var state: Dictionary = model.active["legendary.meditation"].state
 			last_deadline = state.expires_at_ms
-			check(state.units == 5 and state.cap == 5 and Text.magnitude_for("buff.meditation", state) == "Physical damage multiplier: ×2.0", "Meditation count/cap/multiplier follows actual capped grant")
+			check(state.units == 5 and state.cap == 5 and Text.magnitude_for("buff.meditation", state) == "All damage multiplier: ×2.0", "Meditation count/cap/multiplier follows actual capped grant")
+	check(last_deadline > 0, "attack repeats grant a real Meditation deadline")
 	model.advance_to(last_deadline)
 	check(model.units("buff.meditation") == 0, "shared Meditation timer expires at exact deadline")
 	for id in ["buff.footwork", "buff.bypass", "buff.dance", "buff.master_of_poisons", "buff.touch_of_darkness", "buff.beguiling_presence", "status.penetration", "status.potency"]:

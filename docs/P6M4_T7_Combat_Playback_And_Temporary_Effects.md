@@ -1,5 +1,7 @@
 # M4-T7 - Combat playback and temporary effects
 
+> **Historical record — not an active work plan.** Status labels, next-step instructions and milestone numbering below describe the recorded checkpoint. M8 is closed; consult the current M9 tracker for authorized work. Retained at this path when tooling/manifests depend on it. [Current context](P6_Project_Onboarding_Context.md).
+
 Completed 2026-10-02 for scoped Test Mode and Practice. T8 core end-to-end acceptance is next. This task changes presentation, not combat rules, content availability or balance.
 
 ## Delivered

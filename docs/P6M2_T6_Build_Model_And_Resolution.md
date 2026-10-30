@@ -1,5 +1,7 @@
 # P6M2-T6 — Build model and resolution
 
+> **Historical record — not an active work plan.** Status labels, next-step instructions and milestone numbering below describe the recorded checkpoint. M8 is closed; consult the current M9 tracker for authorized work. Retained at this path when tooling/manifests depend on it. [Current context](P6_Project_Onboarding_Context.md).
+
 Follow-up: [T7](P6M2_T7_Content_And_Persistence.md) supersedes the temporary save
 barrier and adds persistence/reset behavior. The boundaries below record T6 closeout.
 

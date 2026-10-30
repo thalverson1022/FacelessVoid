@@ -1,5 +1,7 @@
 # P6M3 Shared Combat Mechanics Tracker
 
+> **Historical record — not an active work plan.** Status labels, next-step instructions and milestone numbering below describe the recorded checkpoint. M8 is closed; consult the current M9 tracker for authorized work. Retained at this path when tooling/manifests depend on it. [Current context](P6_Project_Onboarding_Context.md).
+
 Current combat rules: [Combat Mechanics Reference](Combat_Mechanics_Reference.md). This living reference consolidates accepted rules and interaction exceptions; task handoffs retain historical decisions and validation evidence. Update the reference alongside every accepted mechanics change.
 
 ## Status

@@ -1,5 +1,7 @@
 # P6M2-T2 Cross-Tree Draft Audit
 
+> **Historical record — not an active work plan.** Status labels, next-step instructions and milestone numbering below describe the recorded checkpoint. M8 is closed; consult the current M9 tracker for authorized work. Retained at this path when tooling/manifests depend on it. [Current context](P6_Project_Onboarding_Context.md).
+
 Date: 2026-09-21. Status: Complete as an audit; design decisions remain open.
 
 This audits the four collected drafts against the current FacelessVoid runtime.

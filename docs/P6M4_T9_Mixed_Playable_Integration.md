@@ -1,5 +1,7 @@
 # M4-T9 — Mixed-tree extension and role reversal
 
+> **Historical record — not an active work plan.** Status labels, next-step instructions and milestone numbering below describe the recorded checkpoint. M8 is closed; consult the current M9 tracker for authorized work. Retained at this path when tooling/manifests depend on it. [Current context](P6_Project_Onboarding_Context.md).
+
 Completed 2026-10-02. The exact Bladedancer 15 / Thief 5 build is playable in
 Test Mode and Practice. Practice role reversal retains allocations and rotation.
 M4-T1–T9 are Complete; T10 dense-layout and usability validation is next.

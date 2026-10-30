@@ -1,5 +1,7 @@
 # M4-T10 — Full-tree layout and UI/UX refinement
 
+> **Retained mechanics/presentation reference.** Work status and scope are maintained in the current M9 tracker and phase roadmap. Older checkpoint/save-policy labels below are historical; the approved M9 save reset applies at implementation. [Current context](P6_Project_Onboarding_Context.md).
+
 Status: **Complete - accepted talent-tree UI/UX and final usability validation recorded 2026-10-02. Next: M4-T11.**
 User direction: 2026-10-02. Design and iterate on the complete Bladedancer primary
 and Thief secondary trees so the display can be settled before remaining mechanics

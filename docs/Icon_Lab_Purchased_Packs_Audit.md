@@ -1,5 +1,7 @@
 # Icon Lab purchased-pack audit
 
+> **Historical record — not an active work plan.** Status labels, next-step instructions and milestone numbering below describe the recorded checkpoint. M8 is closed; consult the current M9 tracker for authorized work. Retained at this path when tooling/manifests depend on it. [Current context](P6_Project_Onboarding_Context.md).
+
 Date: 2026-09-25. Source: `F:\Data\Junk\DPS Game\Purchased Sprites\New Icon Packs`.
 Read-only source audit; no purchased assets copied, converted or assigned.
 

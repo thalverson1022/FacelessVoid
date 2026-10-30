@@ -110,6 +110,8 @@ var equipped_helm: GearItem = null
 var equipped_armor: GearItem = null
 var equipped_trinket: GearItem = null
 var equipped_charm: GearItem = null
+var equipped_legs: GearItem = null
+var equipped_hands: GearItem = null
 
 ## P2:R10:T4 -- freeform, hand-editable practice gear, one per slot.
 ## Practice Room starts with no gear equipped; choosing a non-Legendary rarity
@@ -123,6 +125,8 @@ var practice_helm: GearItem
 var practice_armor: GearItem
 var practice_trinket: GearItem
 var practice_charm: GearItem
+var practice_legs: GearItem
+var practice_hands: GearItem
 
 ## P2:R10:T5 -- freeform fight-setup, independent of any real Adventure
 ## encounter/seed. `fight_seed` is deliberately separate from
@@ -152,6 +156,8 @@ func _init() -> void:
 	practice_armor = _make_practice_item(GearItem.SlotType.ARMOR, "Custom Doublet")
 	practice_trinket = _make_practice_item(GearItem.SlotType.TRINKET, "Custom Ring")
 	practice_charm = _make_practice_item(GearItem.SlotType.CHARM, "Custom Necklace")
+	practice_legs = _make_practice_item(GearItem.SlotType.LEGS, "Custom Pants")
+	practice_hands = _make_practice_item(GearItem.SlotType.HANDS, "Custom Gloves")
 	# Not a seeded roster entry -- a plain in-memory Monster this state owns
 	# and mutates directly for Practice Room defense checks, never a .tres.
 	selected_target = Monster.new()
@@ -385,16 +391,21 @@ func clear_slot(item: GearItem) -> void:
 
 ## Rarity-first gear editor (replaces the earlier freeform add/remove-any-
 ## affix editor): picking a rarity for a practice item's slot fixes its real
-## GearGenerator affix-slot shape rather than letting the player add/remove
-## arbitrary numbers of affixes. `item` must be one of the practice paper-doll
-## items -- never a Legendary (those are handled entirely by
+## GearGenerator affix count rather than letting the player add/remove
+## arbitrary numbers of affixes. Chaos rows choose their types independently.
+## `item` must be a practice paper-doll or carried item -- never a Legendary
+## (those are handled entirely by
 ## equip_legendary()/use_custom_weapon(), never passed here).
 func set_slot_rarity(item: GearItem, tier: GearItem.Tier) -> void:
-	if item == null or item.tier == GearItem.Tier.LEGENDARY:
+	if allocation_locked or item == null or item.tier == GearItem.Tier.LEGENDARY:
 		return
-	if item.tier == GearItem.Tier.LEGENDARY: return
 	_equip_practice_item(item)
 	_prune_rotation_to_unlocked()
+	# Reopening/reselecting Chaos must retain independently chosen row types
+	# and manual values, including repeated stats and opposing signs.
+	if tier == GearItem.Tier.CHAOS and item.tier == tier and _has_valid_chaos_affixes(item):
+		build_changed.emit()
+		return
 	item.tier = tier
 	if tier == GearItem.Tier.CRUDE:
 		item.affixes.clear()
@@ -441,6 +452,10 @@ func _equip_practice_item(item: GearItem) -> void:
 			equipped_armor = item
 		GearItem.SlotType.TRINKET:
 			equipped_trinket = item
+		GearItem.SlotType.LEGS:
+			equipped_legs = item
+		GearItem.SlotType.HANDS:
+			equipped_hands = item
 		GearItem.SlotType.CHARM:
 			equipped_charm = item
 
@@ -459,6 +474,12 @@ func _unequip_practice_item(item: GearItem) -> void:
 		GearItem.SlotType.TRINKET:
 			if equipped_trinket == item:
 				equipped_trinket = null
+		GearItem.SlotType.LEGS:
+			if equipped_legs == item:
+				equipped_legs = null
+		GearItem.SlotType.HANDS:
+			if equipped_hands == item:
+				equipped_hands = null
 		GearItem.SlotType.CHARM:
 			if equipped_charm == item:
 				equipped_charm = null
@@ -470,16 +491,70 @@ func _unequip_practice_item(item: GearItem) -> void:
 ## this just seeds a sensible real default instead of leaving it at
 ## whatever the previous stat's magnitude happened to be.
 func set_affix_stat(item: GearItem, index: int, stat: Variant) -> void:
-	if item.tier == GearItem.Tier.LEGENDARY: return
+	if allocation_locked or item == null or item.tier == GearItem.Tier.LEGENDARY: return
 	if index < 0 or index >= item.affixes.size():
 		return
-	var slots := _affix_slots_for_tier(item.tier)
+	var slots := _editor_affix_slots(item)
 	if index >= slots.size():
 		return
 	var modifier: StatModifier = item.affixes[index]
 	var stat_id := _canonical_stat_id_from_selection(stat)
+	if item.tier == GearItem.Tier.CHAOS:
+		var spec: Dictionary = slots[index]
+		if not _pool_for_slot(item.slot, String(spec["category"]), bool(spec["is_drawback"])).has(stat_id):
+			return
 	_apply_stat_to_modifier(modifier, stat_id, item.slot, item.tier, index, slots)
 	build_changed.emit()
+
+
+## Chaos has four independent choices of positive Basic, positive Rare or
+## negative Basic. The persisted modifier category carries each row's type.
+func set_chaos_affix_type(item: GearItem, index: int, category: StatModifier.StatCategory) -> void:
+	if allocation_locked or item == null or item.tier != GearItem.Tier.CHAOS:
+		return
+	if index < 0 or index >= item.affixes.size() or index >= 4:
+		return
+	if not [StatModifier.StatCategory.BASIC, StatModifier.StatCategory.RARE, StatModifier.StatCategory.DRAWBACK].has(category):
+		return
+	var slots := _editor_affix_slots(item)
+	slots[index] = _chaos_roll_spec(category)
+	var spec: Dictionary = slots[index]
+	var pool := _pool_for_slot(item.slot, String(spec["category"]), bool(spec["is_drawback"]))
+	if pool.is_empty():
+		return
+	var modifier: StatModifier = item.affixes[index]
+	var stat_id := StatCatalog.canonical_id_for_modifier(modifier)
+	if not pool.has(stat_id):
+		stat_id = pool[0]
+	_apply_stat_to_modifier(modifier, stat_id, item.slot, item.tier, index, slots)
+	build_changed.emit()
+
+
+func _chaos_roll_spec(category: StatModifier.StatCategory) -> Dictionary:
+	return _roll_spec(StatCatalog.CATEGORY_RARE if category == StatModifier.StatCategory.RARE else StatCatalog.CATEGORY_BASIC, category == StatModifier.StatCategory.DRAWBACK)
+
+
+func _editor_affix_slots(item: GearItem) -> Array[Dictionary]:
+	if item.tier != GearItem.Tier.CHAOS:
+		return _affix_slots_for_tier(item.tier)
+	var slots: Array[Dictionary] = []
+	for modifier in item.affixes:
+		slots.append(_chaos_roll_spec(modifier.category))
+	return slots
+
+
+func _has_valid_chaos_affixes(item: GearItem) -> bool:
+	if item.affixes.size() != 4:
+		return false
+	for modifier in item.affixes:
+		if not [StatModifier.StatCategory.BASIC, StatModifier.StatCategory.RARE, StatModifier.StatCategory.DRAWBACK].has(modifier.category):
+			return false
+		if modifier.is_drawback != (modifier.category == StatModifier.StatCategory.DRAWBACK):
+			return false
+		var spec := _chaos_roll_spec(modifier.category)
+		if not _pool_for_slot(item.slot, String(spec["category"]), bool(spec["is_drawback"])).has(StatCatalog.canonical_id_for_modifier(modifier)):
+			return false
+	return true
 
 
 ## Affix value edits mutate the `StatModifier` field directly -- GearItem/
@@ -517,8 +592,8 @@ func _affix_slots_for_tier(tier: GearItem.Tier) -> Array[Dictionary]:
 		GearItem.Tier.CHAOS:
 			return [
 				_roll_spec(StatCatalog.CATEGORY_BASIC),
-				_roll_spec(StatCatalog.CATEGORY_RARE),
-				_roll_spec(StatCatalog.CATEGORY_BASIC, true),
+				_roll_spec(StatCatalog.CATEGORY_BASIC),
+				_roll_spec(StatCatalog.CATEGORY_BASIC),
 				_roll_spec(StatCatalog.CATEGORY_BASIC),
 			]
 		GearItem.Tier.UNIQUE:
@@ -623,14 +698,7 @@ func _apply_stat_to_modifier(modifier: StatModifier, stat_id: String, slot: Gear
 	modifier.category = _stat_category_for_slot(slots, slot_index)
 	modifier.is_drawback = modifier.category == StatModifier.StatCategory.DRAWBACK
 	modifier.operation = StatModifier.OperationType.ADD
-	var value_slots: Array[Dictionary] = slots.duplicate(true)
-	if tier == GearItem.Tier.CHAOS and not modifier.is_drawback:
-		var category := String(value_slots[slot_index].get("category", StatCatalog.CATEGORY_BASIC))
-		if not StatCatalog.stat_ids_for_slot(slot, category).has(modifier.stat_id):
-			category = StatCatalog.CATEGORY_RARE if StatCatalog.stat_ids_for_slot(slot, StatCatalog.CATEGORY_RARE).has(modifier.stat_id) else StatCatalog.CATEGORY_BASIC
-		value_slots[slot_index]["category"] = category
-		modifier.category = StatModifier.StatCategory.RARE if category == StatCatalog.CATEGORY_RARE else StatModifier.StatCategory.BASIC
-	modifier.value = _tier_value(modifier.stat_id, slot, tier, slot_index, value_slots)
+	modifier.value = _tier_value(modifier.stat_id, slot, tier, slot_index, slots)
 	modifier.display_label = StatCatalog.label_for(modifier.stat_id)
 
 
@@ -1068,7 +1136,7 @@ func run_fight() -> void:
 ## Universal Phase 5 paper-doll order, matching `BuildState.equipped_gear()`.
 func equipped_gear() -> Array[GearItem]:
 	var gear: Array[GearItem] = []
-	for item in [equipped_weapon, equipped_helm, equipped_armor, equipped_trinket, equipped_charm]:
+	for item in [equipped_weapon, equipped_helm, equipped_armor, equipped_trinket, equipped_charm, equipped_legs, equipped_hands]:
 		if item != null:
 			gear.append(item)
 	return gear

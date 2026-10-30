@@ -1,5 +1,7 @@
 # M4-T3 — Icon Lab implementation and handoff
 
+> **Historical record — not an active work plan.** Status labels, next-step instructions and milestone numbering below describe the recorded checkpoint. M8 is closed; consult the current M9 tracker for authorized work. Retained at this path when tooling/manifests depend on it. [Current context](P6_Project_Onboarding_Context.md).
+
 Updated 2026-10-01. **T3 Complete: authoring tool and approved game-icon handoff.**
 See [installed mapping and verification](P6M4_Icon_Assignment_Integration.md).
 The original implementation record below describes the 2026-09-25 baseline;

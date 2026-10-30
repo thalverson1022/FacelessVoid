@@ -138,14 +138,14 @@ func _test_all_item_transactions(s) -> void:
 		ck(s.equipped_item_for_slot(item.slot) == null and s.inventory.has(item) and not s._legendary_claim_eligible(item), label + " unequip transfers without restoring eligibility")
 		ck(s.destroy_inventory_item(item) and s._legendary_claim_eligible(item), label + " inventory destruction restores eligibility")
 		ck(s.grant_gear(item, true) and s.destroy_equipped_item(item.slot) and s._legendary_claim_eligible(item), label + " equipped destruction restores eligibility")
-	# Five concurrent slots have no extra Legendary limit.
+	# Seven concurrent slots have no extra Legendary limit.
 	_fresh(s)
 	var slots := {}
 	for item in LegendaryCatalog.all_items():
 		if not slots.has(item.slot):
 			ck(s.grant_gear(item, true), "all_item_transactions: concurrent slot acquisition %d" % item.slot)
 			slots[item.slot] = true
-	ck(s.equipped_gear().size() == 5 and s.inventory.is_empty(), "all_item_transactions: five concurrent Legendary slots")
+	ck(s.equipped_gear().size() == 7 and s.inventory.is_empty(), "all_item_transactions: seven concurrent Legendary slots")
 	var displaced: GearItem = s.equipped_weapon
 	var incoming: GearItem = load("res://data/gear/mithril_karambit.tres")
 	_fill_inventory(s, s.INVENTORY_CAPACITY)
@@ -257,12 +257,12 @@ func _test_explicit_choice_identity_filter(s) -> void:
 	reward.gear_choice_rewards.assign([item, item.duplicate(true), owned, mystery])
 	reward.legendary_choice_pool.assign(LegendaryCatalog.all_items())
 	reward.legendary_choice_pool.append(item.duplicate(true))
-	reward.legendary_choice_count = 16
+	reward.legendary_choice_count = 20
 	var choices: Array[GearItem] = s._gear_choices_for_reward(reward)
 	var ids := _ids(choices)
 	var unique := {}
 	for id in ids: unique[id] = true
-	ck(ids.size() == 14 and unique.size() == 14 and not ids.has(owned.id) and not ids.has(mystery.id), "explicit_choice_identity_filter: direct plus sampled pools contain distinct eligible IDs")
+	ck(ids.size() == 18 and unique.size() == 18 and not ids.has(owned.id) and not ids.has(mystery.id), "explicit_choice_identity_filter: direct plus sampled pools contain eighteen distinct eligible IDs")
 	ck(_ids(s._gear_choices_for_reward(reward)) == ids, "explicit_choice_identity_filter: exact seeded replay")
 	s.pending_reward_choices.assign(choices)
 	ck(s.choose_pending_reward_gear(item) and s.pending_reward_choices.is_empty() and s.equipped_item_for_slot(item.slot) == item, "explicit_choice_identity_filter: actual choice grants one and clears alternatives")

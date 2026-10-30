@@ -1,5 +1,7 @@
 # DPS Balance — Quick Reference
 
+> **Historical record — not an active work plan.** Status labels, next-step instructions and milestone numbering below describe the recorded checkpoint. M8 is closed; consult the current M9 tracker for authorized work. Retained at this path when tooling/manifests depend on it. [Current context](P6_Project_Onboarding_Context.md).
+
 **Live baseline:** P6M5-D023 · 6 October 2026
 
 Crude Dagger only · naked, zero-defense dummy · zero starting stash (Gilded Blade includes gold stolen during combat). Mean DPS: 200 seeds, checked against 200 independent seeds. Fixed allocations; best rotations found in the search.

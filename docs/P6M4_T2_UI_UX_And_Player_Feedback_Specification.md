@@ -1,5 +1,7 @@
 # M4-T2 — UI/UX and player-feedback specification
 
+> **Historical record — not an active work plan.** Status labels, next-step instructions and milestone numbering below describe the recorded checkpoint. M8 is closed; consult the current M9 tracker for authorized work. Retained at this path when tooling/manifests depend on it. [Current context](P6_Project_Onboarding_Context.md).
+
 Date: 2026-09-25. Status: **Complete — specification and initial inventory; implementation and rendered acceptance remain downstream.**
 
 This is a design deliverable. It does not promote content, implement screens,

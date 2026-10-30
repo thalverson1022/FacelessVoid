@@ -17,7 +17,7 @@ const EXPECTED := {
 	"signet_of_the_old_kings": ["signet", 2, {"crit_chance": 0.2, "crit_damage": 1.0, "chance_to_shred": 0.2}],
 	"lolzorzs_locket": ["locket", 2, {"base_damage": 15.0, "base_elemental_damage": 15.0, "cooldown_reduction": 0.15}],
 	"serpents_coil": ["coil", 1, {"crit_chance": 0.15, "increased_attack_speed": 0.15, "chance_for_retrigger": 0.1}],
-	"wingjammer": ["wingjammer", 1, {"base_damage": 15.0, "increased_gold": 0.5, "crit_applies_penetration": 0.3}],
+	"wingjammer": ["wingjammer", 1, {"base_damage": 15.0, "base_elemental_damage": 15.0, "increased_gold": 0.5, "crit_applies_penetration": 0.3, "crit_applies_potency": 0.3}],
 	"mysterious_lucky_coin": ["coin", 1, {"crit_chance": 1.0, "cooldown_reduction": 0.15}],
 }
 
